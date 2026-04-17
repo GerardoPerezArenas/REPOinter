@@ -6054,6 +6054,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         String resultado = "";
         java.sql.Connection con = null;
         try {
+            final String DEFAULT_FK_WS_SOLICITADO = "1";
             int codOrganizacionEfectivo = codOrganizacion;
             if (codOrganizacionEfectivo <= 0) {
                 final String codOrgRequest = request.getParameter("codOrganizacionModulo");
@@ -6070,7 +6071,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
             final String fechaHastaCVL = request.getParameter("fechaHastaCVL");
             String fkWSSolicitado = request.getParameter("fkWSSolicitado");
             if (fkWSSolicitado == null || fkWSSolicitado.trim().length() == 0) {
-                fkWSSolicitado = "1";
+                fkWSSolicitado = DEFAULT_FK_WS_SOLICITADO;
             }
 
             String usuario = "SISTEMA";
@@ -6091,7 +6092,11 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                     + ", fkWSSolicitado=" + fkWSSolicitado
                     + ", usuario=" + usuario);
 
-            if (listaDocsMasivo == null || listaDocsMasivo.trim().length() == 0) {
+            if (codOrganizacionEfectivo <= 0) {
+                codigoOperacion = "3";
+                resultado = "No se ha podido determinar la organización de ejecución.";
+                log.error("ejecutarCvlMasivoDesdeTexto - codOrganizacion no valido: " + codOrganizacionEfectivo);
+            } else if (listaDocsMasivo == null || listaDocsMasivo.trim().length() == 0) {
                 codigoOperacion = "3";
                 resultado = "Debe indicar una lista de NIF/NIE para procesar.";
                 log.info("ejecutarCvlMasivoDesdeTexto - Lista vacia");
