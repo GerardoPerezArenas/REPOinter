@@ -389,8 +389,8 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         String codProcExpte = datosExpediente[1];
 
 
-        //String separador = "§¥";
-        //String separadortemp = "§¥";
+        //String separador = "ï¿½ï¿½";
+        //String separadortemp = "ï¿½ï¿½";
 
 
         try
@@ -934,8 +934,8 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         AdaptadorSQLBD adapt = this.getAdaptSQLBD(String.valueOf(codOrganizacion));
         String respuestaServicio = "";
         /*
-        //String separador = "§¥";
-        //String separadortemp = "§¥";
+        //String separador = "ï¿½ï¿½";
+        //String separadortemp = "ï¿½ï¿½";
         */
         try
         {
@@ -1982,7 +1982,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
             }
         }
 
-        // Cogemos los datos del Usuario conectadp a la aplicación.
+        // Cogemos los datos del Usuario conectadp a la aplicaciï¿½n.
         UsuarioValueObject usuario = new UsuarioValueObject();
         String usuario_nif = "";
         HttpSession session = request.getSession();
@@ -1997,21 +1997,21 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         }
         usuario_nif = MeLanbideInteropManager.getInstance().getUsuarioNIF(usuario.getIdUsuario(), adapt);
 
-        String unidadTramitadora = usuario.getDepCod() + " - " + usuario.getDep();//"Departamento de Educación";
+        String unidadTramitadora = usuario.getDepCod() + " - " + usuario.getDep();//"Departamento de Educaciï¿½n";
 
         // Para primera pruebas sino existe en properties cogemo el de conciliacion
         String codigoProcedimiento = "";// 10133 Conciliacion CONCM     "SVDI_000233";
         codigoProcedimiento = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.PREFIJO_CODIGO_PROCEDIMIENTO + codProcExpte, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
         if ("".equals(codigoProcedimiento)) {
-            // Sino se recupera del properties deberá devolver error
+            // Sino se recupera del properties deberï¿½ devolver error
             // Sin embargo en estas primeras pruebas recogemos el CONCM
             log.error("Codigo procedimiento no  configurado para consultas en MELANBIDE_INTEROP.properties :  " + ConstantesMeLanbideInterop.PREFIJO_CODIGO_PROCEDIMIENTO + codProcExpte + " --> " + codigoProcedimiento);
             codigoOperacion = "5";
             respuestaServicio = "Codigo procedimiento no  configurado para consultas en MELANBIDE_INTEROP.properties. " + ConstantesMeLanbideInterop.PREFIJO_CODIGO_PROCEDIMIENTO + codProcExpte + " : " + codigoProcedimiento;
             //codigoProcedimiento = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.PREFIJO_CODIGO_PROCEDIMIENTO + "CONCM", ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
         }
-        String nombreProcedimiento = MeLanbideInteropManager.getInstance().getDescripcionProcedimiento(codOrganizacion, codProcExpte, adapt); // Solicitud y matriculación del alumnado";
-        String finalidad = nombreProcedimiento;  //"Solicitud y matriculación del alumnado";
+        String nombreProcedimiento = MeLanbideInteropManager.getInstance().getDescripcionProcedimiento(codOrganizacion, codProcExpte, adapt); // Solicitud y matriculaciï¿½n del alumnado";
+        String finalidad = nombreProcedimiento;  //"Solicitud y matriculaciï¿½n del alumnado";
         String consentimiento = "Si";  // Valores Si o Ley. Al realizar la solicitus el interesdo debe firmar el consentimiento
 
         String nifTramitador = usuario_nif; //"12345678Z";
@@ -6054,44 +6054,51 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         String resultado = "";
         java.sql.Connection con = null;
         try {
+            final int codOrganizacionEfectivo = resolveCodOrganizacion(codOrganizacion, request);
             final String listaDocsMasivo = request.getParameter("listaDocsMasivo");
             final String fechaDesdeCVL = request.getParameter("fechaDesdeCVL");
             final String fechaHastaCVL = request.getParameter("fechaHastaCVL");
-            final String fkWSSolicitado = request.getParameter("fkWSSolicitado");
+            final String fkWSSolicitadoParametro = request.getParameter("fkWSSolicitado");
+            final String fkWSSolicitado = (fkWSSolicitadoParametro != null && fkWSSolicitadoParametro.trim().length() > 0)
+                    ? fkWSSolicitadoParametro.trim() : "1";
+            final String usuario = obtenerUsuarioAuditoria(request);
 
-            final HttpSession sesion = request.getSession(false);
-            String usuario = "SISTEMA";
-            if (sesion != null) {
-                final UsuarioValueObject usu = (UsuarioValueObject) sesion.getAttribute("usuario");
-                if (usu != null) {
-                    if (usu.getNombreUsu() != null && !usu.getNombreUsu().trim().isEmpty()) {
-                        usuario = usu.getNombreUsu();
-                    } else {
-                        usuario = String.valueOf(usu.getIdUsuario());
-                    }
+            log.info("ejecutarCvlMasivoDesdeTexto - Inicio"
+                    + " codOrganizacion=" + codOrganizacionEfectivo
+                    + ", numExpediente=" + numExpediente
+                    + ", fechaDesdeCVL=" + fechaDesdeCVL
+                    + ", fechaHastaCVL=" + fechaHastaCVL
+                    + ", fkWSSolicitado=" + fkWSSolicitado
+                    + ", usuario=" + usuario);
+
+            if (listaDocsMasivo == null || listaDocsMasivo.trim().length() == 0) {
+                codigoOperacion = "3";
+                resultado = "Debe indicar una lista de NIF/NIE para procesar.";
+                log.info("ejecutarCvlMasivoDesdeTexto - Lista vacia");
+            } else {
+                final AdaptadorSQLBD adapt = this.getAdaptSQLBD(String.valueOf(codOrganizacionEfectivo));
+                con = adapt.getConnection();
+
+                final es.altia.flexia.integracion.moduloexterno.melanbide_interop.services.InteropCvlMasivoCsvService servicio
+                        = new es.altia.flexia.integracion.moduloexterno.melanbide_interop.services.InteropCvlMasivoCsvService();
+
+                final es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.InteropCvlMasivoResultadoVO resumen
+                        = servicio.procesarCsv(
+                                new java.io.StringReader(listaDocsMasivo),
+                                fechaDesdeCVL, fechaHastaCVL, codOrganizacionEfectivo,
+                                numExpediente, fkWSSolicitado, usuario, con);
+
+                resultado = "Expediente contexto=" + resumen.getNumExpedienteContexto()
+                        + ", Leidos=" + resumen.getTotalLeidos()
+                        + ", Procesados=" + resumen.getTotalProcesados()
+                        + ", Correctos=" + resumen.getTotalCorrectos()
+                        + ", Errores=" + resumen.getTotalErrores();
+
+                if (!resumen.getErrores().isEmpty()) {
+                    resultado = resultado + " | Detalle errores: " + resumen.getErrores().toString();
                 }
-            }
 
-            final AdaptadorSQLBD adapt = this.getAdaptSQLBD(String.valueOf(codOrganizacion));
-            con = adapt.getConnection();
-
-            final es.altia.flexia.integracion.moduloexterno.melanbide_interop.services.InteropCvlMasivoCsvService servicio
-                    = new es.altia.flexia.integracion.moduloexterno.melanbide_interop.services.InteropCvlMasivoCsvService();
-
-            final es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.InteropCvlMasivoResultadoVO resumen
-                    = servicio.procesarCsv(
-                            new java.io.StringReader(listaDocsMasivo != null ? listaDocsMasivo : ""),
-                            fechaDesdeCVL, fechaHastaCVL, codOrganizacion,
-                            numExpediente, fkWSSolicitado, usuario, con);
-
-            resultado = "Expediente contexto=" + resumen.getNumExpedienteContexto()
-                    + ", Leidos=" + resumen.getTotalLeidos()
-                    + ", Procesados=" + resumen.getTotalProcesados()
-                    + ", Correctos=" + resumen.getTotalCorrectos()
-                    + ", Errores=" + resumen.getTotalErrores();
-
-            if (!resumen.getErrores().isEmpty()) {
-                resultado = resultado + " | Detalle errores: " + resumen.getErrores().toString();
+                log.info("ejecutarCvlMasivoDesdeTexto - Fin OK: " + resultado);
             }
         } catch (Exception ex) {
             codigoOperacion = "2";
@@ -6110,7 +6117,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         final StringBuffer xmlSalida = new StringBuffer();
         xmlSalida.append("<RESPUESTA>");
         xmlSalida.append("<CODIGO_OPERACION>").append(codigoOperacion).append("</CODIGO_OPERACION>");
-        xmlSalida.append("<RESULTADO>").append(resultado).append("</RESULTADO>");
+        xmlSalida.append("<RESULTADO>").append(escapeXml(resultado)).append("</RESULTADO>");
         xmlSalida.append("</RESPUESTA>");
 
         try {
@@ -6123,5 +6130,56 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         } catch (Exception e) {
             log.error("Error preparando response ejecutarCvlMasivoDesdeTexto", e);
         }
+    }
+
+    private String obtenerUsuarioAuditoria(final HttpServletRequest request) {
+        String usuario = "SISTEMA";
+        try {
+            final UsuarioValueObject usu = getUsarioLogueadoEnSession(request);
+            if (usu != null) {
+                if (usu.getNombreUsu() != null && usu.getNombreUsu().trim().length() > 0) {
+                    usuario = usu.getNombreUsu().trim();
+                } else if (usu.getIdUsuario() > 0) {
+                    usuario = String.valueOf(usu.getIdUsuario());
+                }
+            }
+        } catch (Exception ex) {
+            log.error("Error obteniendo usuario de auditoria para CVL masivo", ex);
+        }
+        return usuario;
+    }
+
+    private int resolveCodOrganizacion(final int codOrganizacion, final HttpServletRequest request) {
+        int codOrganizacionEfectivo = codOrganizacion;
+        if (codOrganizacionEfectivo > 0 || request == null) {
+            return codOrganizacionEfectivo;
+        }
+
+        final String[] posiblesParametros = new String[]{"codOrganizacion", "codOrganizacionModulo"};
+        for (int i = 0; i < posiblesParametros.length; i++) {
+            final String valor = request.getParameter(posiblesParametros[i]);
+            if (valor != null && valor.trim().length() > 0) {
+                try {
+                    codOrganizacionEfectivo = Integer.parseInt(valor.trim());
+                    if (codOrganizacionEfectivo > 0) {
+                        return codOrganizacionEfectivo;
+                    }
+                } catch (Exception ex) {
+                    log.error("Valor de codOrganizacion invalido en parametro " + posiblesParametros[i] + ": " + valor, ex);
+                }
+            }
+        }
+        return codOrganizacionEfectivo;
+    }
+
+    private String escapeXml(final String valor) {
+        if (valor == null) {
+            return "";
+        }
+        return valor.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&apos;");
     }
 }
