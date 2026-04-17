@@ -245,10 +245,26 @@
         }
     }
 
+    function abrirSelectorExcel() {
+        var fechaDesde = document.getElementById('fechaDesdeCVLMasivo').value;
+        var fechaHasta = document.getElementById('fechaHastaCVLMasivo').value;
+        if (!fechaDesde || !fechaHasta) {
+            jsp_alerta('A', 'Debe indicar la fecha desde y la fecha hasta antes de cargar el Excel.');
+            return;
+        }
+        document.getElementById('ficheroExcelMasivo').click();
+    }
+
     function cargarDesdeFicheroExcel() {
         var fileInput = document.getElementById('ficheroExcelMasivo');
         if (!fileInput.files || fileInput.files.length === 0) {
-            jsp_alerta('A', 'Por favor, seleccione un archivo Excel.');
+            return;
+        }
+        var fechaDesde = document.getElementById('fechaDesdeCVLMasivo').value;
+        var fechaHasta = document.getElementById('fechaHastaCVLMasivo').value;
+        if (!fechaDesde || !fechaHasta) {
+            jsp_alerta('A', 'Debe indicar la fecha desde y la fecha hasta antes de cargar el Excel.');
+            fileInput.value = '';
             return;
         }
         var file = fileInput.files[0];
@@ -290,6 +306,7 @@
                     return;
                 }
                 document.getElementById('listaDocsMasivo').value = lineas.join('\n');
+                ejecutarCvlMasivoDesdeTexto();
             } catch (err) {
                 jsp_alerta('A', 'Error al procesar el fichero Excel: ' + err.message);
             }
@@ -320,18 +337,17 @@
                         </logic:equal>
                         <hr>
                         <div style="text-align:left; border:1px solid #cccccc; padding:8px; margin-top:8px;">
-                            <label class="legendAzul">CVL masivo por lista de NIF/NIE (CSV pegado)</label><br>
+                            <label class="legendAzul">CVL masivo desde Excel</label><br><br>
                             <label>Fecha desde</label>
                             <input type="date" id="fechaDesdeCVLMasivo" style="width:150px;"/>
+                            &nbsp;
                             <label>Fecha hasta</label>
                             <input type="date" id="fechaHastaCVLMasivo" style="width:150px;"/>
                             <br><br>
-                            <textarea id="listaDocsMasivo" rows="6" style="width:98%;" placeholder="NIF;TIPO_DOC&#10;12345678Z;NIF"></textarea>
-                            <br>
-                            <label>O cargar desde Excel (.xlsx / .xls):</label>
-                            <input type="file" id="ficheroExcelMasivo" accept=".xlsx,.xls" onchange="cargarDesdeFicheroExcel()"/>
+                            <input type="file" id="ficheroExcelMasivo" accept=".xlsx,.xls" style="display:none;" onchange="cargarDesdeFicheroExcel()"/>
+                            <input type="button" id="btnCargarExcel" class="interopBotonMuylargoBoton" value="Cargar Excel y ejecutar" onclick="abrirSelectorExcel()">
                             <br><br>
-                            <input type="button" id="btnCvlMasivoTexto" class="interopBotonMuylargoBoton" value="Ejecutar CVL masivo" onclick="ejecutarCvlMasivoDesdeTexto()">
+                            <textarea id="listaDocsMasivo" rows="4" style="width:98%; display:none;"></textarea>
                         </div>
                     </div>
                 </div>
