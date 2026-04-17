@@ -6054,7 +6054,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         String resultado = "";
         java.sql.Connection con = null;
         try {
-            final String DEFAULT_FK_WS_SOLICITADO = "1";
+            final String DEFAULT_FK_WS_SOLICITADO_VIDA_LABORAL = "1";
             int codOrganizacionEfectivo = codOrganizacion;
             if (codOrganizacionEfectivo <= 0) {
                 final String codOrgRequest = request.getParameter("codOrganizacionModulo");
@@ -6071,7 +6071,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
             final String fechaHastaCVL = request.getParameter("fechaHastaCVL");
             String fkWSSolicitado = request.getParameter("fkWSSolicitado");
             if (fkWSSolicitado == null || fkWSSolicitado.trim().length() == 0) {
-                fkWSSolicitado = DEFAULT_FK_WS_SOLICITADO;
+                fkWSSolicitado = DEFAULT_FK_WS_SOLICITADO_VIDA_LABORAL;
             }
 
             String usuario = "SISTEMA";
@@ -6140,13 +6140,11 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         }
 
         final StringBuffer xmlSalida = new StringBuffer();
-        final String resultadoEscapado = resultado != null
-                ? resultado.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-                .replace("\"", "&quot;").replace("'", "&apos;")
-                : "";
         xmlSalida.append("<RESPUESTA>");
         xmlSalida.append("<CODIGO_OPERACION>").append(codigoOperacion).append("</CODIGO_OPERACION>");
-        xmlSalida.append("<RESULTADO>").append(resultadoEscapado).append("</RESULTADO>");
+        xmlSalida.append("<RESULTADO><![CDATA[")
+                .append(resultado != null ? resultado : "")
+                .append("]]></RESULTADO>");
         xmlSalida.append("</RESPUESTA>");
 
         try {
