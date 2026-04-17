@@ -212,7 +212,7 @@
         var fechaHasta = document.getElementById('fechaHastaCVLMasivo').value;
         var ajax = getXMLHttpRequest();
         var url = '<%=request.getContextPath()%>/PeticionModuloIntegracion.do';
-        var params = 'tarea=preparar&modulo=MELANBIDE_INTEROP&operacion=ejecutarCvlMasivoDesdeTexto&tipo=0&numero=<%=numExpediente%>'
+        var params = 'tarea=preparar&modulo=MELANBIDE_INTEROP&operacion=ejecutarCvlMasivoDesdeTexto&tipo=0&numero=<%=numExpediente%>&codOrganizacionModulo=<%=codOrganizacion%>'
             + '&fechaDesdeCVL=' + encodeURIComponent(fechaDesde)
             + '&fechaHastaCVL=' + encodeURIComponent(fechaHasta)
             + '&fkWSSolicitado=1'
