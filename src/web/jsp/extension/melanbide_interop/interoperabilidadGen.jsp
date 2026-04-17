@@ -50,6 +50,7 @@
 
 <link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/css/estilo.css"/>
 <link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/css/extension/melanbide_interop/melanbide_interop.css"/>
+<script type="text/javascript" src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-OLBgp1GsljhM2TJ+sbHjaiH9txEUvgdDTAzHv2P24donTt6/529l+9Ua0vFImLlb" crossorigin="anonymous"></script>
 
 <script type="text/javascript">
     function configurarPestanas() {}
@@ -244,6 +245,58 @@
         }
     }
 
+    function cargarDesdeFicheroExcel() {
+        var fileInput = document.getElementById('ficheroExcelMasivo');
+        if (!fileInput.files || fileInput.files.length === 0) {
+            jsp_alerta('A', 'Por favor, seleccione un archivo Excel.');
+            return;
+        }
+        var file = fileInput.files[0];
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                var data = new Uint8Array(e.target.result);
+                var workbook = XLSX.read(data, { type: 'array' });
+                var sheet = workbook.Sheets[workbook.SheetNames[0]];
+                var rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+                if (!rows || rows.length < 2) {
+                    jsp_alerta('A', 'El fichero Excel no contiene datos.');
+                    return;
+                }
+                var getCellValue = function(row, idx, defVal) {
+                    return idx >= 0 && row[idx] !== undefined ? String(row[idx]).trim() : defVal;
+                };
+                var header = rows[0];
+                var idxNif = -1, idxTipo = -1;
+                for (var h = 0; h < header.length; h++) {
+                    var col = String(header[h]).trim().toUpperCase();
+                    if (col === 'NIF') idxNif = h;
+                    if (col === 'TIPO_DOC') idxTipo = h;
+                }
+                if (idxNif === -1) {
+                    jsp_alerta('A', 'No se encontró la columna NIF en el Excel.');
+                    return;
+                }
+                var lineas = [];
+                for (var r = 1; r < rows.length; r++) {
+                    var nif = getCellValue(rows[r], idxNif, '');
+                    var tipo = getCellValue(rows[r], idxTipo, 'NIF') || 'NIF';
+                    if (nif !== '') {
+                        lineas.push(nif + ';' + tipo);
+                    }
+                }
+                if (lineas.length === 0) {
+                    jsp_alerta('A', 'No se encontraron filas con datos en el Excel.');
+                    return;
+                }
+                document.getElementById('listaDocsMasivo').value = lineas.join('\n');
+            } catch (err) {
+                jsp_alerta('A', 'Error al procesar el fichero Excel: ' + err.message);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
 </script>
 
 <body>
@@ -268,13 +321,16 @@
                         <hr>
                         <div style="text-align:left; border:1px solid #cccccc; padding:8px; margin-top:8px;">
                             <label class="legendAzul">CVL masivo por lista de NIF/NIE (CSV pegado)</label><br>
-                            <label>Fecha desde (yyyy-MM-dd)</label>
-                            <input type="text" id="fechaDesdeCVLMasivo" style="width:120px;"/>
-                            <label>Fecha hasta (yyyy-MM-dd)</label>
-                            <input type="text" id="fechaHastaCVLMasivo" style="width:120px;"/>
+                            <label>Fecha desde</label>
+                            <input type="date" id="fechaDesdeCVLMasivo" style="width:150px;"/>
+                            <label>Fecha hasta</label>
+                            <input type="date" id="fechaHastaCVLMasivo" style="width:150px;"/>
                             <br><br>
                             <textarea id="listaDocsMasivo" rows="6" style="width:98%;" placeholder="NIF;TIPO_DOC&#10;12345678Z;NIF"></textarea>
                             <br>
+                            <label>O cargar desde Excel (.xlsx / .xls):</label>
+                            <input type="file" id="ficheroExcelMasivo" accept=".xlsx,.xls" onchange="cargarDesdeFicheroExcel()"/>
+                            <br><br>
                             <input type="button" id="btnCvlMasivoTexto" class="interopBotonMuylargoBoton" value="Ejecutar CVL masivo" onclick="ejecutarCvlMasivoDesdeTexto()">
                         </div>
                     </div>
