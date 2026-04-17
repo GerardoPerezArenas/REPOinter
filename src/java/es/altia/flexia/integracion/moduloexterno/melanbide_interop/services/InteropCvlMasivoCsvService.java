@@ -27,12 +27,6 @@ public class InteropCvlMasivoCsvService {
     private static final Logger log = Logger.getLogger(InteropCvlMasivoCsvService.class);
     private static final String SEPARADOR_CSV = ";";
     private static final String PREFIJO_EXP_TECNICO = "CVL_MASIVO";
-    private static final int MAX_NIF = 15;
-    private static final int MAX_TIPO_DOC = 10;
-    private static final int MAX_COD_RESPUESTA = 20;
-    private static final int MAX_DESC_RESPUESTA = 500;
-    private static final int MAX_PAYLOAD = 2000;
-    private static final int MAX_USUARIO = 100;
 
     public InteropCvlMasivoResultadoVO procesarCsv(final Reader csvReader,
         final String fechaDesdeCVL, final String fechaHastaCVL,
@@ -46,10 +40,6 @@ public class InteropCvlMasivoCsvService {
             ? numExpediente.trim() : generarNumExpedienteTecnico(con);
 
     resumen.setNumExpedienteContexto(numExpedienteTrabajo);
-    log.info("InteropCvlMasivoCsvService.procesarCsv - Inicio numExpedienteContexto="
-            + numExpedienteTrabajo + ", codOrganizacion=" + codOrganizacion
-            + ", fechaDesdeCVL=" + fechaDesdeCVL + ", fechaHastaCVL=" + fechaHastaCVL
-            + ", fkWSSolicitado=" + fkWSSolicitado);
 
     BufferedReader br = null;
 
@@ -74,8 +64,8 @@ public class InteropCvlMasivoCsvService {
             resumen.setTotalLeidos(resumen.getTotalLeidos() + 1);
 
             final String[] columnas = normalizarSeparador(linea).split(SEPARADOR_CSV);
-            final String nif = truncate(columnas.length > 0 ? columnas[0].trim().toUpperCase() : "", MAX_NIF);
-            final String tipoDoc = truncate(columnas.length > 1 ? columnas[1].trim().toUpperCase() : "NIF", MAX_TIPO_DOC);
+            final String nif = columnas.length > 0 ? columnas[0].trim().toUpperCase() : "";
+            final String tipoDoc = columnas.length > 1 ? columnas[1].trim().toUpperCase() : "NIF";
 
             if (!esDocumentoValido(nif)) {
                 resumen.setTotalErrores(resumen.getTotalErrores() + 1);
@@ -94,10 +84,9 @@ public class InteropCvlMasivoCsvService {
                         p, fechaDesdeCVL, fechaHastaCVL,
                         codOrganizacion, numExpedienteTrabajo, fkWSSolicitado);
 
-                final String codRespuesta = truncate(response != null ? response.getCodRespuesta() : "WS_NULL", MAX_COD_RESPUESTA);
-                final String descRespuesta = truncate(response != null ? response.getDescRespuesta() : "Respuesta nula del WS CVL", MAX_DESC_RESPUESTA);
-                final String payloadResumen = truncate(construirPayloadResumen(response), MAX_PAYLOAD);
-                final String usuarioAuditoria = truncate(usuario, MAX_USUARIO);
+                final String codRespuesta = response != null ? response.getCodRespuesta() : "WS_NULL";
+                final String descRespuesta = response != null ? response.getDescRespuesta() : "Respuesta nula del WS CVL";
+                final String payloadResumen = construirPayloadResumen(response);
 
                 final InteropCvlMasivoNifVO registro = new InteropCvlMasivoNifVO(
                         null,
@@ -107,7 +96,7 @@ public class InteropCvlMasivoCsvService {
                         codRespuesta,
                         descRespuesta,
                         payloadResumen,
-                        usuarioAuditoria);
+                        usuario);
 
                 InteropCvlMasivoNifDAO.getInstance().insertarRegistro(registro, con);
 
@@ -143,12 +132,6 @@ public class InteropCvlMasivoCsvService {
         }
     }
 
-    log.info("InteropCvlMasivoCsvService.procesarCsv - Fin numExpedienteContexto="
-            + numExpedienteTrabajo + ", leidos=" + resumen.getTotalLeidos()
-            + ", procesados=" + resumen.getTotalProcesados()
-            + ", correctos=" + resumen.getTotalCorrectos()
-            + ", errores=" + resumen.getTotalErrores());
-
     return resumen;
 }
 
@@ -159,12 +142,12 @@ public class InteropCvlMasivoCsvService {
             final InteropCvlMasivoNifVO registro = new InteropCvlMasivoNifVO(
                     null,
                     new Timestamp(System.currentTimeMillis()),
-                    truncate(nif, MAX_NIF),
-                    truncate(tipoDoc, MAX_TIPO_DOC),
-                    truncate(codRespuesta, MAX_COD_RESPUESTA),
-                    truncate(descRespuesta, MAX_DESC_RESPUESTA),
-                    truncate(descRespuesta, MAX_PAYLOAD),
-                    truncate(usuario, MAX_USUARIO));
+                    nif,
+                    tipoDoc,
+                    codRespuesta,
+                    descRespuesta,
+                    descRespuesta,
+                    usuario);
             InteropCvlMasivoNifDAO.getInstance().insertarRegistro(registro, con);
         } catch (Exception ex) {
             log.error("No se pudo registrar auditoria de error para NIF " + nif, ex);
@@ -189,16 +172,6 @@ public class InteropCvlMasivoCsvService {
 
     private boolean esDocumentoValido(final String documento) {
         return documento != null && documento.trim().length() >= 8;
-    }
-
-    private String truncate(final String valor, final int maxLongitud) {
-        if (valor == null) {
-            return null;
-        }
-        if (valor.length() <= maxLongitud) {
-            return valor;
-        }
-        return valor.substring(0, maxLongitud);
     }
 
     private String normalizarSeparador(final String linea) {

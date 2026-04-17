@@ -6054,14 +6054,34 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         String resultado = "";
         java.sql.Connection con = null;
         try {
-            final int codOrganizacionEfectivo = resolveCodOrganizacion(codOrganizacion, request);
+            int codOrganizacionEfectivo = codOrganizacion;
+            if (codOrganizacionEfectivo <= 0) {
+                final String codOrgRequest = request.getParameter("codOrganizacionModulo");
+                if (codOrgRequest != null && codOrgRequest.trim().length() > 0) {
+                    try {
+                        codOrganizacionEfectivo = Integer.parseInt(codOrgRequest.trim());
+                    } catch (Exception ex) {
+                        log.error("ejecutarCvlMasivoDesdeTexto - codOrganizacionModulo invalido: " + codOrgRequest, ex);
+                    }
+                }
+            }
             final String listaDocsMasivo = request.getParameter("listaDocsMasivo");
             final String fechaDesdeCVL = request.getParameter("fechaDesdeCVL");
             final String fechaHastaCVL = request.getParameter("fechaHastaCVL");
-            final String fkWSSolicitadoParametro = request.getParameter("fkWSSolicitado");
-            final String fkWSSolicitado = (fkWSSolicitadoParametro != null && fkWSSolicitadoParametro.trim().length() > 0)
-                    ? fkWSSolicitadoParametro.trim() : "1";
-            final String usuario = obtenerUsuarioAuditoria(request);
+            String fkWSSolicitado = request.getParameter("fkWSSolicitado");
+            if (fkWSSolicitado == null || fkWSSolicitado.trim().length() == 0) {
+                fkWSSolicitado = "1";
+            }
+
+            String usuario = "SISTEMA";
+            final UsuarioValueObject usuarioSesion = getUsarioLogueadoEnSession(request);
+            if (usuarioSesion != null) {
+                if (usuarioSesion.getNombreUsu() != null && usuarioSesion.getNombreUsu().trim().length() > 0) {
+                    usuario = usuarioSesion.getNombreUsu();
+                } else if (usuarioSesion.getIdUsuario() > 0) {
+                    usuario = String.valueOf(usuarioSesion.getIdUsuario());
+                }
+            }
 
             log.info("ejecutarCvlMasivoDesdeTexto - Inicio"
                     + " codOrganizacion=" + codOrganizacionEfectivo
@@ -6115,9 +6135,13 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         }
 
         final StringBuffer xmlSalida = new StringBuffer();
+        final String resultadoEscapado = resultado != null
+                ? resultado.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                .replace("\"", "&quot;").replace("'", "&apos;")
+                : "";
         xmlSalida.append("<RESPUESTA>");
         xmlSalida.append("<CODIGO_OPERACION>").append(codigoOperacion).append("</CODIGO_OPERACION>");
-        xmlSalida.append("<RESULTADO>").append(escapeXml(resultado)).append("</RESULTADO>");
+        xmlSalida.append("<RESULTADO>").append(resultadoEscapado).append("</RESULTADO>");
         xmlSalida.append("</RESPUESTA>");
 
         try {
@@ -6130,56 +6154,5 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         } catch (Exception e) {
             log.error("Error preparando response ejecutarCvlMasivoDesdeTexto", e);
         }
-    }
-
-    private String obtenerUsuarioAuditoria(final HttpServletRequest request) {
-        String usuario = "SISTEMA";
-        try {
-            final UsuarioValueObject usu = getUsarioLogueadoEnSession(request);
-            if (usu != null) {
-                if (usu.getNombreUsu() != null && usu.getNombreUsu().trim().length() > 0) {
-                    usuario = usu.getNombreUsu().trim();
-                } else if (usu.getIdUsuario() > 0) {
-                    usuario = String.valueOf(usu.getIdUsuario());
-                }
-            }
-        } catch (Exception ex) {
-            log.error("Error obteniendo usuario de auditoria para CVL masivo", ex);
-        }
-        return usuario;
-    }
-
-    private int resolveCodOrganizacion(final int codOrganizacion, final HttpServletRequest request) {
-        int codOrganizacionEfectivo = codOrganizacion;
-        if (codOrganizacionEfectivo > 0 || request == null) {
-            return codOrganizacionEfectivo;
-        }
-
-        final String[] posiblesParametros = new String[]{"codOrganizacion", "codOrganizacionModulo"};
-        for (int i = 0; i < posiblesParametros.length; i++) {
-            final String valor = request.getParameter(posiblesParametros[i]);
-            if (valor != null && valor.trim().length() > 0) {
-                try {
-                    codOrganizacionEfectivo = Integer.parseInt(valor.trim());
-                    if (codOrganizacionEfectivo > 0) {
-                        return codOrganizacionEfectivo;
-                    }
-                } catch (Exception ex) {
-                    log.error("Valor de codOrganizacion invalido en parametro " + posiblesParametros[i] + ": " + valor, ex);
-                }
-            }
-        }
-        return codOrganizacionEfectivo;
-    }
-
-    private String escapeXml(final String valor) {
-        if (valor == null) {
-            return "";
-        }
-        return valor.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;")
-                .replace("'", "&apos;");
     }
 }
