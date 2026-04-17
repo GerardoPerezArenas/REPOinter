@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="system">
+    <system systemId="https://svc.integracion.euskadi.net/ctxweb/secured_ssl/x53jsGetDatosIdentidadWS?WSDL" uri="xml-resources/web-service-references/x53jsGetDatosIdentidadWS/wsdl/svc.integracion.euskadi.net/ctxweb/secured_ssl/x53jsGetDatosIdentidadWS.wsdl"/>
+    <system systemId="https://svc.integracion.euskadi.net:443/ctxweb/secured_ssl/x53jsGetDatosIdentidadWS?SCHEMA%2Fbusiness%2Fresources%2Fx53jsGetDatosIdentidadWS%2FXMLSchema_65730821" uri="xml-resources/web-service-references/x53jsGetDatosIdentidadWS/wsdl/svc.integracion.euskadi.net_443/ctxweb/secured_ssl/x53jsGetDatosIdentidadWS.schema/business/resources/x53jsgetdatosidentidadws/xmlschema_65730821.xsd"/>
+    <system systemId="file:/C:/DesarrolloProyectos/Regexlan/flexia/MELANBIDE_INTEROP/build/classes/Respuestas.xml" uri="xml-resources/jaxb/bindingPrueba/Respuestas.xml"/>
+</catalog>

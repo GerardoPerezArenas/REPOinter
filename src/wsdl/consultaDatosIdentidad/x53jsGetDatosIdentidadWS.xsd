@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is 
+	Oracle JAX-WS 2.1.5. -->
+<xs:schema targetNamespace="http://requirenteWS/" version="1.0"
+	xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://requirenteWS/">
+
+	<xs:element name="Exception" type="tns:Exception" />
+
+	<xs:element name="getDatosIdentidadWS" type="tns:getDatosIdentidadWS" />
+
+	<xs:element name="getDatosIdentidadWSResponse" type="tns:getDatosIdentidadWSResponse" />
+
+	<xs:complexType name="getDatosIdentidadWS">
+		<xs:sequence>
+			<xs:element minOccurs="1" name="pOrganoSolicitante" type="xs:string" />
+			<xs:element minOccurs="0" name="pUnidadTramitadora" type="xs:string" />
+			<xs:element minOccurs="1" name="pCodigoProcedimiento"
+				type="xs:string" />
+			<xs:element minOccurs="0" name="pNombreProcedimiento"
+				type="xs:string" />
+			<xs:element minOccurs="1" name="pFinalidad" type="xs:string" />
+			<xs:element minOccurs="1" name="pConsentimiento" type="xs:string" />
+			<xs:element minOccurs="1" name="pNifTramitador" type="xs:string" />
+			<xs:element minOccurs="1" name="pNombreTramitador" type="xs:string" />
+			<xs:element minOccurs="1" name="pIdExpediente" type="xs:string" />
+			<xs:element minOccurs="1" name="pTipoTramite" type="xs:string" />
+			<xs:element minOccurs="1" name="pTipoDocumento" type="xs:string" />
+			<xs:element minOccurs="1" name="pNumDocumento" type="xs:string" />
+			<xs:element minOccurs="0" name="pNombreTitular" type="xs:string" />
+			<xs:element minOccurs="0" name="pApellido1Titular" type="xs:string" />
+			<xs:element minOccurs="0" name="pApellido2Titular" type="xs:string" />
+			<xs:element minOccurs="0" name="pNumSoporte" type="xs:string" />
+			<xs:element minOccurs="0" name="pSexo" type="xs:string" />
+			<xs:element minOccurs="0" name="pFechaNacimiento" type="xs:string" />
+			<xs:element minOccurs="0" name="pProvNacimiento" type="xs:string" />
+			<xs:element minOccurs="0" name="pPaisNacimiento" type="xs:string" />
+			<xs:element minOccurs="0" name="pProvResidencia" type="xs:string" />
+			<xs:element minOccurs="0" name="pPaisResidencia" type="xs:string" />
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="getDatosIdentidadWSResponse">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="return" type="xs:string" />
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="Exception">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="message" type="xs:string" />
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>

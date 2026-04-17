@@ -1,0 +1,215 @@
+<?xml version="1.0"?>
+
+<project name="MELANBIDE_INTEROP" default="compile" basedir=".">
+    <property name="modulo.projectname" value="MELANBIDE_INTEROP"/>
+    <property name="modulo.home" value="."/>
+    <property name="modulo.lib" value="./lib"/>
+    <property name="modulo.source" value="${modulo.home}/src/java"/>	
+    <property name="modulo.source.web" value="${modulo.home}/src/web"/>	
+    <property name="modulo.build" value="${modulo.home}/build"/>
+    <property name="modulo.build.root" value="flexia"/>
+    <property name="modulo.classes" value="${modulo.build}/classes"/>
+    <property name="modulo.classes.text" value="${modulo.classes}/es/altia/flexia/integracion/moduloexterno/melanbide_interop/i18n/text"/>
+    <property name="modulo.src.text" value="${modulo.source}/es/altia/flexia/integracion/moduloexterno/melanbide_interop/i18n/text"/>
+    <property name="modulo.build.web" value="${modulo.build}/${modulo.build.root}"/>
+    <property name="flexia.home"            value="D:\DesarrolloProyectos\Regexlan\Servers\apache-tomcat-7.0.104-64Bit\webapps\flexia18"/>
+    <property name="flexia.home.weblogic"   value="D:\DesarrolloProyectos\Regexlan\Servers\weblogicServerMiddleware12c\Middleware\Oracle_Home\user_projects\domains\flexia\servers\AdminServer\apps\flexiadesa"/>
+    <property name="flexia.classes"         value="D:\DesarrolloProyectos\Regexlan\flexia\LCE_18.01_LANBIDE_SVN\build\web\WEB-INF\classes"/>
+	
+	
+	<!-- **** Propiedades para tarea ant de WS **** -->
+	
+	<property name="pilotoURL.wsdl" value="http://10.168.212.173:17003/langaiWS/services"/> 		<!--pru    /LangaiDem?wsdl-->
+	<!--<property name="pilotoURL.wsdl" value="http://10.168.212.21:17003/langaiWS/services"/>--> 	<!--desa   /LangaiDem?WSDL-->
+	<property name="servicioDem" value="LangaiDem" />
+	<property name="sufijowsdl" value="?wsdl"/>
+	<property name="generated.dir" value="${modulo.source}/es/altia/flexia/integracion/moduloexterno/melanbide_interop_ws/webservice/langaideman"/>
+	
+	<!-- **** **** **** -->
+	
+	
+	<!--
+	<property name="modulo.report.classes" value="${modulo.classes}/es/altia/flexia/integracion/moduloexterno/melanbide_interop/reports/"/>	
+	<property name="modulo.report" value="${modulo.home}/src/java/es/altia/flexia/integracion/moduloexterno/melanbide_interop/reports/"/>	
+	<property name="modulo.report.imagenes.classes" value="${modulo.classes}/es/altia/flexia/integracion/moduloexterno/melanbide_interop/reports/imagenes/"/>	
+	<property name="modulo.report.imagenes" value="${modulo.home}/src/java/es/altia/flexia/integracion/moduloexterno/melanbide_interop/reports/imagenes/"/>	
+	<property name="modulo.plantillas.classes" value="${modulo.classes}/es/altia/flexia/integracion/moduloexterno/melanbide_interop/plantillas/"/>
+	<property name="modulo.plantillas" value="${modulo.home}/src/java/es/altia/flexia/integracion/moduloexterno/melanbide_interop/plantillas/"/>	
+	-->	
+    
+    <!-- =============================  ClassPath ============================== -->
+
+    <path id="modulo.classpath">
+        <fileset dir="${modulo.lib}">
+            <include name="*.jar"/>
+        </fileset>
+    </path>
+	
+	<path id="axis.classpath">
+		<fileset dir="${modulo.lib}">
+    		<include name="*.jar" />
+  		</fileset>
+		<!--
+ 		<fileset dir="C:\Users\davidg.VITORIA\Documents\Software\eclipse-jee-juno-SR1-win32\eclipse\Proyectos\LangaiDeman\lib">
+    		<include name="*.jar" />
+  		</fileset>
+		<fileset dir="C:\Users\davidg.VITORIA\Documents\Software\eclipse-jee-juno-SR1-win32\eclipse\Proyectos\LangaiDeman\lib">
+    		<include name="xercesImpl.jar" />
+  		</fileset>
+  		<fileset dir="C:\Users\davidg.VITORIA\Documents\Software\eclipse-jee-juno-SR1-win32\eclipse\Proyectos\LangaiDeman\lib">
+    		<include name="activation.jar" />
+  		</fileset>
+  		 		<fileset dir="C:\Users\davidg.VITORIA\Documents\Software\eclipse-jee-juno-SR1-win32\eclipse\Proyectos\LangaiDeman\lib">
+    		<include name="mail.jar" />
+  		</fileset>
+		-->
+	</path>
+
+
+    <!-- Java compiler -->
+    <property name="build.compiler" value="modern"/>
+    <property name="javac.debug" value="on"/>
+    <property name="javac.optimize" value="off"/>
+    <property name="javac.deprecation" value="on"/>
+
+
+    <!-- ============================ "init" target ============================ -->
+    <target name="init">
+        <echo>
+            --------------------------------------------------------------------------------
+            Ejecutando fichero build-parche.xml para el modulo externo "${modulo.projectname}" ...
+            --------------------------------------------------------------------------------
+        </echo>
+    </target>
+
+    <!-- ========================== "compile" target =========================== -->
+
+    <target name="compile" depends="cleanclasses">
+        <echo>
+            --------------------------------------------------------------------------------
+            Compilando el modulo "${modulo.projectname}"
+            --------------------------------------------------------------------------------            
+        </echo>
+        <mkdir dir="${modulo.classes}"/>
+        <javac srcdir="${modulo.source}"
+               destdir="${modulo.classes}"
+               debug="${javac.debug}"
+               optimize="${javac.optimize}"
+               classpathref="modulo.classpath"
+               deprecation="${javac.deprecation}">
+                
+               <classpath>
+                    <pathelement path="${flexia.classes}"/>                    
+               </classpath>
+        </javac>
+    </target>
+
+    <!-- ========================= "cleanclasses" target ======================= -->
+   <target name="cleanclasses" depends="init">      
+       <delete dir="${modulo.build}"/>
+   </target>
+
+   <!-- ========================== "rebuild" target =========================== -->
+   <target name="rebuild" depends="cleanclasses, compile"/>
+
+   <!-- ========================== "generarModulo" target =========================== -->
+   <target name="generarModulo" depends="compile">
+        <echo>
+            --------------------------------------------------------------------------------
+            Generando el modulo con la estructura de parche de Flexia en ${modulo.build}
+            --------------------------------------------------------------------------------            
+        </echo>
+
+       <copy todir="${modulo.build.web}">
+            <fileset dir="${modulo.source.web}">
+                <include name="**/*"/>
+            </fileset>
+       </copy>
+
+       <copy todir="${modulo.classes}">
+            <fileset dir="${modulo.source}">
+                <include name="*.properties"/>
+            </fileset>
+       </copy>
+	   <!-- 
+		<copy todir="${flexia.home}\scripts">
+			<fileset dir="${modulo.build}\${modulo.build.root}\scripts"/>
+		</copy>
+	
+	  <copy todir="${modulo.report.classes}">
+            <fileset dir="${modulo.report}">
+                <include name="*.jasper"/>
+				<include name="*.jrxml"/>
+				<include name="*.txt"/>
+            </fileset>			
+       </copy>
+
+	   <copy todir="${modulo.plantillas.classes}">
+            <fileset dir="${modulo.plantillas}">
+                <include name="*.xls"/>
+            </fileset>			
+       </copy>
+		 -->  
+	   <copy todir="${modulo.classes.text}">
+            <fileset dir="${modulo.src.text}">
+                <include name="*.properties"/>
+            </fileset>							
+       </copy>	   
+   </target>
+   
+   <target name="desplegar" depends="generarModulo">
+		<copy todir="${flexia.home}\jsp">
+			<fileset dir="${modulo.build}\${modulo.build.root}\jsp_flexia16"/>
+		</copy>
+	
+		<copy todir="${flexia.home}\css">
+			<fileset dir="${modulo.build}\${modulo.build.root}\css"/>
+		</copy>
+	
+		<copy todir="${flexia.home}\scripts">
+			<fileset dir="${modulo.build}\${modulo.build.root}\scripts"/>
+		</copy>
+         
+		<copy todir="${flexia.home}\images">
+			<fileset dir="${modulo.build}\${modulo.build.root}\images"/>
+		</copy>
+			
+		<copy todir="${flexia.home}\WEB-INF\classes">
+			<fileset dir="${modulo.classes}"/>
+		</copy>
+		
+		<!--	Apartado para despliegue en Weblogic	-->
+	   <copy todir="${flexia.home.weblogic}\jsp">
+			<fileset dir="${modulo.build}\${modulo.build.root}\jsp_flexia16"/>
+		</copy>
+		<copy todir="${flexia.home.weblogic}\css">
+			<fileset dir="${modulo.build}\${modulo.build.root}\css"/>
+		</copy>
+	<!--
+		<copy todir="${flexia.home.weblogic}\scripts">
+			<fileset dir="${modulo.build}\${modulo.build.root}\scripts"/>
+		</copy>
+	-->	
+		<copy todir="${flexia.home.weblogic}\images">
+			<fileset dir="${modulo.build}\${modulo.build.root}\images"/>
+		</copy>
+
+		<copy todir="${flexia.home.weblogic}\WEB-INF\classes">
+			<fileset dir="${modulo.classes}"/>
+		</copy>
+		
+		
+   </target>
+   
+   <!-- ========================== Ant de WS LangaiDeman target =========================== -->
+   <!-- Definimos las tareas de axis -->
+	<taskdef resource="axis-tasks.properties" classpathref="axis.classpath" />
+		
+	<target name="Generar_Cliente_WS_LangaiDem" description="Genera cliente Demanda">
+		<axis-wsdl2java output="${generated.dir}" testcase="false" verbose="true" url="${pilotoURL.wsdl}/${servicioDem}${sufijowsdl}" >
+	    	<mapping namespace="http://axis.apache.org/ns/interop" package="interop.langaiDem" />
+		</axis-wsdl2java>
+	</target>
+   
+   
+</project>

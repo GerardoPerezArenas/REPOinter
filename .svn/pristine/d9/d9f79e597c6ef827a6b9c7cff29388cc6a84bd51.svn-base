@@ -1,0 +1,636 @@
+annotation.processing.enabled=true
+annotation.processing.enabled.in.editor=false
+annotation.processing.processors.list=
+annotation.processing.run.all.processors=true
+annotation.processing.source.output=${build.generated.sources.dir}/ap-source-output
+application.title=MELANBIDE_INTEROP
+application.vendor=davidg
+build.classes.dir=${build.dir}/classes
+build.classes.excludes=**/*.java,**/*.form
+# This directory is removed when the project is cleaned:
+build.dir=build
+build.generated.dir=${build.dir}/generated
+build.generated.sources.dir=${build.dir}/generated-sources
+# Only compile against the classpath explicitly listed here:
+build.sysclasspath=ignore
+build.test.classes.dir=${build.dir}/test/classes
+build.test.results.dir=${build.dir}/test/results
+# Uncomment to specify the preferred debugger connection transport:
+#debug.transport=dt_socket
+debug.classpath=\
+    ${run.classpath}
+debug.test.classpath=\
+    ${run.test.classpath}
+# Files in build.classes.dir which should be excluded from distribution jar
+dist.archive.excludes=
+# This directory is removed when the project is cleaned:
+dist.dir=dist
+dist.jar=${dist.dir}/MELANBIDE_INTEROP.jar
+dist.javadoc.dir=${dist.dir}/javadoc
+endorsed.classpath=\
+    ${libs.JAXB-ENDORSED.classpath}
+excludes=
+file.reference.activation-1.1.jar=lib/activation-1.1.jar
+file.reference.AdaptadoresPlateaLan6-2.1.5.jar=lib/AdaptadoresPlateaLan6-2.1.5.jar
+file.reference.afirma_serialization_1.0.jar=lib/afirma_serialization_1.0.jar
+file.reference.AFIRMA_SERVICE-AXIS1_JAVA5.jar=lib/AFIRMA_SERVICE-AXIS1_JAVA5.jar
+file.reference.alfresco-web-service-client.jar=lib/alfresco-web-service-client.jar
+file.reference.Altia-Jaas.jar=lib/Altia-Jaas.jar
+file.reference.altia.jar=lib/altia.jar
+file.reference.altia_auditoria_1.0.20170526.jar=lib/altia_auditoria_1.0.20170526.jar
+file.reference.AltiaX509.jar=lib/AltiaX509.jar
+file.reference.annotations-api.jar=lib/annotations-api.jar
+file.reference.aopalliance-1.0.jar=lib/aopalliance-1.0.jar
+file.reference.aspectjrt.jar=lib/aspectjrt.jar
+file.reference.aspectjweaver.jar=lib/aspectjweaver.jar
+file.reference.avalon-framework-cvs-20020806.jar=lib/avalon-framework-cvs-20020806.jar
+file.reference.axiom-api-1.2.9.jar=lib/axiom-api-1.2.9.jar
+file.reference.axiom-impl-1.2.9.jar=lib/axiom-impl-1.2.9.jar
+file.reference.axis-1.4.jar=lib/axis-1.4.jar
+file.reference.axis-ant.jar=lib/axis-ant.jar
+file.reference.axis-jaxrpc-1.4.jar=lib/axis-jaxrpc-1.4.jar
+file.reference.axis-saaj-1.4.jar=lib/axis-saaj-1.4.jar
+file.reference.axis2-adb-1.5.2.jar=lib/axis2-adb-1.5.2.jar
+file.reference.axis2-kernel-1.5.2.jar=lib/axis2-kernel-1.5.2.jar
+file.reference.axis2-transport-http-1.5.2.jar=lib/axis2-transport-http-1.5.2.jar
+file.reference.axis2-transport-local-1.5.2.jar=lib/axis2-transport-local-1.5.2.jar
+file.reference.barcode4j.jar=lib/barcode4j.jar
+file.reference.batik-all-1.7.jar=lib/batik-all-1.7.jar
+file.reference.bcmail-jdk16-146.jar=lib/bcmail-jdk16-146.jar
+file.reference.bcpkix-jdk15on-158.jar=lib/bcpkix-jdk15on-158.jar
+file.reference.bcprov-jdk16-146.jar=lib/bcprov-jdk16-146.jar
+file.reference.bctsp-jdk15-1.43.jar=lib/bctsp-jdk15-1.43.jar
+file.reference.bctsp-jdk16-146.jar=lib/bctsp-jdk16-146.jar
+file.reference.bforeport.jar=lib/bforeport.jar
+file.reference.bsf-2.3.0.jar=lib/bsf-2.3.0.jar
+file.reference.bsh-1.3.0.jar=lib/bsh-1.3.0.jar
+file.reference.cardme-0.3.6.jar=lib/cardme-0.3.6.jar
+file.reference.cas-client-core-3.1.3.jar=lib/cas-client-core-3.1.3.jar
+file.reference.castor-1.3.1-core.jar=lib/castor-1.3.1-core.jar
+file.reference.castor-1.3.1.jar=lib/castor-1.3.1.jar
+file.reference.client_afirma_1.0.jar=lib/client_afirma_1.0.jar
+file.reference.ClienteServicioWebFormacionLanbide.jar=lib/ClienteServicioWebFormacionLanbide.jar
+file.reference.clienteViaFirmaInbox.jar=lib/clienteViaFirmaInbox.jar
+file.reference.ClienteWSAltaPersonaFisica.jar=lib/ClienteWSAltaPersonaFisica.jar
+file.reference.ClienteWSBusquedaPersonaFisica.jar=lib/ClienteWSBusquedaPersonaFisica.jar
+file.reference.ClienteWSExpedientesFormacion.jar=lib/ClienteWSExpedientesFormacion.jar
+file.reference.ClienteWSFicheroAltaEspecialidadesFormacion.jar=lib/ClienteWSFicheroAltaEspecialidadesFormacion.jar
+file.reference.ClienteWSNotificaciones.jar=lib/ClienteWSNotificaciones.jar
+file.reference.ClienteWSRegistroCentrosFormacion.jar=lib/ClienteWSRegistroCentrosFormacion.jar
+file.reference.ClienteWSRegistroES.jar=lib/ClienteWSRegistroES.jar
+file.reference.ClienteWSSharePointNextRet.jar=lib/ClienteWSSharePointNextRet.jar
+file.reference.commons-beanutils-1.9.3.jar=lib/commons-beanutils-1.9.3.jar
+file.reference.commons-codec-1.11.jar=lib/commons-codec-1.11.jar
+file.reference.commons-collections-3.2.1.jar=lib/commons-collections-3.2.1.jar
+file.reference.commons-configuration-1.6.jar=lib/commons-configuration-1.6.jar
+file.reference.commons-dbcp-1.3.jar=lib/commons-dbcp-1.3.jar
+file.reference.commons-digester-1.6.jar=lib/commons-digester-1.6.jar
+file.reference.commons-discovery-0.4.jar=lib/commons-discovery-0.4.jar
+file.reference.commons-fileupload-1.2.2.jar=lib/commons-fileupload-1.2.2.jar
+file.reference.commons-httpclient-3.1.jar=lib/commons-httpclient-3.1.jar
+file.reference.commons-io-2.1.jar=lib/commons-io-2.1.jar
+file.reference.commons-lang-2.4.jar=lib/commons-lang-2.4.jar
+file.reference.commons-logging-1.0.4.jar=lib/commons-logging-1.0.4.jar
+file.reference.commons-logging-1.1.1.jar=lib/commons-logging-1.1.1.jar
+file.reference.commons-net-1.4.1.jar=lib/commons-net-1.4.1.jar
+file.reference.commons-pool-1.2.jar=lib/commons-pool-1.2.jar
+file.reference.commons-validator-1.3.1.jar=lib/commons-validator-1.3.1.jar
+file.reference.conversorEni-1.0.0.jar=lib/conversorEni-1.0.0.jar
+file.reference.crimson-1.1.3.jar=lib/crimson-1.1.3.jar
+file.reference.displaytag-1.2.jar=lib/displaytag-1.2.jar
+file.reference.documentosTramitacionAlfresco_1.1.jar=lib/documentosTramitacionAlfresco_1.1.jar
+file.reference.dom.jar=lib/dom.jar
+file.reference.dom4j-1.6.1.jar=lib/dom4j-1.6.1.jar
+file.reference.dss-common-2.0.2.jar=lib/dss-common-2.0.2.jar
+file.reference.dss-document-2.0.2.jar=lib/dss-document-2.0.2.jar
+file.reference.dss-itext-2.0.2.jar=lib/dss-itext-2.0.2.jar
+file.reference.dss-service-2.0.2.jar=lib/dss-service-2.0.2.jar
+file.reference.dss-spi-2.0.2.jar=lib/dss-spi-2.0.2.jar
+file.reference.dtdparser.jar=lib/dtdparser.jar
+file.reference.DynamicJasper-4.0.3.jar=lib/DynamicJasper-4.0.3.jar
+file.reference.ehcache-core-2.5.2.jar=lib/ehcache-core-2.5.2.jar
+file.reference.FirmaRedClienteSW.jar=lib/FirmaRedClienteSW.jar
+file.reference.fontbox-2.0.7.jar=lib/fontbox-2.0.7.jar
+file.reference.fop.jar=lib/fop.jar
+file.reference.formsToSGE_2.16.jar=lib/formsToSGE_2.16.jar
+file.reference.fr.opensagres.xdocreport.itext.extension-1.0.4.jar=lib/fr.opensagres.xdocreport.itext.extension-1.0.4.jar
+file.reference.freemarker-2.3.16.jar=lib/freemarker-2.3.16.jar
+file.reference.FSDEsquemas-1.0.jar=lib/FSDEsquemas-1.0.jar
+file.reference.geronimo-stax-api_1.0_spec-1.0.1.jar=lib/geronimo-stax-api_1.0_spec-1.0.1.jar
+file.reference.gestion-numeracion-anotacion_1.0.jar=lib/gestion-numeracion-anotacion_1.0.jar
+file.reference.groovy-all-1.8.5.jar=lib/groovy-all-1.8.5.jar
+file.reference.gson-2.3.1.jar=lib/gson-2.3.1.jar
+file.reference.guice-2.0.jar=lib/guice-2.0.jar
+file.reference.guice-multibindings-2.0.jar=lib/guice-multibindings-2.0.jar
+file.reference.httpclient-4.3.5.jar=lib/httpclient-4.3.5.jar
+file.reference.httpcore-4.3.2.jar=lib/httpcore-4.3.2.jar
+file.reference.httpmime-4.3.5.jar=lib/httpmime-4.3.5.jar
+file.reference.InformarConsultaEsquemas-1.0.jar=lib/InformarConsultaEsquemas-1.0.jar
+file.reference.integra-1.2.2_002.jar=lib/integra-1.2.2_002.jar
+file.reference.interfazXML.jar=lib/interfazXML.jar
+file.reference.INTEROP_EJIE_SERVICE-0.0.1-SNAPSHOT.jar=lib/INTEROP_EJIE_SERVICE-0.0.1-SNAPSHOT.jar
+file.reference.iText-2.1.7.jar=lib/iText-2.1.7.jar
+file.reference.jakarta-oro.jar=lib/jakarta-oro.jar
+file.reference.jakarta-regexp-1.3.jar=lib/jakarta-regexp-1.3.jar
+file.reference.jasperFonts.jar=lib/jasperFonts.jar
+file.reference.jasperreports-6.2.0.jar=lib/jasperreports-6.2.0.jar
+file.reference.javamail-crypto-bouncycastle-smime_060622.jar=lib/javamail-crypto-bouncycastle-smime_060622.jar
+file.reference.javamail-crypto_060622.jar=lib/javamail-crypto_060622.jar
+file.reference.javassist-3.12.0.GA.jar=lib/javassist-3.12.0.GA.jar
+file.reference.javax.annotation-3.1.1.jar=lib/javax.annotation-3.1.1.jar
+file.reference.jaxb-api-2.2.4.jar=lib/jaxb-api-2.2.4.jar
+file.reference.jaxb-impl-2.2.4.jar=lib/jaxb-impl-2.2.4.jar
+file.reference.jaxrpc-api-1.1.jar=lib/jaxrpc-api-1.1.jar
+file.reference.jaxrpc.jar=lib/jaxrpc.jar
+file.reference.jaxws-api-2.2.6.jar=lib/jaxws-api-2.2.6.jar
+file.reference.jaxws-rt-2.1.4.jar=lib/jaxws-rt-2.1.4.jar
+file.reference.jaxws-tools-2.1.4.jar=lib/jaxws-tools-2.1.4.jar
+file.reference.jcip-annotations.jar=lib/jcip-annotations.jar
+file.reference.jcommon-1.0.8.jar=lib/jcommon-1.0.8.jar
+file.reference.jcommon-xml-1.0.8.jar=lib/jcommon-xml-1.0.8.jar
+file.reference.jdbc2_0-stdext.jar=lib/jdbc2_0-stdext.jar
+file.reference.jdom.jar=lib/jdom.jar
+file.reference.jdom2-2.0.5.jar=lib/jdom2-2.0.5.jar
+file.reference.jfreereport-0.8.8.jar=lib/jfreereport-0.8.8.jar
+file.reference.joda-time-1.6.2.jar=lib/joda-time-1.6.2.jar
+file.reference.jodconverter-core-3.0-beta-4.jar=lib/jodconverter-core-3.0-beta-4.jar
+file.reference.jodreports-2.4.0.jar=lib/jodreports-2.4.0.jar
+file.reference.json-lib-2.4-jdk15.jar=lib/json-lib-2.4-jdk15.jar
+file.reference.jsr173_api-1.0.jar=lib/jsr173_api-1.0.jar
+file.reference.jsr181-api-1.0-MR1.jar=lib/jsr181-api-1.0-MR1.jar
+file.reference.jsr250-api-1.0.jar=lib/jsr250-api-1.0.jar
+file.reference.jss-4.2.5.jar=lib/jss-4.2.5.jar
+file.reference.jstl.jar=lib/jstl.jar
+file.reference.jta.jar=lib/jta.jar
+file.reference.jtds-1.2.2.jar=lib/jtds-1.2.2.jar
+file.reference.juh-3.2.1.jar=lib/juh-3.2.1.jar
+file.reference.junit-4.8.2.jar=lib/junit-4.8.2.jar
+file.reference.jurt-3.2.1.jar=lib/jurt-3.2.1.jar
+file.reference.jxl-2.6.12.jar=lib/jxl-2.6.12.jar
+file.reference.lan6GestionErrores-1.8.1.jar=lib/lan6GestionErrores-1.8.1.jar
+file.reference.LAN_Dokusi_IFSD_client-1.0.jar=lib/LAN_Dokusi_IFSD_client-1.0.jar
+file.reference.LAN_InformarConsulta_client-1.0.jar=lib/LAN_InformarConsulta_client-1.0.jar
+file.reference.LAN_NSHF_client-1.1.jar=lib/LAN_NSHF_client-1.1.jar
+file.reference.LAN_Tramitacion_client-1.0.jar=lib/LAN_Tramitacion_client-1.0.jar
+file.reference.LanTGSSNisae-1.0.0.jar=lib/LanTGSSNisae-1.0.0.jar
+file.reference.lib_serialization_telematic_head.jar=lib/lib_serialization_telematic_head.jar
+file.reference.lib_ws_cliente_telematic.jar=lib/lib_ws_cliente_telematic.jar
+file.reference.lib_ws_cliente_telematic_admin.jar=lib/lib_ws_cliente_telematic_admin.jar
+file.reference.lib_ws_cliente_telematic_Head.jar=lib/lib_ws_cliente_telematic_Head.jar
+file.reference.libbase-1.2.2.jar=lib/libbase-1.2.2.jar
+file.reference.libdocbundle-1.2.3.jar=lib/libdocbundle-1.2.3.jar
+file.reference.libfonts-1.2.3.jar=lib/libfonts-1.2.3.jar
+file.reference.libformat-1.2.4.jar=lib/libformat-1.2.4.jar
+file.reference.libformula-1.2.3.jar=lib/libformula-1.2.3.jar
+file.reference.libloader-0.2.2.jar=lib/libloader-0.2.2.jar
+file.reference.libloader-1.2.3.jar=lib/libloader-1.2.3.jar
+file.reference.libpixie-1.2.2.jar=lib/libpixie-1.2.2.jar
+file.reference.librepository-1.2.3.jar=lib/librepository-1.2.3.jar
+file.reference.LibreriaTercerosEgim.jar=lib/LibreriaTercerosEgim.jar
+file.reference.libserializer-1.2.2.jar=lib/libserializer-1.2.2.jar
+file.reference.libxml-1.2.2.jar=lib/libxml-1.2.2.jar
+file.reference.license.jar=lib/license.jar
+file.reference.log4j-1.2.17.jar=lib/log4j-1.2.17.jar
+file.reference.log4j-rolling-appender-20150607-2059.jar=lib/log4j-rolling-appender-20150607-2059.jar
+file.reference.mail-1.4.7.jar=lib/mail-1.4.7.jar
+file.reference.mapstruct-1.2.0.Final.jar=lib/mapstruct-1.2.0.Final.jar
+file.reference.MELANBIDE59.jar=lib/MELANBIDE59.jar
+file.reference.MELANBIDE60.jar=lib/MELANBIDE60.jar
+file.reference.MELANBIDE_DOKUSI_1.4.3.jar=lib/MELANBIDE_DOKUSI_1.4.3.jar
+file.reference.mimepull-1.7.jar=lib/mimepull-1.7.jar
+file.reference.MITyCLibAPI-1.0.4.jar=lib/MITyCLibAPI-1.0.4.jar
+file.reference.MITyCLibCert-1.0.4.jar=lib/MITyCLibCert-1.0.4.jar
+file.reference.MITyCLibOCSP-1.0.4.jar=lib/MITyCLibOCSP-1.0.4.jar
+file.reference.MITyCLibPolicy-1.0.4.jar=lib/MITyCLibPolicy-1.0.4.jar
+file.reference.MITyCLibTrust-1.0.4.jar=lib/MITyCLibTrust-1.0.4.jar
+file.reference.neethi-2.0.4.jar=lib/neethi-2.0.4.jar
+file.reference.nekohtml-1.9.7.jar=lib/nekohtml-1.9.7.jar
+file.reference.NotificacionesEsquemas-1.0.jar=lib/NotificacionesEsquemas-1.0.jar
+file.reference.NSHF_Esquemas.jar=lib/NSHF_Esquemas.jar
+file.reference.obligacionesTributariasNisae-1.0.jar=lib/obligacionesTributariasNisae-1.0.jar
+file.reference.ojdbc14.jar=lib/ojdbc14.jar
+file.reference.ooxml-schemas-1.1.jar=lib/ooxml-schemas-1.1.jar
+file.reference.openid4java-consumer-0.9.5.jar=lib/openid4java-consumer-0.9.5.jar
+file.reference.openid4java-nodeps-0.9.5.jar=lib/openid4java-nodeps-0.9.5.jar
+file.reference.opensaml-2.5.1-1.jar=lib/opensaml-2.5.1-1.jar
+file.reference.openws-1.4.2-1.jar=lib/openws-1.4.2-1.jar
+file.reference.org.apache.poi.xwpf.converter.core-1.0.4.jar=lib/org.apache.poi.xwpf.converter.core-1.0.4.jar
+file.reference.org.apache.poi.xwpf.converter.pdf-1.0.4.jar=lib/org.apache.poi.xwpf.converter.pdf-1.0.4.jar
+file.reference.org.springframework.context.jar=lib/org.springframework.context.jar
+file.reference.pdfbox-2.0.7.jar=lib/pdfbox-2.0.7.jar
+file.reference.pentaho-reporting-engine-classic-core-3.8.3-GA.jar=lib/pentaho-reporting-engine-classic-core-3.8.3-GA.jar
+file.reference.pixie-0.8.6.jar=lib/pixie-0.8.6.jar
+file.reference.pki_viaFirma.jar=lib/pki_viaFirma.jar
+file.reference.plugin_re_pisa-3.0.jar=lib/plugin_re_pisa-3.0.jar
+file.reference.plugin_re_pist-3.0.jar=lib/plugin_re_pist-3.0.jar
+file.reference.plugin_re_rec-3.0.jar=lib/plugin_re_rec-3.0.jar
+file.reference.plugin_re_rte-3.0.jar=lib/plugin_re_rte-3.0.jar
+file.reference.plugin_re_sge-3.0.jar=lib/plugin_re_sge-3.0.jar
+file.reference.poi-3.10-FINAL-20140208.jar=lib/poi-3.10-FINAL-20140208.jar
+file.reference.poi-ooxml-3.10-FINAL-20140208.jar=lib/poi-ooxml-3.10-FINAL-20140208.jar
+file.reference.poi-ooxml-schemas-3.10-FINAL-20140208.jar=lib/poi-ooxml-schemas-3.10-FINAL-20140208.jar
+file.reference.quartz-1.6.0.jar=lib/quartz-1.6.0.jar
+file.reference.R02KSolicitud-2.0.jar=lib/R02KSolicitud-2.0.jar
+file.reference.RdR_Esquemas-1.1.jar=lib/RdR_Esquemas-1.1.jar
+file.reference.RE_Interfaces.jar=lib/RE_Interfaces.jar
+file.reference.resolver-20050927.jar=lib/resolver-20050927.jar
+file.reference.ridl-3.2.1.jar=lib/ridl-3.2.1.jar
+file.reference.rome-1.0.jar=lib/rome-1.0.jar
+file.reference.saaj-api-1.3.4.jar=lib/saaj-api-1.3.4.jar
+file.reference.saaj-impl-1.3.16.jar=lib/saaj-impl-1.3.16.jar
+file.reference.saaj.jar=lib/saaj.jar
+file.reference.sax.jar=lib/sax.jar
+file.reference.saxpath.jar=lib/saxpath.jar
+file.reference.serializer-2.7.1.jar=lib/serializer-2.7.1.jar
+file.reference.servlet-api.jar=lib/servlet-api.jar
+file.reference.sjsxp-1.0.1.jar=lib/sjsxp-1.0.1.jar
+file.reference.SLE_Comun-1.0.jar=lib/SLE_Comun-1.0.jar
+file.reference.SLE_Comun_Notificacion.jar=lib/SLE_Comun_Notificacion.jar
+file.reference.SLE_j6_afirma5_coreV3.jar=lib/SLE_j6_afirma5_coreV3.jar
+file.reference.SLE_PlataformaPKI_afirma.jar=lib/SLE_PlataformaPKI_afirma.jar
+file.reference.SLE_PlataformaPKI_afirmaIntegra.jar=lib/SLE_PlataformaPKI_afirmaIntegra.jar
+file.reference.SLE_PlataformaPKI_Altia-1.1.jar=lib/SLE_PlataformaPKI_Altia-1.1.jar
+file.reference.SLE_PlataformaPKI_asf.jar=lib/SLE_PlataformaPKI_asf.jar
+file.reference.SLE_Plugin_PlataformaPKI.jar=lib/SLE_Plugin_PlataformaPKI.jar
+file.reference.slf4j-api-1.6.1.jar=lib/slf4j-api-1.6.1.jar
+file.reference.slf4j-jdk14-1.6.1.jar=lib/slf4j-jdk14-1.6.1.jar
+file.reference.solicitudRespuestaOTNisae-1.0.jar=lib/solicitudRespuestaOTNisae-1.0.jar
+file.reference.spring-core-2.5.6.jar=lib/spring-core-2.5.6.jar
+file.reference.spring-test.jar=lib/spring-test.jar
+file.reference.spring-web-2.0.5.jar=lib/spring-web-2.0.5.jar
+file.reference.spring.jar=lib/spring.jar
+file.reference.sqljdbc.jar=lib/sqljdbc.jar
+file.reference.standard.jar=lib/standard.jar
+file.reference.stax-api-1.0-2.jar=lib/stax-api-1.0-2.jar
+file.reference.stax-ex-2.1.1.jar=lib/stax-ex-2.1.1.jar
+file.reference.streambuffer-0.7.jar=lib/streambuffer-0.7.jar
+file.reference.struts-el.jar=lib/struts-el.jar
+file.reference.struts.jar=lib/struts.jar
+file.reference.swtramite.jar=lib/swtramite.jar
+file.reference.taglibs-log.jar=lib/taglibs-log.jar
+file.reference.taglibs-string.jar=lib/taglibs-string.jar
+file.reference.TGSSNisae-1.0.jar=lib/TGSSNisae-1.0.jar
+file.reference.unittest.jar=lib/unittest.jar
+file.reference.unoil-3.2.1.jar=lib/unoil-3.2.1.jar
+file.reference.valnif.jar=lib/valnif.jar
+file.reference.verifcert.jar=lib/verifcert.jar
+file.reference.viafirma-client-2.9.62.jar=lib/viafirma-client-2.9.62.jar
+file.reference.webserviceclient-1.0.jar=lib/webserviceclient-1.0.jar
+file.reference.webservices-9.2.2.0.jar=lib/webservices-9.2.2.0.jar
+file.reference.webservices-api.jar=lib/webservices-api.jar
+file.reference.webservices-extra-api.jar=lib/webservices-extra-api.jar
+file.reference.webservices-extra.jar=lib/webservices-extra.jar
+file.reference.webservices-tools.jar=lib/webservices-tools.jar
+file.reference.ws.api_1.1.0.0.jar=lib/ws.api_1.1.0.0.jar
+file.reference.wsdl4j-1.5.1.jar=lib/wsdl4j-1.5.1.jar
+file.reference.wseeclient-10.3.jar=lib/wseeclient-10.3.jar
+file.reference.WSEnvioDocPortafirmasClient.jar=lib/WSEnvioDocPortafirmasClient.jar
+file.reference.wss4j-1.6.6.jar=lib/wss4j-1.6.6.jar
+file.reference.WSTerceroClient-2.1.jar=lib/WSTerceroClient-2.1.jar
+file.reference.WSTramitacion_PlugxProc.jar=lib/WSTramitacion_PlugxProc.jar
+file.reference.wstx-asl-3.2.4.jar=lib/wstx-asl-3.2.4.jar
+file.reference.xades4j-1.4.0.jar=lib/xades4j-1.4.0.jar
+file.reference.xalan-2.7.1.jar=lib/xalan-2.7.1.jar
+file.reference.xbean-2.6.0.jar=lib/xbean-2.6.0.jar
+file.reference.xbeanBeaXml-1.0.jar=lib/xbeanBeaXml-1.0.jar
+file.reference.xercesImpl-2.10.0.jar=lib/xercesImpl-2.10.0.jar
+file.reference.xhtmlrenderer-1.0.0-sources.jar=lib/xhtmlrenderer-1.0.0-sources.jar
+file.reference.xml-apis-1.0.b2.jar=lib/xml-apis-1.0.b2.jar
+file.reference.xml-apis-2_9_1.jar=lib/xml-apis-2_9_1.jar
+file.reference.xml-apis-ext.jar=lib/xml-apis-ext.jar
+file.reference.xml-security-impl-1.0.jar=lib/xml-security-impl-1.0.jar
+file.reference.xmlbeans-2.6.0.jar=lib/xmlbeans-2.6.0.jar
+file.reference.xmlparserv2.jar=lib/xmlparserv2.jar
+file.reference.XmlSchema-1.4.3.jar=lib/XmlSchema-1.4.3.jar
+file.reference.xmlsec-1.5.0.jar=lib/xmlsec-1.5.0.jar
+file.reference.xmltooling-1.3.2-1.jar=lib/xmltooling-1.3.2-1.jar
+file.reference.xom-1.2.5.jar=lib/xom-1.2.5.jar
+file.reference.xws-security-3.0.jar=lib/xws-security-3.0.jar
+file.reference.zxing-core-2.0.jar=lib/zxing-core-2.0.jar
+includes=**
+jar.compress=false
+javac.classpath=\
+    ${libs.Flexia.classpath}:\
+    ${file.reference.AFIRMA_SERVICE-AXIS1_JAVA5.jar}:\
+    ${file.reference.AdaptadoresPlateaLan6-2.1.5.jar}:\
+    ${file.reference.Altia-Jaas.jar}:\
+    ${file.reference.AltiaX509.jar}:\
+    ${file.reference.ClienteServicioWebFormacionLanbide.jar}:\
+    ${file.reference.ClienteWSAltaPersonaFisica.jar}:\
+    ${file.reference.ClienteWSBusquedaPersonaFisica.jar}:\
+    ${file.reference.ClienteWSExpedientesFormacion.jar}:\
+    ${file.reference.ClienteWSFicheroAltaEspecialidadesFormacion.jar}:\
+    ${file.reference.ClienteWSNotificaciones.jar}:\
+    ${file.reference.ClienteWSRegistroCentrosFormacion.jar}:\
+    ${file.reference.ClienteWSRegistroES.jar}:\
+    ${file.reference.ClienteWSSharePointNextRet.jar}:\
+    ${file.reference.DynamicJasper-4.0.3.jar}:\
+    ${file.reference.FSDEsquemas-1.0.jar}:\
+    ${file.reference.FirmaRedClienteSW.jar}:\
+    ${file.reference.INTEROP_EJIE_SERVICE-0.0.1-SNAPSHOT.jar}:\
+    ${file.reference.InformarConsultaEsquemas-1.0.jar}:\
+    ${file.reference.LAN_Dokusi_IFSD_client-1.0.jar}:\
+    ${file.reference.LAN_InformarConsulta_client-1.0.jar}:\
+    ${file.reference.LAN_NSHF_client-1.1.jar}:\
+    ${file.reference.LAN_Tramitacion_client-1.0.jar}:\
+    ${file.reference.LibreriaTercerosEgim.jar}:\
+    ${file.reference.MELANBIDE59.jar}:\
+    ${file.reference.MELANBIDE60.jar}:\
+    ${file.reference.MELANBIDE_DOKUSI_1.4.3.jar}:\
+    ${file.reference.MITyCLibAPI-1.0.4.jar}:\
+    ${file.reference.MITyCLibCert-1.0.4.jar}:\
+    ${file.reference.MITyCLibOCSP-1.0.4.jar}:\
+    ${file.reference.MITyCLibPolicy-1.0.4.jar}:\
+    ${file.reference.MITyCLibTrust-1.0.4.jar}:\
+    ${file.reference.NSHF_Esquemas.jar}:\
+    ${file.reference.NotificacionesEsquemas-1.0.jar}:\
+    ${file.reference.R02KSolicitud-2.0.jar}:\
+    ${file.reference.RE_Interfaces.jar}:\
+    ${file.reference.RdR_Esquemas-1.1.jar}:\
+    ${file.reference.SLE_Comun-1.0.jar}:\
+    ${file.reference.SLE_Comun_Notificacion.jar}:\
+    ${file.reference.SLE_PlataformaPKI_Altia-1.1.jar}:\
+    ${file.reference.SLE_PlataformaPKI_afirma.jar}:\
+    ${file.reference.SLE_PlataformaPKI_afirmaIntegra.jar}:\
+    ${file.reference.SLE_PlataformaPKI_asf.jar}:\
+    ${file.reference.SLE_Plugin_PlataformaPKI.jar}:\
+    ${file.reference.SLE_j6_afirma5_coreV3.jar}:\
+    ${file.reference.WSEnvioDocPortafirmasClient.jar}:\
+    ${file.reference.WSTerceroClient-2.1.jar}:\
+    ${file.reference.WSTramitacion_PlugxProc.jar}:\
+    ${file.reference.XmlSchema-1.4.3.jar}:\
+    ${file.reference.activation-1.1.jar}:\
+    ${file.reference.afirma_serialization_1.0.jar}:\
+    ${file.reference.alfresco-web-service-client.jar}:\
+    ${file.reference.altia.jar}:\
+    ${file.reference.altia_auditoria_1.0.20170526.jar}:\
+    ${file.reference.annotations-api.jar}:\
+    ${file.reference.aopalliance-1.0.jar}:\
+    ${file.reference.aspectjrt.jar}:\
+    ${file.reference.aspectjweaver.jar}:\
+    ${file.reference.avalon-framework-cvs-20020806.jar}:\
+    ${file.reference.axiom-api-1.2.9.jar}:\
+    ${file.reference.axiom-impl-1.2.9.jar}:\
+    ${file.reference.axis-1.4.jar}:\
+    ${file.reference.axis-ant.jar}:\
+    ${file.reference.axis-jaxrpc-1.4.jar}:\
+    ${file.reference.axis-saaj-1.4.jar}:\
+    ${file.reference.axis2-adb-1.5.2.jar}:\
+    ${file.reference.axis2-kernel-1.5.2.jar}:\
+    ${file.reference.axis2-transport-http-1.5.2.jar}:\
+    ${file.reference.axis2-transport-local-1.5.2.jar}:\
+    ${file.reference.barcode4j.jar}:\
+    ${file.reference.batik-all-1.7.jar}:\
+    ${file.reference.bcmail-jdk16-146.jar}:\
+    ${file.reference.bcpkix-jdk15on-158.jar}:\
+    ${file.reference.bcprov-jdk16-146.jar}:\
+    ${file.reference.bctsp-jdk15-1.43.jar}:\
+    ${file.reference.bctsp-jdk16-146.jar}:\
+    ${file.reference.bforeport.jar}:\
+    ${file.reference.bsf-2.3.0.jar}:\
+    ${file.reference.bsh-1.3.0.jar}:\
+    ${file.reference.cardme-0.3.6.jar}:\
+    ${file.reference.cas-client-core-3.1.3.jar}:\
+    ${file.reference.castor-1.3.1-core.jar}:\
+    ${file.reference.castor-1.3.1.jar}:\
+    ${file.reference.client_afirma_1.0.jar}:\
+    ${file.reference.clienteViaFirmaInbox.jar}:\
+    ${file.reference.commons-beanutils-1.9.3.jar}:\
+    ${file.reference.commons-codec-1.11.jar}:\
+    ${file.reference.commons-collections-3.2.1.jar}:\
+    ${file.reference.commons-configuration-1.6.jar}:\
+    ${file.reference.commons-dbcp-1.3.jar}:\
+    ${file.reference.commons-digester-1.6.jar}:\
+    ${file.reference.commons-discovery-0.4.jar}:\
+    ${file.reference.commons-fileupload-1.2.2.jar}:\
+    ${file.reference.commons-httpclient-3.1.jar}:\
+    ${file.reference.commons-io-2.1.jar}:\
+    ${file.reference.commons-lang-2.4.jar}:\
+    ${file.reference.commons-logging-1.0.4.jar}:\
+    ${file.reference.commons-logging-1.1.1.jar}:\
+    ${file.reference.commons-net-1.4.1.jar}:\
+    ${file.reference.commons-pool-1.2.jar}:\
+    ${file.reference.commons-validator-1.3.1.jar}:\
+    ${file.reference.conversorEni-1.0.0.jar}:\
+    ${file.reference.crimson-1.1.3.jar}:\
+    ${file.reference.displaytag-1.2.jar}:\
+    ${file.reference.documentosTramitacionAlfresco_1.1.jar}:\
+    ${file.reference.dom.jar}:\
+    ${file.reference.dom4j-1.6.1.jar}:\
+    ${file.reference.dss-common-2.0.2.jar}:\
+    ${file.reference.dss-document-2.0.2.jar}:\
+    ${file.reference.dss-itext-2.0.2.jar}:\
+    ${file.reference.dss-service-2.0.2.jar}:\
+    ${file.reference.dss-spi-2.0.2.jar}:\
+    ${file.reference.dtdparser.jar}:\
+    ${file.reference.ehcache-core-2.5.2.jar}:\
+    ${file.reference.fontbox-2.0.7.jar}:\
+    ${file.reference.fop.jar}:\
+    ${file.reference.formsToSGE_2.16.jar}:\
+    ${file.reference.fr.opensagres.xdocreport.itext.extension-1.0.4.jar}:\
+    ${file.reference.freemarker-2.3.16.jar}:\
+    ${file.reference.geronimo-stax-api_1.0_spec-1.0.1.jar}:\
+    ${file.reference.gestion-numeracion-anotacion_1.0.jar}:\
+    ${file.reference.groovy-all-1.8.5.jar}:\
+    ${file.reference.gson-2.3.1.jar}:\
+    ${file.reference.guice-2.0.jar}:\
+    ${file.reference.guice-multibindings-2.0.jar}:\
+    ${file.reference.httpclient-4.3.5.jar}:\
+    ${file.reference.httpcore-4.3.2.jar}:\
+    ${file.reference.httpmime-4.3.5.jar}:\
+    ${file.reference.iText-2.1.7.jar}:\
+    ${file.reference.integra-1.2.2_002.jar}:\
+    ${file.reference.interfazXML.jar}:\
+    ${file.reference.jakarta-oro.jar}:\
+    ${file.reference.jakarta-regexp-1.3.jar}:\
+    ${file.reference.jasperFonts.jar}:\
+    ${file.reference.jasperreports-6.2.0.jar}:\
+    ${file.reference.javamail-crypto-bouncycastle-smime_060622.jar}:\
+    ${file.reference.javamail-crypto_060622.jar}:\
+    ${file.reference.javassist-3.12.0.GA.jar}:\
+    ${file.reference.javax.annotation-3.1.1.jar}:\
+    ${file.reference.jaxb-api-2.2.4.jar}:\
+    ${file.reference.jaxb-impl-2.2.4.jar}:\
+    ${file.reference.jaxrpc-api-1.1.jar}:\
+    ${file.reference.jaxrpc.jar}:\
+    ${file.reference.jaxws-api-2.2.6.jar}:\
+    ${file.reference.jaxws-rt-2.1.4.jar}:\
+    ${file.reference.jaxws-tools-2.1.4.jar}:\
+    ${file.reference.jcip-annotations.jar}:\
+    ${file.reference.jcommon-1.0.8.jar}:\
+    ${file.reference.jcommon-xml-1.0.8.jar}:\
+    ${file.reference.jdbc2_0-stdext.jar}:\
+    ${file.reference.jdom.jar}:\
+    ${file.reference.jdom2-2.0.5.jar}:\
+    ${file.reference.jfreereport-0.8.8.jar}:\
+    ${file.reference.joda-time-1.6.2.jar}:\
+    ${file.reference.jodconverter-core-3.0-beta-4.jar}:\
+    ${file.reference.jodreports-2.4.0.jar}:\
+    ${file.reference.json-lib-2.4-jdk15.jar}:\
+    ${file.reference.jsr173_api-1.0.jar}:\
+    ${file.reference.jsr181-api-1.0-MR1.jar}:\
+    ${file.reference.jsr250-api-1.0.jar}:\
+    ${file.reference.jss-4.2.5.jar}:\
+    ${file.reference.jstl.jar}:\
+    ${file.reference.jta.jar}:\
+    ${file.reference.jtds-1.2.2.jar}:\
+    ${file.reference.juh-3.2.1.jar}:\
+    ${file.reference.junit-4.8.2.jar}:\
+    ${file.reference.jurt-3.2.1.jar}:\
+    ${file.reference.jxl-2.6.12.jar}:\
+    ${file.reference.lan6GestionErrores-1.8.1.jar}:\
+    ${file.reference.lib_serialization_telematic_head.jar}:\
+    ${file.reference.lib_ws_cliente_telematic.jar}:\
+    ${file.reference.lib_ws_cliente_telematic_Head.jar}:\
+    ${file.reference.lib_ws_cliente_telematic_admin.jar}:\
+    ${file.reference.libbase-1.2.2.jar}:\
+    ${file.reference.libdocbundle-1.2.3.jar}:\
+    ${file.reference.libfonts-1.2.3.jar}:\
+    ${file.reference.libformat-1.2.4.jar}:\
+    ${file.reference.libformula-1.2.3.jar}:\
+    ${file.reference.libloader-0.2.2.jar}:\
+    ${file.reference.libloader-1.2.3.jar}:\
+    ${file.reference.libpixie-1.2.2.jar}:\
+    ${file.reference.librepository-1.2.3.jar}:\
+    ${file.reference.libserializer-1.2.2.jar}:\
+    ${file.reference.libxml-1.2.2.jar}:\
+    ${file.reference.license.jar}:\
+    ${file.reference.log4j-1.2.17.jar}:\
+    ${file.reference.log4j-rolling-appender-20150607-2059.jar}:\
+    ${file.reference.mail-1.4.7.jar}:\
+    ${file.reference.mapstruct-1.2.0.Final.jar}:\
+    ${file.reference.mimepull-1.7.jar}:\
+    ${file.reference.neethi-2.0.4.jar}:\
+    ${file.reference.nekohtml-1.9.7.jar}:\
+    ${file.reference.obligacionesTributariasNisae-1.0.jar}:\
+    ${file.reference.ojdbc14.jar}:\
+    ${file.reference.ooxml-schemas-1.1.jar}:\
+    ${file.reference.openid4java-consumer-0.9.5.jar}:\
+    ${file.reference.openid4java-nodeps-0.9.5.jar}:\
+    ${file.reference.opensaml-2.5.1-1.jar}:\
+    ${file.reference.openws-1.4.2-1.jar}:\
+    ${file.reference.org.apache.poi.xwpf.converter.core-1.0.4.jar}:\
+    ${file.reference.org.apache.poi.xwpf.converter.pdf-1.0.4.jar}:\
+    ${file.reference.org.springframework.context.jar}:\
+    ${file.reference.pdfbox-2.0.7.jar}:\
+    ${file.reference.pentaho-reporting-engine-classic-core-3.8.3-GA.jar}:\
+    ${file.reference.pixie-0.8.6.jar}:\
+    ${file.reference.pki_viaFirma.jar}:\
+    ${file.reference.plugin_re_pisa-3.0.jar}:\
+    ${file.reference.plugin_re_pist-3.0.jar}:\
+    ${file.reference.plugin_re_rec-3.0.jar}:\
+    ${file.reference.plugin_re_rte-3.0.jar}:\
+    ${file.reference.plugin_re_sge-3.0.jar}:\
+    ${file.reference.poi-3.10-FINAL-20140208.jar}:\
+    ${file.reference.poi-ooxml-3.10-FINAL-20140208.jar}:\
+    ${file.reference.poi-ooxml-schemas-3.10-FINAL-20140208.jar}:\
+    ${file.reference.quartz-1.6.0.jar}:\
+    ${file.reference.resolver-20050927.jar}:\
+    ${file.reference.ridl-3.2.1.jar}:\
+    ${file.reference.rome-1.0.jar}:\
+    ${file.reference.saaj-api-1.3.4.jar}:\
+    ${file.reference.saaj-impl-1.3.16.jar}:\
+    ${file.reference.saaj.jar}:\
+    ${file.reference.sax.jar}:\
+    ${file.reference.saxpath.jar}:\
+    ${file.reference.serializer-2.7.1.jar}:\
+    ${file.reference.servlet-api.jar}:\
+    ${file.reference.sjsxp-1.0.1.jar}:\
+    ${file.reference.slf4j-api-1.6.1.jar}:\
+    ${file.reference.slf4j-jdk14-1.6.1.jar}:\
+    ${file.reference.solicitudRespuestaOTNisae-1.0.jar}:\
+    ${file.reference.spring-core-2.5.6.jar}:\
+    ${file.reference.spring-test.jar}:\
+    ${file.reference.spring-web-2.0.5.jar}:\
+    ${file.reference.spring.jar}:\
+    ${file.reference.sqljdbc.jar}:\
+    ${file.reference.standard.jar}:\
+    ${file.reference.stax-api-1.0-2.jar}:\
+    ${file.reference.stax-ex-2.1.1.jar}:\
+    ${file.reference.streambuffer-0.7.jar}:\
+    ${file.reference.struts-el.jar}:\
+    ${file.reference.struts.jar}:\
+    ${file.reference.swtramite.jar}:\
+    ${file.reference.taglibs-log.jar}:\
+    ${file.reference.taglibs-string.jar}:\
+    ${file.reference.unittest.jar}:\
+    ${file.reference.unoil-3.2.1.jar}:\
+    ${file.reference.valnif.jar}:\
+    ${file.reference.verifcert.jar}:\
+    ${file.reference.viafirma-client-2.9.62.jar}:\
+    ${file.reference.webserviceclient-1.0.jar}:\
+    ${file.reference.webservices-9.2.2.0.jar}:\
+    ${file.reference.webservices-api.jar}:\
+    ${file.reference.webservices-extra-api.jar}:\
+    ${file.reference.webservices-extra.jar}:\
+    ${file.reference.webservices-tools.jar}:\
+    ${file.reference.ws.api_1.1.0.0.jar}:\
+    ${file.reference.wsdl4j-1.5.1.jar}:\
+    ${file.reference.wseeclient-10.3.jar}:\
+    ${file.reference.wss4j-1.6.6.jar}:\
+    ${file.reference.wstx-asl-3.2.4.jar}:\
+    ${file.reference.xades4j-1.4.0.jar}:\
+    ${file.reference.xalan-2.7.1.jar}:\
+    ${file.reference.xbean-2.6.0.jar}:\
+    ${file.reference.xbeanBeaXml-1.0.jar}:\
+    ${file.reference.xercesImpl-2.10.0.jar}:\
+    ${file.reference.xhtmlrenderer-1.0.0-sources.jar}:\
+    ${file.reference.xml-apis-1.0.b2.jar}:\
+    ${file.reference.xml-apis-2_9_1.jar}:\
+    ${file.reference.xml-apis-ext.jar}:\
+    ${file.reference.xml-security-impl-1.0.jar}:\
+    ${file.reference.xmlbeans-2.6.0.jar}:\
+    ${file.reference.xmlparserv2.jar}:\
+    ${file.reference.xmlsec-1.5.0.jar}:\
+    ${file.reference.xmltooling-1.3.2-1.jar}:\
+    ${file.reference.xom-1.2.5.jar}:\
+    ${file.reference.xws-security-3.0.jar}:\
+    ${file.reference.zxing-core-2.0.jar}:\
+    ${file.reference.LanTGSSNisae-1.0.0.jar}:\
+    ${file.reference.TGSSNisae-1.0.jar}
+# Space-separated list of extra javac options
+javac.compilerargs=
+javac.deprecation=false
+javac.external.vm=false
+javac.processorpath=\
+    ${javac.classpath}
+javac.source=1.6
+javac.target=1.6
+javac.test.classpath=\
+    ${javac.classpath}:\
+    ${build.classes.dir}
+javac.test.processorpath=\
+    ${javac.test.classpath}
+javadoc.additionalparam=
+javadoc.author=false
+javadoc.encoding=${source.encoding}
+javadoc.noindex=false
+javadoc.nonavbar=false
+javadoc.notree=false
+javadoc.private=false
+javadoc.splitindex=true
+javadoc.use=true
+javadoc.version=false
+javadoc.windowtitle=
+jaxbwiz.gensrc.classpath=${libs.jaxb.classpath}
+jaxbwiz.xjcdef.classpath=${libs.jaxb.classpath}
+jaxbwiz.xjcrun.classpath=${libs.jaxb.classpath}
+main.class=
+manifest.file=manifest.mf
+meta.inf.dir=${src.dir}/META-INF
+mkdist.disabled=false
+platform.active=JDK_1.6
+run.classpath=\
+    ${javac.classpath}:\
+    ${build.classes.dir}
+# Space-separated list of JVM arguments used when running the project.
+# You may also define separate properties like run-sys-prop.name=value instead of -Dname=value.
+# To set system properties for unit tests define test-sys-prop.name=value:
+run.jvmargs=
+run.test.classpath=\
+    ${javac.test.classpath}:\
+    ${build.test.classes.dir}
+source.encoding=ISO-8859-1
+src.java.dir=src\\java
+src.web.dir=src\\web
+test.src.dir=test

@@ -1,0 +1,9 @@
+username_ws=eikapru
+userpassword_ws=%Inicial1%
+socketTimeout=30000
+connectTimeout=30000
+##https_consulta_terceros_ws=https\://eikapru-po.batera.euskadi.eus\:443/XIAxisAdapter/MessageServlet?senderParty\=&senderService\=BC_EJIE&receiverParty\=&receiverService\=&interface\=SI_TR_001_ConsulTerceros_OS&interfaceNamespace\=http\://iecisa.com/po/tesoreria
+https_proxy_jaso_eika_consulta_terceros_ws=http://svc.integracion.des.ejgv.jaso/ctxweb/EIKAConsultaTercero
+
+#Fichero propiedades de log
+LOGCONFIG_FILE=/config/log4j.properties

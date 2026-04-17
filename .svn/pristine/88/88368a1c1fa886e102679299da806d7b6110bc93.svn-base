@@ -1,0 +1,198 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.cvl;
+
+/**
+ *
+ * @author jaime.hermoso
+ */
+public class Situacion {
+    
+   private String numeroAfiliacion;
+   private String regimen;
+   private String empresa;
+   private String codigoCuentaCotizacion;
+   private String provincia;
+   private String fechaAlta;
+   private String fechaEfectos;
+   private String fechaBaja;
+   private String contratoTrabajo;
+   private String contratoTiempoParcial;
+   private String grupoCotizacion;
+   private Integer diasAlta;
+
+    /**
+     * @return the numeroAfiliacion
+     */
+    public String getNumeroAfiliacion() {
+        return numeroAfiliacion;
+    }
+
+    /**
+     * @param numeroAfiliacion the numeroAfiliacion to set
+     */
+    public void setNumeroAfiliacion(String numeroAfiliacion) {
+        this.numeroAfiliacion = numeroAfiliacion;
+    }
+
+    /**
+     * @return the regimen
+     */
+    public String getRegimen() {
+        return regimen;
+    }
+
+    /**
+     * @param regimen the regimen to set
+     */
+    public void setRegimen(String regimen) {
+        this.regimen = regimen;
+    }
+
+    /**
+     * @return the empresa
+     */
+    public String getEmpresa() {
+        return empresa;
+    }
+
+    /**
+     * @param empresa the empresa to set
+     */
+    public void setEmpresa(String empresa) {
+        this.empresa = empresa;
+    }
+
+    /**
+     * @return the codigoCuentaCotizacion
+     */
+    public String getCodigoCuentaCotizacion() {
+        return codigoCuentaCotizacion;
+    }
+
+    /**
+     * @param codigoCuentaCotizacion the codigoCuentaCotizacion to set
+     */
+    public void setCodigoCuentaCotizacion(String codigoCuentaCotizacion) {
+        this.codigoCuentaCotizacion = codigoCuentaCotizacion;
+    }
+
+    /**
+     * @return the provincia
+     */
+    public String getProvincia() {
+        return provincia;
+    }
+
+    /**
+     * @param provincia the provincia to set
+     */
+    public void setProvincia(String provincia) {
+        this.provincia = provincia;
+    }
+
+    /**
+     * @return the fechaAlta
+     */
+    public String getFechaAlta() {
+        return fechaAlta;
+    }
+
+    /**
+     * @param fechaAlta the fechaAlta to set
+     */
+    public void setFechaAlta(String fechaAlta) {
+        this.fechaAlta = fechaAlta;
+    }
+
+    /**
+     * @return the fechaEfectos
+     */
+    public String getFechaEfectos() {
+        return fechaEfectos;
+    }
+
+    /**
+     * @param fechaEfectos the fechaEfectos to set
+     */
+    public void setFechaEfectos(String fechaEfectos) {
+        this.fechaEfectos = fechaEfectos;
+    }
+
+    /**
+     * @return the fechaBaja
+     */
+    public String getFechaBaja() {
+        return fechaBaja;
+    }
+
+    /**
+     * @param fechaBaja the fechaBaja to set
+     */
+    public void setFechaBaja(String fechaBaja) {
+        this.fechaBaja = fechaBaja;
+    }
+
+    /**
+     * @return the contratoTrabajo
+     */
+    public String getContratoTrabajo() {
+        return contratoTrabajo;
+    }
+
+    /**
+     * @param contratoTrabajo the contratoTrabajo to set
+     */
+    public void setContratoTrabajo(String contratoTrabajo) {
+        this.contratoTrabajo = contratoTrabajo;
+    }
+
+    /**
+     * @return the contratoTiempoParcial
+     */
+    public String getContratoTiempoParcial() {
+        return contratoTiempoParcial;
+    }
+
+    /**
+     * @param contratoTiempoParcial the contratoTiempoParcial to set
+     */
+    public void setContratoTiempoParcial(String contratoTiempoParcial) {
+        this.contratoTiempoParcial = contratoTiempoParcial;
+    }
+
+    /**
+     * @return the grupoCotizacion
+     */
+    public String getGrupoCotizacion() {
+        return grupoCotizacion;
+    }
+
+    /**
+     * @param grupoCotizacion the grupoCotizacion to set
+     */
+    public void setGrupoCotizacion(String grupoCotizacion) {
+        this.grupoCotizacion = grupoCotizacion;
+    }
+
+    /**
+     * @return the diasAlta
+     */
+    public Integer getDiasAlta() {
+        return diasAlta;
+    }
+
+    /**
+     * @param diasAlta the diasAlta to set
+     */
+    public void setDiasAlta(Integer diasAlta) {
+        this.diasAlta = diasAlta;
+    }
+   
+    @Override
+    public String toString() {
+        return "Situacion{" + "numeroAfiliacion=" + numeroAfiliacion + ", regimen=" + regimen + ", empresa=" + empresa + ", codigoCuentaCotizacion=" + codigoCuentaCotizacion + ", provincia=" + provincia + ", fechaAlta=" + fechaAlta + ", fechaEfectos=" + fechaEfectos + ", fechaBaja=" + fechaBaja + ", contratoTrabajo=" + contratoTrabajo + ", contratoTiempoParcial=" + contratoTiempoParcial + ", grupoCotizacion=" + grupoCotizacion + ", diasAlta=" + diasAlta + '}';
+    }   
+}

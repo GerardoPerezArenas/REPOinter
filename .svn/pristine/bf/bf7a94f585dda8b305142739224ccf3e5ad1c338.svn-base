@@ -1,0 +1,317 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package es.altia.flexia.integracion.moduloexterno.melanbide_interop.nisae;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.nisae.entities.InteropLlamadasServiciosNisae;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.nisae.gestorerrores.ErrorLan6ExcepcionBeanNISAE;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.nisae.gestorerrores.GestionarErroresDokusiNISAE;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.util.ConfigurationParameter;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.util.ConstantesMeLanbideInterop;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.util.MeLanbideInteropGeneralUtils;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.DocumentoPersona;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.RequestRestServicePadron;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.ResponseRestServicePadron;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.Tramitador;
+import es.altia.util.conexion.AdaptadorSQLBD;
+import es.lanbide.lan6.adaptadoresPlatea.excepciones.Lan6ErrorBean;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.log4j.Logger;
+
+/**
+ *
+ * @author INGDGC
+ */
+public class GestionServiciosNISAEEjecucionConsPadron implements Runnable{
+    
+    Logger m_Log = Logger.getLogger(this.getClass());
+
+
+    public GestionServiciosNISAEEjecucionConsPadron() {
+        m_Log = Logger.getLogger(this.getClass());
+    }
+
+    private Thread comprobAdecAutThread = null;
+    AdaptadorSQLBD adaptador = null;
+    Integer codOrganizacion = null;
+    String idProcoFlexia_LAN6;
+    InteropLlamadasServiciosNisae interopLlamadasServiciosNisae;
+    List<ExpedienteNisaeVO> listExpedientes;
+    
+    public void start(Integer _codOrganizacion,InteropLlamadasServiciosNisae _interopLlamadasServiciosNisae,String _idProcoFlexia_LAN6,AdaptadorSQLBD adapt) {
+        comprobAdecAutThread = new Thread(this, "GestionServiciosNISAEEjecucionConsPadron");
+        adaptador = adapt;
+        codOrganizacion=_codOrganizacion;
+        interopLlamadasServiciosNisae=(_interopLlamadasServiciosNisae!=null ? _interopLlamadasServiciosNisae : new InteropLlamadasServiciosNisae());
+        idProcoFlexia_LAN6=_idProcoFlexia_LAN6;
+        comprobAdecAutThread.start();
+    }
+
+    @Override
+    public void run() {
+        String respuestaServicio = "";
+        try {
+            String idProcedimiento = ConfigurationParameter.getParameter("PROCEDIMIENTO_ID_" + idProcoFlexia_LAN6,
+                    ConstantesMeLanbideInterop.FICHERO_PROP_ADAPTADORES_PLATEA);
+            m_Log.info("idProcedimiento : " + idProcedimiento);
+            String tipo_doc = "";
+            String cifUsuarioLogueado = "";
+            String nombreUsuarioLogueado = "";
+            GestionServiciosNISAE gestionServiciosNISAE = new GestionServiciosNISAE();
+            // Expedientes a Tratar
+            listExpedientes = gestionServiciosNISAE.getExpedientesProcesarNISAE(codOrganizacion, interopLlamadasServiciosNisae, adaptador);
+            if (listExpedientes != null && listExpedientes.size() > 0) {
+                //Iteracion de todos los expedientes recuperados
+                cifUsuarioLogueado = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.RESPONSABLE_SERVICIO_NIF + interopLlamadasServiciosNisae.getProcedimientoHHFF() + ConstantesMeLanbideInterop.BARRA_BAJA + interopLlamadasServiciosNisae.getFkWSSolicitado(), ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
+                nombreUsuarioLogueado = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.RESPONSABLE_SERVICIO_NOMBRE + interopLlamadasServiciosNisae.getProcedimientoHHFF() + ConstantesMeLanbideInterop.BARRA_BAJA + interopLlamadasServiciosNisae.getFkWSSolicitado(), ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
+                for (ExpedienteNisaeVO vo : listExpedientes) {
+                    m_Log.info("Expediente : " + vo.getNumeroExpediente());
+                    String codigoProcFlexia = MeLanbideInteropGeneralUtils.getCodProcedimientoFromNumExpediente(vo.getNumeroExpediente());
+                    //Tipo de documento del demandadnte que se esta consultado
+                    if (vo.getTitularExpediente() != null) {
+                        tipo_doc = ("1".equalsIgnoreCase(vo.getTitularExpediente().getTipoDoc()) ? "D" : "3".equalsIgnoreCase(vo.getTitularExpediente().getTipoDoc()) ? "E" : "2".equalsIgnoreCase(vo.getTitularExpediente().getTipoDoc()) ? "P" :"");
+                        m_Log.info("GestionServiciosNISAEEjecucionConsPadron - TipoDocumento Tercero Calculado " + tipo_doc);
+                    }
+
+                    //Parametrizamos la llamadas
+                    es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.Peticion peticion = new es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.Peticion();
+                    String idPeticion = codigoProcFlexia + new Date();
+                    es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.Atributos atributos = new es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.Atributos();
+                    atributos.setIdPeticion(idPeticion);
+                    atributos.setNumElementos(1);
+                    atributos.setTimeStamp(new Date().toString());
+                    atributos.setCodigoCertificado(ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.PREFIJO_CODIGO_CERTIFICADO + ConstantesMeLanbideInterop.CODIGO_WS_DATOSPADRON, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES));
+
+                    es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.Estado estado = new es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.Estado();
+                    estado.setCodigoEstado(ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.EJIE_CODIGO_ESTADO_PETICION, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES));
+                    estado.setLiteralError(ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.EJIE_ESTADO_PETICION, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES));
+                    atributos.setEstado(estado);
+
+                    es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.Solicitudes solicitudes = new es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.Solicitudes();
+                    es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.SolicitudTransmision solicitudTransmision = new es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.SolicitudTransmision();
+                    es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.DatosGenericos datosGenericos = new es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.DatosGenericos();
+                    es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.Emisor emisor = new es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.Emisor();
+                    es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.Solicitante solicitante = new es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.Solicitante();
+                    es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.Procedimiento procedimiento = new es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.Procedimiento();
+                    es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.Funcionario funcionario = new es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.Funcionario();
+                    es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.Titular titular = new es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.Titular();
+                    es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.Transmision transmision = new es.altia.interoperabilidad.datamodel.getDatosPadronWS.peticionDatosPadron.Transmision();
+                    es.altia.interoperabilidad.datamodel.getDatosPadronWS.datosEspecificosDatosPadron.DatosEspecificosPadronIndividual datosEspecificosPadronIndividual = new es.altia.interoperabilidad.datamodel.getDatosPadronWS.datosEspecificosDatosPadron.DatosEspecificosPadronIndividual();
+                    es.altia.interoperabilidad.datamodel.getDatosPadronWS.datosEspecificosDatosPadron.Consulta consulta = new es.altia.interoperabilidad.datamodel.getDatosPadronWS.datosEspecificosDatosPadron.Consulta();
+                    es.altia.interoperabilidad.datamodel.getDatosPadronWS.datosEspecificosDatosPadron.DatosEntradaConsulta datosEntradaConsulta = new es.altia.interoperabilidad.datamodel.getDatosPadronWS.datosEspecificosDatosPadron.DatosEntradaConsulta();
+                    es.altia.interoperabilidad.datamodel.getDatosPadronWS.datosEspecificosDatosPadron.DatosEntradaPadron datosEntradaPadron = new es.altia.interoperabilidad.datamodel.getDatosPadronWS.datosEspecificosDatosPadron.DatosEntradaPadron();
+
+                    //Unicamente en Vitoria?
+                    datosEntradaConsulta.setTerritorioConsulta(ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.EJIE_CODIGO_TERRITORIOHIST_ALAVA, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES));
+                    datosEntradaConsulta.setMunicipioConsulta(ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.EJIE_CODIGO_MUNICIPIO_VITORIA, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES));
+
+                    datosEntradaPadron.setTipoDocumento(vo.getTitularExpediente().getCodTer());
+                    datosEntradaPadron.setNumDocumento(vo.getTitularExpediente().getNumSoporte());
+                    datosEntradaPadron.setNombre(vo.getTitularExpediente().getNombre());
+                    datosEntradaPadron.setApellido1(vo.getTitularExpediente().getApellido1());
+
+                    consulta.setDatosEntradaConsulta(datosEntradaConsulta);
+                    consulta.setDatosEntradaPadron(datosEntradaPadron);
+
+                    datosEspecificosPadronIndividual.setConsulta(consulta);
+
+                    emisor.setNifEmisor(ConfigurationParameter.getParameter("WS_DATOSPADRON_EMISOR_NIF", ConstantesMeLanbideInterop.FICHERO_PROPIEDADES));
+                    emisor.setNombreEmisor(ConfigurationParameter.getParameter("WS_DATOSPADRON_EMISOR_NOMBRE", ConstantesMeLanbideInterop.FICHERO_PROPIEDADES));
+
+                    solicitante.setIdentificadorSolicitante(ConfigurationParameter.getParameter("ID_ORGANO_SOLICITANTE", ConstantesMeLanbideInterop.FICHERO_PROPIEDADES));
+                    solicitante.setNombreSolicitante(ConfigurationParameter.getParameter("ORGANO_SOLICITANTE", ConstantesMeLanbideInterop.FICHERO_PROPIEDADES));
+                    solicitante.setUnidadTramitadora(ConfigurationParameter.getParameter("UNIDAD_TRAMITADORA", ConstantesMeLanbideInterop.FICHERO_PROPIEDADES));
+
+                    procedimiento.setCodProcedimiento(ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.PREFIJO_CODIGO_PROCEDIMIENTO + codigoProcFlexia,ConstantesMeLanbideInterop.FICHERO_PROPIEDADES));
+                    procedimiento.setNombreProcedimiento(codigoProcFlexia);
+                    solicitante.setProcedimiento(procedimiento);
+                    solicitante.setFinalidad(codigoProcFlexia);
+                    solicitante.setConsentimiento(ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.CONSENTIMIENTO_SI, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES));
+                    
+                    funcionario.setNifFuncionario(cifUsuarioLogueado);
+                    funcionario.setNombreCompletoFuncionario(nombreUsuarioLogueado);
+                    
+                    solicitante.setFuncionario(funcionario);
+                    solicitante.setIdExpediente(vo.getNumeroExpediente());
+
+                    titular.setTipoDocumentacion(vo.getTitularExpediente().getTipoDoc());
+                    titular.setDocumentacion(vo.getTitularExpediente().getNumSoporte());
+                    
+                    transmision.setCodigoCertificado(atributos.getCodigoCertificado());
+                    transmision.setIdSolicitud(atributos.getIdPeticion());
+
+                    datosGenericos.setEmisor(emisor);
+                    datosGenericos.setSolicitante(solicitante);
+                    datosGenericos.setTitular(titular);
+
+                    datosGenericos.setTransmision(transmision);
+
+                    solicitudTransmision.setDatosEspecificos(datosEspecificosPadronIndividual);
+                    solicitudTransmision.setDatosGenericos(datosGenericos);
+
+                    solicitudes.setSolicitudTransmision(solicitudTransmision);
+
+                    peticion.setAtributos(atributos);
+                    peticion.setSolicitudes(solicitudes);
+
+                    //Invocamos la creacion del cliente
+                    String nombreModulo = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.NOMBRE_MODULO, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
+                    String urlString = ConfigurationParameter.getParameter(codOrganizacion + ConstantesMeLanbideInterop.BARRA_SEPARADORA
+                            + ConstantesMeLanbideInterop.MODULO_INTEGRACION + ConstantesMeLanbideInterop.BARRA_SEPARADORA
+                            + nombreModulo + ConstantesMeLanbideInterop.BARRA_SEPARADORA
+                            + ConstantesMeLanbideInterop.URL_SERVICIO_DATOSPADRON, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
+                    m_Log.error("URL: " + urlString);
+
+                    String nameSpaceUri = ConfigurationParameter.getParameter(codOrganizacion + ConstantesMeLanbideInterop.BARRA_SEPARADORA
+                            + ConstantesMeLanbideInterop.MODULO_INTEGRACION + ConstantesMeLanbideInterop.BARRA_SEPARADORA
+                            + nombreModulo + ConstantesMeLanbideInterop.BARRA_SEPARADORA
+                            + ConstantesMeLanbideInterop.QNAME_NAMESPACEURI_DATOSPADRON, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
+                    m_Log.error("NameSpaceUri: " + nameSpaceUri);
+
+                    String localPart = ConfigurationParameter.getParameter(codOrganizacion + ConstantesMeLanbideInterop.BARRA_SEPARADORA
+                            + ConstantesMeLanbideInterop.MODULO_INTEGRACION + ConstantesMeLanbideInterop.BARRA_SEPARADORA
+                            + nombreModulo + ConstantesMeLanbideInterop.BARRA_SEPARADORA
+                            + ConstantesMeLanbideInterop.QNAME_LOCALPART_DATOSPADRON, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
+                    m_Log.error("LocalPart: " + localPart);
+
+                    String urlRestServiceStr = ConfigurationParameter.getParameter(codOrganizacion + ConstantesMeLanbideInterop.BARRA_SEPARADORA
+                            + ConstantesMeLanbideInterop.MODULO_INTEGRACION + ConstantesMeLanbideInterop.BARRA_SEPARADORA
+                            + nombreModulo + ConstantesMeLanbideInterop.BARRA_SEPARADORA
+                            + ConstantesMeLanbideInterop.URL_REST_SERVICE_PADRON, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
+                    m_Log.info("Url del Rest Service : " + urlRestServiceStr);
+                    
+                    URL urlRestService = new URL(urlRestServiceStr);
+                    HttpURLConnection conRS = (HttpURLConnection) urlRestService.openConnection();
+                    conRS.setRequestMethod("POST");
+                    // Formato de la peticion
+                    conRS.setRequestProperty("Content-Type", "application/json");
+                    // Set the ?Accept? request header to ?application/json? to read the response in the desired format
+                    conRS.setRequestProperty("Accept", "application/json");
+                    // Ensure the Connection Will Be Used to Send Content : //To send request content, let's enable the URLConnection object's doOutput property to true. Otherwise, we'll not be able to write content to the connection output stream:
+                    conRS.setDoOutput(true);
+                    conRS.setDoInput(true);
+                    // Preparamos el cuerpo del JSON
+                    RequestRestServicePadron requestRestServicePadron = new RequestRestServicePadron();
+                    Tramitador tramitador = new Tramitador();
+                    DocumentoPersona documentoPersona = new DocumentoPersona();
+                    List<DocumentoPersona> listaDocumentosPersonas = new ArrayList<DocumentoPersona>();
+                    requestRestServicePadron.setApellido1(vo.getTitularExpediente().getApellido1());
+                    requestRestServicePadron.setApellido2(vo.getTitularExpediente().getApellido2());
+                    DateFormat dFormat = new SimpleDateFormat("dd/mm/yyyy");
+                    if (vo.getTitularExpediente().getTFecNacimiento() != null) {
+                        String dateString = dFormat.format(vo.getTitularExpediente().getTFecNacimiento());
+                        requestRestServicePadron.setFechaNacimiento(dateString);
+                    } else {
+                        //fecha ficticia si no la tiene asignada
+                        String dateString = dFormat.format(new Date());
+                        requestRestServicePadron.setFechaNacimiento(dateString);
+                    }
+                    requestRestServicePadron.setMunicipioNoraReferencia(vo.getTitularExpediente().getCodigoMunicipioDom());
+                    requestRestServicePadron.setNombrePersona(vo.getTitularExpediente().getNombre());
+                    requestRestServicePadron.setProvinciaNoraReferencia(vo.getTitularExpediente().getCodigoProvinciaDom());
+                    documentoPersona.setNumDoc(vo.getTitularExpediente().getDoc());
+                    documentoPersona.setTipoDoc(tipo_doc);
+                    listaDocumentosPersonas.add(documentoPersona);
+                    requestRestServicePadron.setDocumentosPersona(listaDocumentosPersonas);
+                    tramitador.setNifUsuarioTramitador(cifUsuarioLogueado);
+                    tramitador.setUsuarioTramitador(nombreUsuarioLogueado);
+
+                    //Aqui los campos de la llamada
+                    tramitador.setProcedimientoPadron(ConfigurationParameter.getParameter("CODIGO_PROCEDIMIENTO_PADRON_" + codigoProcFlexia, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES));
+                    tramitador.setNombreProcedimientoAutorizado(ConfigurationParameter.getParameter("NOMBRE_PROCEDIMIENTO_AUTORIZADO_PADRON_" + codigoProcFlexia, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES));
+                    tramitador.setFinalidadProcedimiento(ConfigurationParameter.getParameter("FINALIDAD_PROCEDIMIENTO_PADRON_" + codigoProcFlexia, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES));
+                    tramitador.setConsentimientoFirmado(ConfigurationParameter.getParameter("CONSENTIMIENTO_FIRMADO_PADRON_" + codigoProcFlexia, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES));
+                    tramitador.setAutorizacionLlamarINE(ConfigurationParameter.getParameter("AUTORIZACION_LLAMAR_INE_" + codigoProcFlexia, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES));
+
+                    requestRestServicePadron.setTramitador(tramitador);
+                    Gson gson = new Gson();
+                    GsonBuilder gsonBuilder = new GsonBuilder();
+                    gson = gsonBuilder.create();
+                    String JsonString = gson.toJson(requestRestServicePadron);
+                    m_Log.info("Texto LLamada : " + JsonString);
+                    // Registra en BD el Log Antes de llamar
+                    m_Log.info("Escribir llamada en el m_Log INTEROP_SERVICIOS_NISAE_LOG");
+                    int idRegLog = gestionServiciosNISAE.crearRegistroBBDDLogLlamadaPadron(codOrganizacion, interopLlamadasServiciosNisae, idProcoFlexia_LAN6, requestRestServicePadron, null, idPeticion, vo.getNumeroExpediente(), adaptador);
+                    try {
+                        OutputStream os = conRS.getOutputStream();
+                        byte[] input = JsonString.getBytes("utf-8");
+                        os.write(input, 0, input.length);
+                    } catch (Exception ex) {
+                        m_Log.error("Error preparando la llamada al WS .. " + ex.getMessage(), ex);
+                        respuestaServicio = "-7 Error al preparar la llamada al WS... " + ex.getMessage();
+                    }
+                    m_Log.info("Hemos escrito la llamada .. Procedemos  recoger la respuesta ..");
+                    ResponseRestServicePadron responseRestServicePadron = null;
+                    try {
+                        m_Log.info(" Respuesta : " + conRS.getResponseCode() + " - " + conRS.getResponseMessage());
+                        BufferedReader br = new BufferedReader(new InputStreamReader(conRS.getInputStream(), "utf-8"));
+                        StringBuilder responseJSON = new StringBuilder();
+                        String responseLine = null;
+                        while ((responseLine = br.readLine()) != null) {
+                            responseJSON.append(responseLine.trim());
+                        }
+                        m_Log.info("Despues de leer la respuesta... " + responseJSON);
+                        responseRestServicePadron = gson.fromJson(responseJSON.toString(), ResponseRestServicePadron.class);
+
+                        m_Log.info("Actualizar llamada en el m_Log INTEROP_SERVICIOS_NISAE_LOG");
+                        gestionServiciosNISAE.actualizarRegistroBBDDLogLlamadaPadron(idRegLog, responseRestServicePadron, conRS.getResponseCode() + " - " + conRS.getResponseMessage(), adaptador);
+                        m_Log.info("Escribir Resultado en BBDD - campos suplementarios");
+                        //Escribir los campos suplementarios
+                        gestionServiciosNISAE.actualizarCamposSuplementariosNISAE_Padron(codOrganizacion, vo.getNumeroExpediente(), requestRestServicePadron, responseRestServicePadron, adaptador);
+
+                    } catch (Exception ex) {
+                        m_Log.error("Error preparando la respuesta al WS .. " + ex.getMessage(), ex);
+                        respuestaServicio += "-8 Error al procesar la respuesta del WS... " + ex.getMessage();
+                        gestionServiciosNISAE.actualizarRegistroBBDDLogLlamadaPadron(idRegLog, responseRestServicePadron, conRS.getResponseCode() + " - " + conRS.getResponseMessage() + " : "+respuestaServicio, adaptador);
+                    }
+                }
+            } else {
+                m_Log.info("Lista de expedientes para tramitar recibida vacia.. ");
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            m_Log.error("Error la ejecutando proceso en segundo plano " + ex.getMessage(),ex);
+            String mensajeExcepcion = "";
+            respuestaServicio = "Error al invocar el proceso en segundo plano : " + ex.getMessage();
+            try {
+                m_Log.info("Vamos a registrar el error en BD : " + ex.getMessage());
+                String causaExcepcion = (ex.getCause() != null ? (ex.getCause().getMessage() != null ? ex.getCause().getMessage() + " - " + ex.getCause().toString() : ex.getCause().toString()) : "");
+                mensajeExcepcion = ex.getMessage();
+                String trazaError = ExceptionUtils.getStackTrace(ex);  // ExceptionUtils.getStackTrace(ex);
+
+                Lan6ErrorBean errorBean = new Lan6ErrorBean(causaExcepcion, mensajeExcepcion,
+                        trazaError, ConstantesMeLanbideInterop.ERROR_NISAE_SISTEMA_ORIGEN_FLEXIA,
+                        ConstantesMeLanbideInterop.ERROR_NISAE_CODIGO_ERROR_CONSULTA_PADRON, ConstantesMeLanbideInterop.ERROR_NISAE_MENSAJE_CONSULTA_PADRON, 1);
+                ErrorLan6ExcepcionBeanNISAE errorLan6Bean = new ErrorLan6ExcepcionBeanNISAE(errorBean, ex);
+                int idError = GestionarErroresDokusiNISAE.grabarError(errorLan6Bean, interopLlamadasServiciosNisae.getNumeroExpedienteDesde()+ "-" + interopLlamadasServiciosNisae.getNumeroExpedienteHasta(), idProcoFlexia_LAN6, interopLlamadasServiciosNisae.getEjercicioHHFF() + "-" + interopLlamadasServiciosNisae.getProcedimientoHHFF(), "estasCorrientePadronBatch");
+                m_Log.info("Error Registrado en BD correctamente. " + idError);
+                respuestaServicio += " - Mas detalles en el Gestor Errores : ID:" + idError;
+            } catch (Exception ex1) {
+                m_Log.error("estasCorrientePadronBatch. Flexia Error al registrar errores mediante servicios de Adaptadores de platea. Error que se intenta Registrar : " + ex.getMessage(), ex1);
+                respuestaServicio += " - Error al intentar registrar y notificar un error en la ejecucion del proceso : " + ex1.getMessage();
+            }
+        } finally {
+            try {
+                m_Log.info("Fin Proceso Segundo Plano... ");
+                comprobAdecAutThread.stop();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                m_Log.error("Error la finalizar/parar la ejecucion del Proceso " + ex.getMessage(),ex);
+            }
+        }
+    }
+}

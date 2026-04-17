@@ -1,0 +1,106 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.cvl;
+
+/**
+ *
+ * @author jaime.hermoso
+ */
+public class Persona {
+    
+    private String nombrePersona;
+    
+    private String apellido1;
+    
+    private String apellido2;
+    
+    private String tipoDocumento;
+    
+    private String numDocumento;
+
+    public Persona() {
+    }
+
+    public Persona(String nombrePersona, String apellido1, String apellido2, String tipoDocumento, String numDocumento) {
+        this.nombrePersona = nombrePersona;
+        this.apellido1 = apellido1;
+        this.apellido2 = apellido2;
+        this.tipoDocumento = tipoDocumento;
+        this.numDocumento = numDocumento;
+    }
+    
+    /**
+     * @return the nombrePersona
+     */
+    public String getNombrePersona() {
+        return nombrePersona;
+    }
+
+    /**
+     * @param nombrePersona the nombrePersona to set
+     */
+    public void setNombrePersona(String nombrePersona) {
+        this.nombrePersona = nombrePersona;
+    }
+
+    /**
+     * @return the apellido1
+     */
+    public String getApellido1() {
+        return apellido1;
+    }
+
+    /**
+     * @param apellido1 the apellido1 to set
+     */
+    public void setApellido1(String apellido1) {
+        this.apellido1 = apellido1;
+    }
+
+    /**
+     * @return the apellido2
+     */
+    public String getApellido2() {
+        return apellido2;
+    }
+
+    /**
+     * @param apellido2 the apellido2 to set
+     */
+    public void setApellido2(String apellido2) {
+        this.apellido2 = apellido2;
+    }
+
+    /**
+     * @return the tipoDocumento
+     */
+    public String getTipoDocumento() {
+        return tipoDocumento;
+    }
+
+    /**
+     * @param tipoDocumento the tipoDocumento to set
+     */
+    public void setTipoDocumento(String tipoDocumento) {
+        this.tipoDocumento = tipoDocumento;
+    }
+
+    /**
+     * @return the numDocumento
+     */
+    public String getNumDocumento() {
+        return numDocumento;
+    }
+
+    /**
+     * @param numDocumento the numDocumento to set
+     */
+    public void setNumDocumento(String numDocumento) {
+        this.numDocumento = numDocumento;
+    }
+    
+    
+    
+}

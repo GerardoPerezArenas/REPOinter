@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="TEST_WS" default="Generar_Cliente_WS_DatosIdentidad" basedir=".">
+    
+    <property name="modulo.home" value="../../../"/>
+    <property name="modulo.lib" value="${modulo.home}/lib"/>
+    <property name="modulo.source" value="${modulo.home}/src/java"/>
+    <property name="modulo.source.wsdl" value="${modulo.home}/src/wsdl"/>
+    
+    <property name="pilotoURL.wsdl" value="${modulo.source.wsdl}/consultaDatosIdentidad/x53jsGetDatosIdentidadWS.xml"/>
+    <!--<property name="pilotoURL.wsdl" value="http://10.168.212.173:17003/langaiWS/services"/>-->       <!--pru    /LangaiDem?wsdl-->
+    <!--<property name="pilotoURL.wsdl" value="http://10.168.212.21:17003/langaiWS/services"/>--> <!--desa   /LangaiDem?WSDL-->
+    <property name="servicioDem" value="LangaiDem" />
+    <property name="sufijowsdl" value="?wsdl"/>
+    <property name="generated.dir" value="${modulo.source}/es/altia/flexia/integracion/moduloexterno/melanbide_interop/webservice/ejieplatea/getdatosidentidad"/>
+    
+	
+    <path id="axis.classpath">
+        <fileset dir="${modulo.lib}/lib_langaideman">
+            <include name="*.jar" />
+        </fileset>
+    <!--
+        <fileset dir="C:\Users\davidg.VITORIA\Documents\Software\eclipse-jee-juno-SR1-win32\eclipse\Proyectos\LangaiDeman\lib">
+            <include name="*.jar" />
+        </fileset>
+        <fileset dir="C:\Users\davidg.VITORIA\Documents\Software\eclipse-jee-juno-SR1-win32\eclipse\Proyectos\LangaiDeman\lib">
+            <include name="xercesImpl.jar" />
+        </fileset>
+        <fileset dir="C:\Users\davidg.VITORIA\Documents\Software\eclipse-jee-juno-SR1-win32\eclipse\Proyectos\LangaiDeman\lib">
+            <include name="activation.jar" />
+        </fileset>
+        <fileset dir="C:\Users\davidg.VITORIA\Documents\Software\eclipse-jee-juno-SR1-win32\eclipse\Proyectos\LangaiDeman\lib">
+            <include name="mail.jar" />
+        </fileset>
+    -->
+    </path>
+    
+    <!-- Definimos las tareas de axis -->
+    <taskdef resource="axis-tasks.properties" classpathref="axis.classpath" />
+    
+    <target name="Generar_Cliente_WS_DatosIdentidad" description="Genera cliente Datos Identidad">
+        <!-- TODO define script. See Help menu or http://ant.apache.org/ -->
+        <axis-wsdl2java output="${generated.dir}" testcase="false" verbose="true" url="${pilotoURL.wsdl}" >
+            <mapping namespace="http://axis.apache.org/ns/interop" package="interop" />
+        </axis-wsdl2java>
+    </target>
+</project>

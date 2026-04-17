@@ -1,0 +1,31 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.cvl;
+
+import java.util.List;
+
+/**
+ *
+ * @author jaime.hermoso
+ */
+public class ListaNumerosAfiliacion {
+    
+     private List<String> numeroAfiliacionVL;
+
+    /**
+     * @return the numeroAfiliacionVL
+     */
+    public List<String> getNumeroAfiliacionVL() {
+        return numeroAfiliacionVL;
+    }
+
+    /**
+     * @param numeroAfiliacionVL the numeroAfiliacionVL to set
+     */
+    public void setNumeroAfiliacionVL(List<String> numeroAfiliacionVL) {
+        this.numeroAfiliacionVL = numeroAfiliacionVL;
+    } 
+    
+}

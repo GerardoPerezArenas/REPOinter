@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="MELANBIDE_INTEROP" default="Generar_Cliente_WS_LangaiDem" basedir=".">
+    
+    <property name="modulo.home" value="../../../"/>
+    <property name="modulo.lib" value="${modulo.home}/lib"/>
+    <property name="modulo.source" value="${modulo.home}/src/java"/>
+    
+    <property name="pilotoURL.wsdl" value="http://10.168.212.173:17003/langaiWS_Final"/>       <!--pru  http://10.168.212.173:17003/langaiWS/services  /LangaiDem?wsdl-->
+    <!--<property name="pilotoURL.wsdl" value="http://10.168.212.21:17003/langaiWS/services"/>--> <!--desa   /LangaiDem?WSDL-->
+    <!--<property name="pilotoURL.wsdl" value="http://10.168.212.21:17003/langaiWS_Final"/>--> <!-- WS FSE - Desarrollo   /-->
+    <!--<property name="servicioDem" value="LangaiDem" />-->
+    <property name="servicioDem" value="langaiDemanda" />
+    <property name="sufijowsdl" value="?wsdl"/>
+    <!--<property name="generated.dir" value="${modulo.source}/es/altia/flexia/integracion/moduloexterno/melanbide_interop/webservice/langaideman"/>-->
+    <property name="generated.dir" value="${modulo.source}/es/altia/flexia/integracion/moduloexterno/melanbide_interop/webservice/langaiWS/fse"/>
+    
+	
+    <path id="axis.classpath">
+        <fileset dir="${modulo.lib}">
+            <include name="*.jar" />
+        </fileset>
+    <!--
+        <fileset dir="C:\Users\davidg.VITORIA\Documents\Software\eclipse-jee-juno-SR1-win32\eclipse\Proyectos\LangaiDeman\lib">
+            <include name="*.jar" />
+        </fileset>
+        <fileset dir="C:\Users\davidg.VITORIA\Documents\Software\eclipse-jee-juno-SR1-win32\eclipse\Proyectos\LangaiDeman\lib">
+            <include name="xercesImpl.jar" />
+        </fileset>
+        <fileset dir="C:\Users\davidg.VITORIA\Documents\Software\eclipse-jee-juno-SR1-win32\eclipse\Proyectos\LangaiDeman\lib">
+            <include name="activation.jar" />
+        </fileset>
+        <fileset dir="C:\Users\davidg.VITORIA\Documents\Software\eclipse-jee-juno-SR1-win32\eclipse\Proyectos\LangaiDeman\lib">
+            <include name="mail.jar" />
+        </fileset>
+    -->
+    </path>
+    
+    <!-- Definimos las tareas de axis -->
+    <taskdef resource="axis-tasks.properties" classpathref="axis.classpath" />
+    
+    <target name="Generar_Cliente_WS_LangaiDem" description="Genera cliente Demanda">
+        <!-- TODO define script. See Help menu or http://ant.apache.org/ -->
+        <axis-wsdl2java output="${generated.dir}" testcase="false" verbose="true" url="${pilotoURL.wsdl}/${servicioDem}${sufijowsdl}" >
+            <mapping namespace="http://axis.apache.org/ns/interop" package="interop.langaiDem" />
+        </axis-wsdl2java>
+    </target>
+    <target name="Generar_Cliente_WS_LangaiDem-FSE" description="Genera cliente Fondo Social Europeo">
+        <!-- TODO define script. See Help menu or http://ant.apache.org/ -->
+        <axis-wsdl2java output="${generated.dir}" testcase="false" verbose="true" url="${pilotoURL.wsdl}/${servicioDem}${sufijowsdl}"  >
+            <mapping namespace="http://axis.apache.org/ns/interop" package="es.altia.flexia.integracion.moduloexterno.melanbide_interop.webservice.langaiWS.fse" />
+        </axis-wsdl2java>
+    </target>
+</project>

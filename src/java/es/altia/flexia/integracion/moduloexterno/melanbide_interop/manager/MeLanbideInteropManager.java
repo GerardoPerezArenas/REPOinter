@@ -1,0 +1,565 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package es.altia.flexia.integracion.moduloexterno.melanbide_interop.manager;
+
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.dao.MeLanbideInteropDAO;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.dao.MeLanbideInteropVidaLaboralDAO;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.nisae.entities.InteropLlamadasServiciosNisae;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.nisae.entities.InteropServiciosNisaeExpFi;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.util.MeLanbideInteropGeneralUtils;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.RegistroVidaLaboralVO;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.cvl.Persona;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.tercero.TerceroVO;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.URL_WebServiceVO;
+import es.altia.util.ByteArrayInOutStream;
+import es.altia.util.conexion.AdaptadorSQLBD;
+import es.altia.util.conexion.BDException;
+import java.io.ByteArrayOutputStream;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.log4j.Logger;
+
+/**
+ *
+ * @author davidg
+ */
+public class MeLanbideInteropManager {
+    
+    //Logger
+    private static Logger log = Logger.getLogger(MeLanbideInteropManager.class);
+    
+    //Instancia
+    private static MeLanbideInteropManager instance = null;
+    
+    public static MeLanbideInteropManager getInstance()
+    {
+        if(instance == null)
+        {
+            synchronized(MeLanbideInteropManager.class)
+            {
+                instance = new MeLanbideInteropManager();
+            }
+        }
+        return instance;
+    }
+    
+    public List<TerceroVO> getDatosTercerosxExpediente(int codOrganizacion, String numExpediente, AdaptadorSQLBD adaptador) throws Exception
+    {
+        log.error("getDatosTercerosxExpediente - Begin ()");
+        List<TerceroVO> listaTecerosCompleta = new ArrayList<TerceroVO>();
+        Connection con = null;
+        try
+        {
+            con = adaptador.getConnection();
+            MeLanbideInteropDAO meLanbideInteropDAO = MeLanbideInteropDAO.getInstance();
+            List<TerceroVO> listaInteresados=meLanbideInteropDAO.getDatosTercerosxExpediente(codOrganizacion, numExpediente, con);
+            String codProcExpte=MeLanbideInteropGeneralUtils.getCodProcedimientoFromNumExpediente(numExpediente);
+            listaTecerosCompleta=addTercerosAdicionalesModExtensionLista(codProcExpte, numExpediente, listaInteresados, con);
+            return listaTecerosCompleta;
+        }
+        catch(BDException e)
+        {
+            log.error("Se ha producido una excepcion en la BBDD recuperando Datos sobre Terceros del expediente "+ numExpediente + "Error : " + e.getMensaje(), e);
+            throw new Exception(e);
+        }
+        catch(Exception ex)
+        {
+            log.error("Se ha producido una excepcion en la BBDD recuperando  sobre Terceros del  expediente " + numExpediente + "Error : " + ex.getMessage(), ex);
+            throw new Exception(ex);
+        }
+        finally
+        {
+            try
+            {
+                adaptador.devolverConexion(con);       
+                log.error("getDatosTercerosxExpediente - End ()");
+
+            }
+            catch(Exception e)
+            {
+                log.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+    }
+
+	public URL_WebServiceVO getDatosWebService(String codWebService, AdaptadorSQLBD adaptador) throws Exception
+    {
+        Connection con = null;
+        try
+        {
+            con = adaptador.getConnection();
+            MeLanbideInteropDAO meLanbideInteropDAO = MeLanbideInteropDAO.getInstance();
+            return meLanbideInteropDAO.getDatosWebService(codWebService,con);
+        }
+        catch(BDException e)
+        {
+            log.error("Se ha producido una excepcion en la BBDD recuperando Datos sobre El WebService "+ codWebService + "Error : " + e.getMensaje(), e);
+            throw new Exception(e);
+        }
+        catch(Exception ex)
+        {
+            log.error("Se ha producido una excepcion en la BBDD recuperando  sobre El WebService : " + codWebService + "Error : " + ex.getMessage(), ex);
+            throw new Exception(ex);
+        }
+        finally
+        {
+            try
+            {
+                adaptador.devolverConexion(con);       
+            }
+            catch(Exception e)
+            {
+                log.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+    }
+
+    public String getDescripcionProcedimiento(int codOrganizacion, String codProcExpte, AdaptadorSQLBD adaptador) throws Exception {
+        log.debug("getDescripcionProcedimiento Manager - Begin");
+        Connection con = null;
+        try
+        {
+            con = adaptador.getConnection();
+            MeLanbideInteropDAO meLanbideInteropDAO = MeLanbideInteropDAO.getInstance();
+            return meLanbideInteropDAO.getDescripcionProcedimiento(codOrganizacion, codProcExpte, con);
+        }
+        catch(BDException e)
+        {
+            log.error("Se ha producido una excepcion en la BBDD recuperando Datos Procedimiento "+ codProcExpte + "Error : " + e.getMensaje(), e);
+            throw new Exception(e);
+        }
+        catch(Exception ex)
+        {
+            log.error("Se ha producido una excepcion en la BBDD recuperando  datos Procedimiento " + codProcExpte + "Error : " + ex.getMessage(), ex);
+            throw new Exception(ex);
+        }
+        finally
+        {
+            try
+            {
+                adaptador.devolverConexion(con);       
+                log.debug("getDescripcionProcedimiento Manager - End");
+            }
+            catch(Exception e)
+            {
+                log.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+    }
+
+    public String getUsuarioNIF(int idUsuario, AdaptadorSQLBD adaptador) throws Exception {
+        log.debug("getUsuarioNIF Manager - Begin");
+        Connection con = null;
+        try {
+            con = adaptador.getConnection();
+            MeLanbideInteropDAO meLanbideInteropDAO = MeLanbideInteropDAO.getInstance();
+            return meLanbideInteropDAO.getUsuarioNIF(idUsuario, con);
+        } catch (BDException e) {
+            log.error("Se ha producido una excepcion en la BBDD recuperando Datos NIF del usuario " + idUsuario + "Error : " + e.getMensaje(), e);
+            throw new Exception(e);
+        } catch (Exception ex) {
+            log.error("Se ha producido una excepcion en la BBDD recuperando  datos NIF del usuario " + idUsuario + "Error : " + ex.getMessage(), ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+                log.debug("getUsuarioNIF Manager - End");
+            } catch (Exception e) {
+                log.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+    }
+
+    public String getFechaInicioServicioFSE_DSD_CSuplementario(String codProcExpte, String numExpediente, String tabla, String nombreCampo, String codCampoSuple, String campoIDNumExp, String nombreCampoAuxWhere,AdaptadorSQLBD adapt) throws Exception {
+        log.error("getFechaInicioServicioFSE_DSD_CSuplementario Manager - Begin");
+        Connection con = null;
+        try {
+            con = adapt.getConnection();
+            MeLanbideInteropDAO meLanbideInteropDAO = MeLanbideInteropDAO.getInstance();
+            return meLanbideInteropDAO.getFechaInicioServicioFSE_DSD_CSuplementario(codProcExpte,numExpediente,tabla,nombreCampo,codCampoSuple,campoIDNumExp,nombreCampoAuxWhere,con);
+        } catch (BDException e) {
+            log.error("Se ha producido una excepcion en la BBDD recuperando Datos fecha de inicio contrato (Servicio) FSE :  " + numExpediente + " Error : " + e.getMensaje(), e);
+            throw new Exception(e);
+        } catch (Exception ex) {
+            log.error("Se ha producido una excepcion recuperando Datos fecha de inicio contrato (Servicio) FSE  : " + numExpediente + " Error : " + ex.getMessage(), ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                adapt.devolverConexion(con);
+                log.error("getFechaInicioServicioFSE_DSD_CSuplementario Manager - End");
+            } catch (Exception e) {
+                log.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+    }
+
+    public String getFechaFinServicioFSE(String codProcExpte, String numExpediente, String tabla, String nombreCampo, String codCampoSuple, String campoIDNumExp,String nombreCampoAuxWhere, AdaptadorSQLBD adapt) throws Exception {
+        log.error("getFechaFinServicioFSE Manager - Begin");
+        Connection con = null;
+        try {
+            con = adapt.getConnection();
+            MeLanbideInteropDAO meLanbideInteropDAO = MeLanbideInteropDAO.getInstance();
+            return meLanbideInteropDAO.getFechaFinServicioFSE(codProcExpte, numExpediente, tabla, nombreCampo, codCampoSuple, campoIDNumExp,nombreCampoAuxWhere, con);
+        } catch (BDException e) {
+            log.error("Se ha producido una excepcion en la BBDD recuperando Datos fecha de fin contrato (Servicio) FSE :  " + numExpediente + " Error : " + e.getMensaje(), e);
+            throw new Exception(e);
+        } catch (Exception ex) {
+            log.error("Se ha producido una excepcion recuperando Datos fecha de fin contrato (Servicio) FSE  : " + numExpediente + " Error : " + ex.getMessage(), ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                adapt.devolverConexion(con);
+                log.error("getFechaFinServicioFSE Manager - End");
+            } catch (Exception e) {
+                log.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+    }
+
+    public String getResultadoParametroWSFSE_DSD_CSE_DESPLEGABLE(String codProcExpte, String numExpediente, String codCampoSuple,AdaptadorSQLBD adapt) throws Exception {
+        log.error("getResultadoParametroWSFSE_DSD_CSE_DESPLEGABLE Manager - Begin");
+        Connection con = null;
+        try {
+            con = adapt.getConnection();
+            MeLanbideInteropDAO meLanbideInteropDAO = MeLanbideInteropDAO.getInstance();
+            return meLanbideInteropDAO.getResultadoParametroWSFSE_DSD_CSE_DESPLEGABLE(codProcExpte, numExpediente, codCampoSuple, con);
+        } catch (BDException e) {
+            log.error("Se ha producido una excepcion en la BBDD recuperando parametro resultado para WS FSE :  " + numExpediente + " Error : " + e.getMensaje(), e);
+            throw new Exception(e);
+        } catch (Exception ex) {
+            log.error("Se ha producido una excepcion recuperando parametro resultado para WS FSE  : " + numExpediente + " Error : " + ex.getMessage(), ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                adapt.devolverConexion(con);
+                log.error("getResultadoParametroWSFSE_DSD_CSE_DESPLEGABLE Manager - End");
+            } catch (Exception e) {
+                log.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+    }
+    
+    private List<TerceroVO> addTercerosAdicionalesModExtensionLista(String codProcExpte, String numExpediente, List<TerceroVO> listaTerceros, Connection con) {
+        log.error("getlistaTercerosAdicionalesModExtension - Begin()");
+        log.error("Parametros Entrada : codProcExpte,numExpediente = " + codProcExpte + "," + numExpediente);
+        List<TerceroVO> resultado = listaTerceros;
+        try {
+            /**
+             * SEGUN PROCEDIMIENTO EJECUTAR UN METODO U OTRO.
+             */
+            MeLanbideInteropDAO meLanbideInteropDAO = MeLanbideInteropDAO.getInstance();
+            if ("LAK".equalsIgnoreCase(codProcExpte)) {
+                List<TerceroVO> resultado1 = meLanbideInteropDAO.getlistaTercerosAdicionalesLAK(codProcExpte, numExpediente, con);
+                for (TerceroVO ter : resultado1) {
+                    resultado.add(ter);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error al recuperar lista de terceros adicionales desde el MOdulo de extension : " + codProcExpte + "-" + numExpediente, e);
+        }
+        log.error("getlistaTercerosAdicionalesModExtension - End()");
+        return resultado;
+    }
+
+    public String getFechaInicioFinServicioFSE_DSD_ModuloExte(String codProcExpte, String numExpediente, String tabla, String nombreCampo, String campoIDNumExp, HashMap<String, String> paramAdicioWhereModExten, AdaptadorSQLBD adapt) throws Exception {
+        log.error("getFechaInicioFinServicioFSE_DSD_ModuloExte Manager - Begin");
+        Connection con = null;
+        try {
+            con = adapt.getConnection();
+            MeLanbideInteropDAO meLanbideInteropDAO = MeLanbideInteropDAO.getInstance();
+            return meLanbideInteropDAO.getFechaInicioFinServicioFSE_DSD_ModuloExte(codProcExpte, numExpediente, tabla, nombreCampo, campoIDNumExp, paramAdicioWhereModExten, con);
+        } catch (BDException e) {
+            log.error("Se ha producido una excepcion en la BBDD recuperando Datos fecha de inicioFin contrato (Servicio) desde modulo de extension  FSE :  " + numExpediente + " Error : " + e.getMensaje(), e);
+            throw new Exception(e);
+        } catch (Exception ex) {
+            log.error("Se ha producido una excepcion recuperando Datos fecha de inicioFin contrato (Servicio) desde modulo de extension FSE  : " + numExpediente + " Error : " + ex.getMessage(), ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                adapt.devolverConexion(con);
+                log.error("getFechaInicioFinServicioFSE_DSD_ModuloExte Manager - End");
+            } catch (Exception e) {
+                log.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+    }
+    
+    public HSSFWorkbook descargarExcelLogNisae( List<InteropLlamadasServiciosNisae> lstExportar ){
+        try{
+        HSSFWorkbook workbook = new HSSFWorkbook();
+        HSSFSheet sheet = workbook.createSheet();
+        workbook.setSheetName(0, "Resultados Integración Nisae");
+        String[] headers = new String[]{
+            "ID",
+            "Cod Organización",
+            "Ejercicio",
+            "Procedimiento",
+            "Estado Expediente", 
+            "Numero Expediente Desde",
+            "Numero Expediente Hasta",
+            "Datos Enviados",
+            "Numero Expediente",
+            "Fecha Envio",
+            "Codigo Estado Secundario",
+            "Estado",
+            "Descripción Estado",
+            "Resultado",
+            "Datos Recibidos",
+            "Documento Interesado",
+            "Tiempo Estimado Respuesta",
+            "Territorio Historico",
+            "Observaciones",
+            "Id Petición Padre",
+            "FKWS Solicitado"
+        };
+        
+        CellStyle headerStyle = workbook.createCellStyle();
+        Font font = workbook.createFont();
+        font.setBoldweight(Short.MAX_VALUE);
+        headerStyle.setFont(font);
+        
+        CellStyle style = workbook.createCellStyle();
+        style.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
+        style.setFillPattern(Short.MAX_VALUE);
+        HSSFRow headerRow = sheet.createRow(0);
+        //Header
+        for(int i = 0; i < headers.length; i++){
+            String header = headers[i];
+            HSSFCell cell = headerRow.createCell(i);
+            cell.setCellStyle(headerStyle);
+            cell.setCellValue(header);
+        }
+        //Data Rows 
+        for(int i = 0; i < lstExportar.size(); i++){
+            HSSFRow dataRow = sheet.createRow(i + 1);
+            InteropLlamadasServiciosNisae fila = lstExportar.get(i);
+            dataRow.createCell(0).setCellValue(fila.getId());
+            dataRow.createCell(1).setCellValue(fila.getCodOrganizacion());
+            dataRow.createCell(2).setCellValue(fila.getEjercicioHHFF());
+            dataRow.createCell(3).setCellValue(fila.getProcedimientoHHFF());
+            dataRow.createCell(4).setCellValue(fila.getEstadoExpediente());
+            dataRow.createCell(5).setCellValue(fila.getNumeroExpedienteDesde());
+            dataRow.createCell(6).setCellValue(fila.getNumeroExpedienteHasta());
+            dataRow.createCell(7).setCellValue(fila.getTextoJsonDatosEnviados());
+            dataRow.createCell(8).setCellValue(fila.getNumeroExpediente());
+            dataRow.createCell(9).setCellValue(fila.getFechaHoraEnvioPeticion());
+            dataRow.createCell(10).setCellValue(fila.getCodigoEstadoSecundario());
+            dataRow.createCell(11).setCellValue(fila.getEstado());
+            dataRow.createCell(12).setCellValue(fila.getDescripcionEstado());
+            dataRow.createCell(13).setCellValue(fila.getResultado());
+            dataRow.createCell(14).setCellValue(fila.getTextoJsonDatosRecibidos());
+            dataRow.createCell(15).setCellValue(fila.getDocumentoInteresado());
+            dataRow.createCell(16).setCellValue(fila.getTiempoEstimadoRespuesta());
+            dataRow.createCell(17).setCellValue(fila.getTerritorioHistorico());
+            dataRow.createCell(18).setCellValue(fila.getObservaciones());
+            dataRow.createCell(19).setCellValue(fila.getIdPeticionPadre());
+            dataRow.createCell(20).setCellValue(fila.getFkWSSolicitado());     
+        }
+        
+        for (int i = 0; i < headers.length; i++) {
+            log.info("AUTOSIZE -- Columna " + i );
+            log.info(sheet.getColumnWidth(i));
+            sheet.autoSizeColumn(i);
+            log.info(sheet.getColumnWidth(i));
+        }
+        
+        ByteArrayOutputStream baos = new ByteArrayInOutStream();
+        workbook.write(baos);  
+        
+        return workbook;
+        }catch(Exception e){
+            log.error("Se ha producido una Excepcion al crear el Excel: " + e.getMessage());
+        }
+        return null;
+    }
+    
+    public String getNombreProvincia(final String codigoProvincia, final AdaptadorSQLBD adaptador)
+            throws Exception {
+        if (log.isInfoEnabled()) {
+            log.info("Inicio getNombreProvincia");
+        }
+
+        final MeLanbideInteropVidaLaboralDAO meLanbideInteropVidaLaboralDAO = MeLanbideInteropVidaLaboralDAO.getInstance();
+        String nombreProvincia = null;
+        Connection con = null;
+
+        try {
+            con = adaptador.getConnection();
+            nombreProvincia = meLanbideInteropVidaLaboralDAO.getNombreProvincia(codigoProvincia, con);
+        } catch (BDException e) {
+            log.error("Se ha producido una excepcion recuperando la conexión a BBDD", e);
+            throw new Exception(e);
+        } catch (Exception ex) {
+            log.error("Error en getNombreProvincia() manager" + ex.getMessage(), ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                log.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+
+        log.info("FIN getNombreProvincia");
+        return nombreProvincia;
+    }
+
+    public List<RegistroVidaLaboralVO> getDatosVidaLaboralIntermediacion(final String numExp,
+                                                                         final AdaptadorSQLBD adaptador) throws Exception {
+        if (log.isInfoEnabled()) {
+            log.info("Inicio getDatosVidaLaboralIntermediacion");
+        }
+
+        final MeLanbideInteropVidaLaboralDAO meLanbideInteropVidaLaboralDAO = MeLanbideInteropVidaLaboralDAO.getInstance();
+        List<RegistroVidaLaboralVO> registros = new ArrayList<RegistroVidaLaboralVO>();
+        Connection con = null;
+
+        try {
+            con = adaptador.getConnection();
+            registros = meLanbideInteropVidaLaboralDAO.getRegistrosVidaLaboral(numExp, con);
+        } catch (BDException e) {
+            log.error("Se ha producido una excepcion recuperando la conexión a BBDD", e);
+            throw new Exception(e);
+        } catch (Exception ex) {
+            log.error("Error en getDatosVidaLaboralIntermediacion() manager" + ex.getMessage(), ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                log.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+
+        log.info("FIN getDatosVidaLaboralIntermediacion");
+        return registros;
+    }
+    public List<RegistroVidaLaboralVO> getDatosVidaLaboralIntermediacion(final String numExp, final String documentacion,
+                                                                         final String tipoDoc,
+                                                                         final AdaptadorSQLBD adaptador) throws Exception {
+        if (log.isInfoEnabled()) {
+            log.info("Inicio getDatosVidaLaboralIntermediacion");
+        }
+
+        final MeLanbideInteropVidaLaboralDAO meLanbideInteropVidaLaboralDAO = MeLanbideInteropVidaLaboralDAO.getInstance();
+        List<RegistroVidaLaboralVO> registros = new ArrayList<RegistroVidaLaboralVO>();
+        Connection con = null;
+
+        try {
+            con = adaptador.getConnection();
+            registros = meLanbideInteropVidaLaboralDAO.getRegistrosVidaLaboral(numExp, con);
+            if (registros.isEmpty() && meLanbideInteropVidaLaboralDAO.peticionPreviaVidaLaboral(numExp,documentacion, con)) {
+                registros = meLanbideInteropVidaLaboralDAO.getRegistrosVidaLaboralByDoc(documentacion, tipoDoc, con);
+            }
+        } catch (BDException e) {
+            log.error("Se ha producido una excepcion recuperando la conexión a BBDD", e);
+            throw new Exception(e);
+        } catch (Exception ex) {
+            log.error("Error en getDatosVidaLaboralIntermediacion() manager" + ex.getMessage(), ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                log.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+
+        log.info("FIN getDatosVidaLaboralIntermediacion");
+        return registros;
+    }
+
+    public List<RegistroVidaLaboralVO> getDatosVidaLaboralIntermediacion(final String numExp, final List<Persona> personas,
+                                                                         final AdaptadorSQLBD adaptador) throws Exception {
+        if (log.isInfoEnabled()) {
+            log.info("Inicio getDatosVidaLaboralIntermediacion");
+        }
+
+        final MeLanbideInteropVidaLaboralDAO meLanbideInteropVidaLaboralDAO = MeLanbideInteropVidaLaboralDAO.getInstance();
+        List<RegistroVidaLaboralVO> registros = new ArrayList<RegistroVidaLaboralVO>();
+        Connection con = null;
+
+        try {
+            con = adaptador.getConnection();
+            registros = meLanbideInteropVidaLaboralDAO.getRegistrosVidaLaboral(numExp, con);
+            if (registros.isEmpty()) {
+                for (final Persona p : personas) {
+                    if (meLanbideInteropVidaLaboralDAO.peticionPreviaVidaLaboral(numExp, p.getNumDocumento(), con)) {
+                        registros.addAll(meLanbideInteropVidaLaboralDAO.getRegistrosVidaLaboralByDoc(p.getNumDocumento(), p.getTipoDocumento(), con));
+                    }
+                }
+            }
+        } catch (BDException e) {
+            log.error("Se ha producido una excepcion recuperando la conexión a BBDD", e);
+            throw new Exception(e);
+        } catch (Exception ex) {
+            log.error("Error en getDatosVidaLaboralIntermediacion() manager" + ex.getMessage(), ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                log.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+
+        log.info("FIN getDatosVidaLaboralIntermediacion");
+        return registros;
+    }
+
+    public void gestionarVidaLaboralIntermediacion(final List<RegistroVidaLaboralVO> vidaLaboralList, 
+            final String numExp, final AdaptadorSQLBD adaptador)
+            throws Exception {
+        if (log.isInfoEnabled()) {
+            log.info("gestionarVidaLaboralIntermediacion: registros = " + vidaLaboralList.size());
+        }
+
+        Connection con = null;
+
+        final MeLanbideInteropVidaLaboralDAO meLanbideInteropVidaLaboralDAO = MeLanbideInteropVidaLaboralDAO.getInstance();
+        try {
+            con = adaptador.getConnection();
+            for (final RegistroVidaLaboralVO r : vidaLaboralList) {
+                // TO DO (meter logs)
+                
+                if (meLanbideInteropVidaLaboralDAO.getRegistroVidaLaboral(r, numExp, 
+                        con) != null) {
+                    log.debug("Existe el registro de vida laboral");
+                    meLanbideInteropVidaLaboralDAO.actualizarRegistroVidaLaboral(r, numExp, con);
+                }
+                else {
+                    log.debug("No existe el registro de vida laboral");
+                    meLanbideInteropVidaLaboralDAO.insertarRegistroVidaLaboral(r, numExp, con);
+                }
+            }
+        } catch (BDException e) {
+            log.error("Se ha producido una excepcion recuperando la conexión a BBDD", e);
+            throw new Exception(e);
+        } catch (Exception ex) {
+            log.error("Error en gestionarVidaLaboralIntermediacion() manager" + ex.getMessage(), ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                log.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+
+        log.info("FIN gestionarVidaLaboralIntermediacion");
+    }
+}

@@ -1,0 +1,1291 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package es.altia.flexia.integracion.moduloexterno.melanbide_interop.nisae;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.nisae.entities.InteropLlamadasServiciosNisae;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.nisae.entities.InteropServiciosNisae;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.nisae.entities.InteropServiciosNisaeExpFi;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.nisae.entities.vo.RetornoResultadoNISAELog;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.nisae.util.InteropServiciosNisaeJsonUtils;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.util.ConfigurationParameter;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.util.ConstantesMeLanbideInterop;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.cvl.DatosEspecificos;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.FiltrosNisaeLogVO;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.DocumentoPersona;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.cvl.Identidad;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.cvl.Persona;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.cvl.RequestRestServiceCVL;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.RequestRestServicePadron;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.cvl.ResponseRestServiceCVL;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.ResponseRestServicePadron;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.cvl.Situacion;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.Tramitador;
+import es.altia.util.conexion.AdaptadorSQLBD;
+import es.altia.util.conexion.BDException;
+import es.lanbide.lan6.dto.ConsultaTercerosResponse;
+import java.sql.Connection;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import net.lanbide.interoperability.tgss.beans.LanNISAEEntrada;
+import net.lanbide.interoperability.tgss.beans.LanNISAESalida;
+import org.apache.log4j.Logger;
+
+/**
+ *
+ * @author INGDGC
+ */
+public class GestionServiciosNISAE {
+    
+    private static final Logger LOG = Logger.getLogger(GestionServiciosNISAE.class);
+    SimpleDateFormat formatDate = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+    private GestionServiciosNISAEDao daoService = new GestionServiciosNISAEDao();
+    private final InteropServiciosNisaeJsonUtils interopServiciosNisaeJsonUtils = new InteropServiciosNisaeJsonUtils();
+    
+    public List<ExpedienteNisaeVO> getExpedientesProcesarNISAE(int codOrganizacion, InteropLlamadasServiciosNisae interopLlamadasServiciosNisae,AdaptadorSQLBD adaptador) throws Exception{
+        LOG.info("getExpedientesProcesarNISAE - Begin () " + formatDate.format(new Date()) );
+        List<ExpedienteNisaeVO> retorno = null;
+        Connection con = null;
+        try {
+             con = adaptador.getConnection();
+             retorno =daoService.getExpedientesProcesarNISAE(codOrganizacion, interopLlamadasServiciosNisae,con);
+        }catch(BDException ex){
+            LOG.error("Se ha producido una excepcion en la BBDD recuperando los expedientes a procesar "+ interopLlamadasServiciosNisae.getEjercicioHHFF() + " " + interopLlamadasServiciosNisae.getProcedimientoHHFF()+ " " + interopLlamadasServiciosNisae.getEstadoExpediente()+ " " + interopLlamadasServiciosNisae.getNumeroExpedienteDesde()+ " " + interopLlamadasServiciosNisae.getNumeroExpedienteHasta() + interopLlamadasServiciosNisae.getSoloPeticionesEstEnProceso() + interopLlamadasServiciosNisae.getFkWSSolicitado() + " Error : " + ex.getMensaje(), ex);
+            throw ex;
+        }catch (Exception e) {
+            LOG.error("Error al leer los expedientes a procesar en ala llamadas a los servicios NISAE "+ interopLlamadasServiciosNisae.getEjercicioHHFF() + " " + interopLlamadasServiciosNisae.getProcedimientoHHFF()+ " " + interopLlamadasServiciosNisae.getEstadoExpediente()+ " " + interopLlamadasServiciosNisae.getNumeroExpedienteDesde()+ " " + interopLlamadasServiciosNisae.getNumeroExpedienteHasta() + interopLlamadasServiciosNisae.getSoloPeticionesEstEnProceso() + interopLlamadasServiciosNisae.getFkWSSolicitado() + " Error : " + e.getMessage(), e);
+            throw e;
+        }finally {
+            try
+            {
+                adaptador.devolverConexion(con);       
+            }
+            catch(Exception e)
+            {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("getExpedientesProcesarNISAE - End ()" + formatDate.format(new Date()) );
+        return retorno;
+    }
+    
+    public int getExpedientesProcesarNISAENumeroTotalProcesar(int codOrganizacion, InteropLlamadasServiciosNisae interopLlamadasServiciosNisae,AdaptadorSQLBD adaptador) throws Exception{
+        LOG.info("getExpedientesProcesarNISAE - Begin () " + formatDate.format(new Date()) );
+        int retorno = 0;
+        Connection con = null;
+        try {
+             con = adaptador.getConnection();
+             retorno =daoService.getExpedientesProcesarNISAENumeroTotalProcesar(codOrganizacion, interopLlamadasServiciosNisae,con);
+        }catch(BDException ex){
+            LOG.error("Se ha producido una excepcion en la BBDD recuperando los expedientes a procesar "+ interopLlamadasServiciosNisae.getEjercicioHHFF() + " " + interopLlamadasServiciosNisae.getProcedimientoHHFF()+ " " + interopLlamadasServiciosNisae.getEstadoExpediente()+ " " + interopLlamadasServiciosNisae.getNumeroExpedienteDesde()+ " " + interopLlamadasServiciosNisae.getNumeroExpedienteHasta() + interopLlamadasServiciosNisae.getSoloPeticionesEstEnProceso() + interopLlamadasServiciosNisae.getFkWSSolicitado() + " Error : " + ex.getMensaje(), ex);
+            throw ex;
+        }catch (Exception e) {
+            LOG.error("Error al leer los expedientes a procesar en ala llamadas a los servicios NISAE "+ interopLlamadasServiciosNisae.getEjercicioHHFF() + " " + interopLlamadasServiciosNisae.getProcedimientoHHFF()+ " " + interopLlamadasServiciosNisae.getEstadoExpediente()+ " " + interopLlamadasServiciosNisae.getNumeroExpedienteDesde()+ " " + interopLlamadasServiciosNisae.getNumeroExpedienteHasta() + interopLlamadasServiciosNisae.getSoloPeticionesEstEnProceso() + interopLlamadasServiciosNisae.getFkWSSolicitado() + " Error : " + e.getMessage(), e);
+            throw e;
+        }finally {
+            try
+            {
+                adaptador.devolverConexion(con);       
+            }
+            catch(Exception e)
+            {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("getExpedientesProcesarNISAE - End ()" + formatDate.format(new Date()) );
+        return retorno;
+    }
+
+
+    public int crearRegistroBBDDLogLlamadaHHFF(Integer codOrganizacion, InteropLlamadasServiciosNisae interopLlamadasServiciosNisae, String idProcoFlexia_LAN6, net.lanbide.interoperability.otddff.beans.LanNISAEEntrada lan6ObligTribEntrada,String observaciones,String numeroExpediente,AdaptadorSQLBD adaptador) throws BDException, Exception {
+        LOG.info("crearRegistroBBDDLogLlamadaHHFF - Begin () " + formatDate.format(new Date()) );
+        Connection con = null;
+        int retorno =0;
+        try {
+            String textoJsonDatosEnviados="";
+            if(lan6ObligTribEntrada!=null){
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                gsonBuilder.serializeNulls();
+                Gson gson = gsonBuilder.create();
+                textoJsonDatosEnviados = gson.toJson(lan6ObligTribEntrada, net.lanbide.interoperability.otddff.beans.LanNISAEEntrada.class);
+            }
+            con = adaptador.getConnection();
+            retorno = daoService.crearRegistroBBDDLogLlamada(codOrganizacion,interopLlamadasServiciosNisae,textoJsonDatosEnviados, "", numeroExpediente,
+                    (lan6ObligTribEntrada!=null?lan6ObligTribEntrada.getDocTitular():""),(lan6ObligTribEntrada!=null?lan6ObligTribEntrada.getTerritorio():""),observaciones,con);
+        }catch (Exception e) {
+            LOG.error("crearRegistroBBDDLogLlamadaHHFF  "+ interopLlamadasServiciosNisae.getEjercicioHHFF() + " " + interopLlamadasServiciosNisae.getProcedimientoHHFF()+ " " + interopLlamadasServiciosNisae.getEstadoExpediente()+ " " + interopLlamadasServiciosNisae.getNumeroExpedienteDesde()+ " " + interopLlamadasServiciosNisae.getNumeroExpedienteHasta()+ " " + numeroExpediente + "Error : " + e.getMessage(), e);
+            throw e;
+        }finally {
+            try
+            {
+                adaptador.devolverConexion(con);       
+            }
+            catch(Exception e)
+            {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("crearRegistroBBDDLogLlamadaHHFF - End ()" + formatDate.format(new Date()) );
+        return retorno;
+    }
+    
+    public int crearRegistroBBDDLogLlamadaTGSS(Integer codOrganizacion, InteropLlamadasServiciosNisae interopLlamadasServiciosNisae, String idProcoFlexia_LAN6, LanNISAEEntrada lanNISAEEntrada,String observaciones,String numeroExpediente,AdaptadorSQLBD adaptador) throws BDException, Exception {
+        LOG.info("crearRegistroBBDDLogLlamadaTGSS - Begin () " + formatDate.format(new Date()) );
+        Connection con = null;
+        int retorno =0;
+        try {
+            String textoJsonDatosEnviados="";
+            if(lanNISAEEntrada!=null){
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                gsonBuilder.serializeNulls();
+                Gson gson = gsonBuilder.create();
+                textoJsonDatosEnviados = gson.toJson(lanNISAEEntrada, LanNISAEEntrada.class);
+            }
+            con = adaptador.getConnection();
+            retorno = daoService.crearRegistroBBDDLogLlamada(codOrganizacion,interopLlamadasServiciosNisae,textoJsonDatosEnviados,null,numeroExpediente,
+                    (lanNISAEEntrada!=null?lanNISAEEntrada.getDocTitular():""),(lanNISAEEntrada!=null?lanNISAEEntrada.getTerritorio():""),observaciones,con);
+        }catch (Exception e) {
+            LOG.error("crearRegistroBBDDLogLlamadaTGSS  "+ interopLlamadasServiciosNisae.getEjercicioHHFF() + " " + interopLlamadasServiciosNisae.getProcedimientoHHFF()+ " " + interopLlamadasServiciosNisae.getEstadoExpediente()+ " " + interopLlamadasServiciosNisae.getNumeroExpedienteDesde()+ " " + interopLlamadasServiciosNisae.getNumeroExpedienteHasta()+ " " + numeroExpediente + "Error : " + e.getMessage(), e);
+            throw e;
+        }finally {
+            try
+            {
+                adaptador.devolverConexion(con);       
+            }
+            catch(Exception e)
+            {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("crearRegistroBBDDLogLlamadaTGSS - End ()" + formatDate.format(new Date()) );
+        return retorno;
+    }
+    
+    public int crearRegistroBBDDLogLlamadaPadron(Integer codOrganizacion, InteropLlamadasServiciosNisae interopLlamadasServiciosNisae, String idProcoFlexia_LAN6, RequestRestServicePadron request, ResponseRestServicePadron response, String observaciones,String numeroExpediente,AdaptadorSQLBD adaptador) throws BDException, Exception {
+         LOG.info("crearRegistroBBDDLogLlamadaPadron - Begin () " + formatDate.format(new Date()) );
+         Connection con = null;
+         int retorno = 0;
+         try{
+             String textoJsonDatosEnviados="";
+             String textoJsonDatosSalida="";
+             if(request != null){
+                 GsonBuilder gsonBuilder = new GsonBuilder();
+                 gsonBuilder.serializeNulls();
+                 Gson gson = gsonBuilder.create();
+                 textoJsonDatosEnviados = gson.toJson(request, RequestRestServicePadron.class);
+                 textoJsonDatosSalida = gson.toJson(response, ResponseRestServicePadron.class);
+             }
+             con = adaptador.getConnection();
+             retorno = daoService.crearRegistroBBDDLogLlamada(codOrganizacion, interopLlamadasServiciosNisae, textoJsonDatosEnviados,textoJsonDatosSalida, numeroExpediente,
+                     (request!=null?request.getDocumentosPersona().get(0).getNumDoc():""), (request != null?request.getProvinciaNoraReferencia():"") , observaciones, con);
+        }catch(Exception e){
+            LOG.error("crearRegistroBBDDLogLlamadaTGSS  "+ interopLlamadasServiciosNisae.getEjercicioHHFF() + " " + interopLlamadasServiciosNisae.getProcedimientoHHFF()+ " " + interopLlamadasServiciosNisae.getEstadoExpediente()+ " " + interopLlamadasServiciosNisae.getNumeroExpedienteDesde()+ " " + interopLlamadasServiciosNisae.getNumeroExpedienteHasta()+ " " + numeroExpediente + "Error : " + e.getMessage(), e);
+        }finally{
+             try{
+                adaptador.devolverConexion(con);       
+            }catch(Exception e){
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("crearRegistroBBDDLogLlamadaPadron - End () " + formatDate.format(new Date()) );
+        return retorno;
+    }
+    
+    public int crearRegistroBBDDLogLlamadaCVL(Integer codOrganizacion, InteropLlamadasServiciosNisae interopLlamadasServiciosNisae, String idProcoFlexia_LAN6, RequestRestServiceCVL request, ResponseRestServiceCVL response, String observaciones,String numeroExpediente,AdaptadorSQLBD adaptador) throws BDException, Exception {
+         LOG.info("crearRegistroBBDDLogLlamadaCVL - Begin () " + formatDate.format(new Date()) );
+         Connection con = null;
+         int retorno = 0;
+         try{
+             String textoJsonDatosEnviados="";
+             String textoJsonDatosSalida="";
+             if(request != null){
+                 GsonBuilder gsonBuilder = new GsonBuilder();
+                 gsonBuilder.serializeNulls();
+                 Gson gson = gsonBuilder.create();
+                 textoJsonDatosEnviados = gson.toJson(request, RequestRestServiceCVL.class);
+                 textoJsonDatosSalida = gson.toJson(response, RequestRestServiceCVL.class);
+             }
+             con = adaptador.getConnection();
+             retorno = daoService.crearRegistroBBDDLogLlamada(codOrganizacion, interopLlamadasServiciosNisae, textoJsonDatosEnviados,textoJsonDatosSalida, numeroExpediente,
+                     (request!=null?request.getPersona().getNumDocumento():""), null , observaciones, con);
+        }catch(Exception e){
+            LOG.error("crearRegistroBBDDLogLlamadaCVL  "+ interopLlamadasServiciosNisae.getEjercicioHHFF() + " " + interopLlamadasServiciosNisae.getProcedimientoHHFF()+ " " + interopLlamadasServiciosNisae.getEstadoExpediente()+ " " + interopLlamadasServiciosNisae.getNumeroExpedienteDesde()+ " " + interopLlamadasServiciosNisae.getNumeroExpedienteHasta()+ " " + interopLlamadasServiciosNisae.getFechaDesdeCVL()+ " " + interopLlamadasServiciosNisae.getFechaHastaCVL()+ " " + numeroExpediente + "Error : " + e.getMessage(), e);
+        }finally{
+             try{
+                adaptador.devolverConexion(con);       
+            }catch(Exception e){
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("crearRegistroBBDDLogLlamadaCVL - End () " + formatDate.format(new Date()) );
+        return retorno;
+    }
+    
+    public void actualizarCamposSuplementariosNISAE_HHFF(Integer codOrganizacion,String numeroExpediente,net.lanbide.interoperability.otddff.beans.LanNISAESalida lan6ObligTribSalida,AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("actualizarCamposSuplementariosNISAE_HHFF - Begin () " + formatDate.format(new Date()));
+        String codigoCampoSupleIdPeticion = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.CODIGO_CAMPO_SUPLE_IDPETICION_NISAE + "_HHFF", ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
+        String codigoCampoSupleRespuesta = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.CODIGO_CAMPO_SUPLE_RESPUESTA_CONSULTA_NISAE + "_HHFF", ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
+        Connection con = null;
+        try {
+            if (lan6ObligTribSalida != null) {
+                con=adaptador.getConnection();
+                String respuestaInBD=prepararRespuestaServicioParaCampoSupleHHFF(lan6ObligTribSalida);
+                daoService.actualizarCamposSuplementariosNISAE(codOrganizacion,numeroExpediente, lan6ObligTribSalida.getCodigoEstadoSecundario(),respuestaInBD,codigoCampoSupleIdPeticion,codigoCampoSupleRespuesta, con);
+            } else {
+                LOG.error("Respuesta del servicio recibida null , no se puede procesar ");
+            }
+        } catch (Exception e) {
+            LOG.error("actualizarCamposSuplementariosNISAE_HHFF  " + numeroExpediente + " Error : " + e.getMessage(), e);
+            throw e;
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("actualizarCamposSuplementariosNISAE_HHFF - End ()" + formatDate.format(new Date()));
+    }
+    
+    public void actualizarCamposSuplementariosNISAE_TGSS(Integer codOrganizacion,String numeroExpediente,LanNISAESalida lanNISAESalida,AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("actualizarCamposSuplementariosNISAE_TGSS - Begin () " + formatDate.format(new Date()));
+        String codigoCampoSupleIdPeticion = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.CODIGO_CAMPO_SUPLE_IDPETICION_NISAE + "_TGSS", ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
+        String codigoCampoSupleRespuesta = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.CODIGO_CAMPO_SUPLE_RESPUESTA_CONSULTA_NISAE + "_TGSS", ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
+        Connection con = null;
+        try {
+            if (lanNISAESalida != null) {
+                con=adaptador.getConnection();
+                String respuestaInBD=prepararRespuestaServicioParaCampoSupleTGSS(lanNISAESalida);
+                daoService.actualizarCamposSuplementariosNISAE(codOrganizacion,numeroExpediente, lanNISAESalida.getCodigoEstadoSecundario(), respuestaInBD,codigoCampoSupleIdPeticion,codigoCampoSupleRespuesta, con);
+            } else {
+                LOG.error("Respuesta del servicio recibida null , no se puede procesar ");
+            }
+        } catch (Exception e) {
+            LOG.error("actualizarCamposSuplementariosNISAE_TGSS  " + numeroExpediente + " Error : " + e.getMessage(), e);
+            throw e;
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("actualizarCamposSuplementariosNISAE_TGSS - End ()" + formatDate.format(new Date()));
+    }
+    
+    public void actualizarCamposSuplementariosNISAE_Padron(Integer codOrganizacion,String numeroExpediente,RequestRestServicePadron request, ResponseRestServicePadron response,AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("actualizarCamposSuplementariosNISAE_Padron - Begin () " + formatDate.format(new Date()));
+        String codigoCampoSupleIdPeticion = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.CODIGO_CAMPO_SUPLE_IDPETICION_NISAE + "_PADRON", ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
+        String codigoCampoSupleRespuesta = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.CODIGO_CAMPO_SUPLE_RESPUESTA_CONSULTA_NISAE + "_PADRON", ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
+        Connection con = null;
+        try{
+            if(response != null){
+                con=adaptador.getConnection();
+                String idConsulta = response.getCodRespuesta();
+                if(idConsulta == null ||idConsulta.isEmpty()){
+                    idConsulta = "null";
+                }
+                String datosPeticion = prepararDatosPeticionParaCampoSuplePadron(request);
+                String respuestaInBD=prepararRespuestaServicioParaCampoSuplePadron(response);
+                daoService.actualizarCamposSuplementariosNISAE(codOrganizacion, numeroExpediente, datosPeticion, respuestaInBD, codigoCampoSupleIdPeticion, codigoCampoSupleRespuesta, con);
+            }else{
+                LOG.error("Respuesta del servicio recibida null , no se puede procesar ");
+            }
+        }catch(Exception e){
+            LOG.error("actualizarCamposSuplementariosNISAE_Padron " + numeroExpediente + " Error : " + e.getMessage(), e);
+            throw  e;
+        }finally{
+            try{
+                adaptador.devolverConexion(con);
+            }catch (Exception e){
+                LOG.error("Error al cerrar la conexon a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("actualizarCamposSuplementariosNISAE_Padron - End () " + formatDate.format(new Date()));
+    }
+    
+    public void actualizarCamposSuplementariosNISAE_CVL(Integer codOrganizacion,String numeroExpediente,RequestRestServiceCVL request, ResponseRestServiceCVL response,AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("actualizarCamposSuplementariosNISAE_CVL - Begin () " + formatDate.format(new Date()));
+        String codigoCampoSupleIdPeticion = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.CODIGO_CAMPO_SUPLE_IDPETICION_NISAE + "_CVL", ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
+        LOG.info("actualizarCamposSuplementariosNISAE_CVL - codigoCampoSupleIdPeticion = " + codigoCampoSupleIdPeticion);
+        String codigoCampoSupleRespuesta = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.CODIGO_CAMPO_SUPLE_RESPUESTA_CONSULTA_NISAE + "_CVL", ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
+        LOG.info("actualizarCamposSuplementariosNISAE_CVL - codigoCampoSupleIdPeticion = " + codigoCampoSupleRespuesta);
+        Connection con = null;
+        try{
+            if(response != null){
+                con=adaptador.getConnection();
+                String idConsulta = response.getCodRespuesta();
+                LOG.info("actualizarCamposSuplementariosNISAE_CVL - idConsulta = " + response.getCodRespuesta());
+                if(idConsulta == null ||idConsulta.isEmpty()){
+                    idConsulta = "null";
+                }
+                String datosPeticion = prepararDatosPeticionParaCampoSupleCVL(request);
+                LOG.info("actualizarCamposSuplementariosNISAE_CVL - datosPeticion = " + datosPeticion);
+                String respuestaInBD=prepararRespuestaServicioParaCampoSupleCVL(response);
+                LOG.info("actualizarCamposSuplementariosNISAE_CVL - idConsulta = " + respuestaInBD);
+                daoService.actualizarCamposSuplementariosNISAE(codOrganizacion, numeroExpediente, datosPeticion, respuestaInBD, codigoCampoSupleIdPeticion, codigoCampoSupleRespuesta, con);
+            }else{
+                LOG.error("Respuesta del servicio recibida null , no se puede procesar ");
+            }
+        }catch(Exception e){
+            LOG.error("actualizarCamposSuplementariosNISAE_CVL " + numeroExpediente + " Error : " + e.getMessage(), e);
+            throw  e;
+        }finally{
+            try{
+                adaptador.devolverConexion(con);
+            }catch (Exception e){
+                LOG.error("Error al cerrar la conexon a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("actualizarCamposSuplementariosNISAE_CVL - End () " + formatDate.format(new Date()));
+    }
+    
+
+    void actualizarRegistroBBDDLogLlamadaHHFF(int idRegistroLog, net.lanbide.interoperability.otddff.beans.LanNISAESalida lan6ObligTribSalida, String observaciones,AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("actualizarRegistroBBDDLogLlamadaHHFF - Begin () " + formatDate.format(new Date()));
+        Connection con = null;
+        try {
+            if(lan6ObligTribSalida!=null){
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                gsonBuilder.serializeNulls();
+                Gson gson = gsonBuilder.create();
+                String textoJsonDatosRecibidos = gson.toJson(lan6ObligTribSalida, net.lanbide.interoperability.otddff.beans.LanNISAESalida.class);
+                con = adaptador.getConnection();
+                daoService.actualizarRegistroBBDDLogLlamada(idRegistroLog,lan6ObligTribSalida.getCodigoEstado(), lan6ObligTribSalida.getLiteralEstado(), lan6ObligTribSalida.getResultado(),textoJsonDatosRecibidos, lan6ObligTribSalida.getCodigoEstadoSecundario(),String.valueOf(lan6ObligTribSalida.getTiempoEstimadoRespuesta()),observaciones,con);
+            }else{
+                LOG.error("Respuesta del servicio recibida null , no se puede procesar ");
+            }
+        } catch (Exception e) {
+            LOG.error("actualizarRegistroBBDDLogLlamadaHHFF  " + idRegistroLog + " Error : " + e.getMessage(), e);
+            throw e;
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("actualizarRegistroBBDDLogLlamadaHHFF - End ()" + formatDate.format(new Date()));
+    }
+    
+    void actualizarRegistroBBDDLogLlamadaTGSS(int idRegistroLog, LanNISAESalida lanNISAESalida, String observaciones,AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("actualizarRegistroBBDDLogLlamadaTGSS - Begin () " + formatDate.format(new Date()));
+        Connection con = null;
+        try {
+            if(lanNISAESalida!=null){
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                gsonBuilder.serializeNulls();
+                Gson gson = gsonBuilder.create();
+                String textoJsonDatosRecibidos = gson.toJson(lanNISAESalida, LanNISAESalida.class);
+                con = adaptador.getConnection();
+                daoService.actualizarRegistroBBDDLogLlamada(idRegistroLog,lanNISAESalida.getCodigoEstado(), lanNISAESalida.getLiteralEstado(), lanNISAESalida.getResultado(),textoJsonDatosRecibidos, lanNISAESalida.getCodigoEstadoSecundario(),String.valueOf(lanNISAESalida.getTiempoEstimadoRespuesta()),observaciones,con);
+            }else{
+                LOG.error("Respuesta del servicio recibida null , no se puede procesar ");
+            }
+        } catch (Exception e) {
+            LOG.error("actualizarRegistroBBDDLogLlamadaTGSS  " + idRegistroLog + " Error : " + e.getMessage(), e);
+            throw e;
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("actualizarRegistroBBDDLogLlamadaTGSS - End ()" + formatDate.format(new Date()));
+    }
+        
+    void actualizarSoloEstadoYdescripcionRegistroBBDDLogLlamada(int idRegistroLog, String estado, String descripcionEstado, AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("actualizarSoloEstadoYdescripcionRegistroBBDDLogLlamada - Begin () " + formatDate.format(new Date()));
+        Connection con = null;
+        try {
+            con=adaptador.getConnection();
+            daoService.actualizarSoloEstadoYdescripcionRegistroBBDDLogLlamada(idRegistroLog,estado,descripcionEstado,con);
+        } catch (Exception e) {
+            LOG.error("actualizarSoloEstadoYdescripcionRegistroBBDDLogLlamada  " + idRegistroLog + " Error : " + e.getMessage(), e);
+            throw e;
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("actualizarSoloEstadoYdescripcionRegistroBBDDLogLlamada - End ()" + formatDate.format(new Date()));
+    }
+    
+    void actualizarTextoJsonDatosEnviadosDocTTHHPeticionRegistroBBDDLogLlamada(int idRegistroLog, net.lanbide.interoperability.otddff.beans.LanNISAEEntrada lan6ObligTribEntrada , AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("actualizarTextoJsonDatosEnviadosPeticionRegistroBBDDLogLlamada - Begin () " + formatDate.format(new Date()));
+        Connection con = null;
+        try {
+            if (lan6ObligTribEntrada != null) {
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                gsonBuilder.serializeNulls();
+                Gson gson = gsonBuilder.create();
+                String textoJsonDatosEnviados = gson.toJson(lan6ObligTribEntrada, net.lanbide.interoperability.otddff.beans.LanNISAEEntrada.class);
+                con = adaptador.getConnection();
+                daoService.actualizarTextoJsonDatosEnviadosDocTTHHPeticionRegistroBBDDLogLlamada(idRegistroLog,textoJsonDatosEnviados,lan6ObligTribEntrada.getDocTitular(),lan6ObligTribEntrada.getTerritorio(),con);
+            } else {
+                LOG.error("Datos de envio recibido null , no se puede Actualiza BD ... ");
+            }
+            
+        } catch (Exception e) {
+            LOG.error("actualizarTextoJsonDatosEnviadosPeticionRegistroBBDDLogLlamada  " + idRegistroLog + " Error : " + e.getMessage(), e);
+            throw e;
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("actualizarTextoJsonDatosEnviadosPeticionRegistroBBDDLogLlamada - End ()" + formatDate.format(new Date()));
+    }
+    
+    void actualizarTextoJsonDatosEnviadosDocTGSSPeticionRegistroBBDDLogLlamada(int idRegistroLog, LanNISAEEntrada lanNISAEEntrada, AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("actualizarTextoJsonDatosEnviadosDocTGSSPeticionRegistroBBDDLogLlamada - Begin () " + formatDate.format(new Date()));
+        Connection con = null;
+        try {
+            if (lanNISAEEntrada != null) {
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                gsonBuilder.serializeNulls();
+                Gson gson = gsonBuilder.create();
+                String textoJsonDatosEnviados = gson.toJson(lanNISAEEntrada, LanNISAEEntrada.class);
+                con = adaptador.getConnection();
+                daoService.actualizarTextoJsonDatosEnviadosDocTTHHPeticionRegistroBBDDLogLlamada(idRegistroLog, textoJsonDatosEnviados, lanNISAEEntrada.getDocTitular(), lanNISAEEntrada.getTerritorio(), con);
+            } else {
+                LOG.error("Datos de envio recibido null , no se puede Actualiza BD ... ");
+            }
+
+        } catch (Exception e) {
+            LOG.error("actualizarTextoJsonDatosEnviadosDocTGSSPeticionRegistroBBDDLogLlamada  " + idRegistroLog + " Error : " + e.getMessage(), e);
+            throw e;
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("actualizarTextoJsonDatosEnviadosDocTGSSPeticionRegistroBBDDLogLlamada - End ()" + formatDate.format(new Date()));
+    }
+    
+    public List<ComboNisae> getComboNisaeProcedimiento(int codOrganizacion,AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("getComboNisaeProcedimiento - Begin () " + formatDate.format(new Date()));
+        Connection con = null;
+        try {
+            con=adaptador.getConnection();
+            return daoService.getComboNisaeProcedimiento(codOrganizacion,con);
+        } catch (Exception e) {
+            LOG.error("getComboNisaeProcedimiento  " + codOrganizacion + " Error : " + e.getMessage(), e);
+            throw e;
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+            LOG.info("getComboNisaeProcedimiento - End ()" + formatDate.format(new Date()));
+        }
+    }
+    
+    public List<ComboNisae> getComboServiciosWebDisponibles(int codOrganizacion, AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("getComboServiciosWebDisponibles - Begin () " + formatDate.format(new Date()));
+        Connection con = null;
+        List<ComboNisae> retorno  = new ArrayList<ComboNisae>();
+        try {
+            con = adaptador.getConnection();
+            List<InteropServiciosNisae> listaServicios = daoService.getAllDisponiblesInteropServiciosNisae(codOrganizacion, con);
+            if(listaServicios!=null){
+                for (InteropServiciosNisae listaServicio : listaServicios) {
+                    ComboNisae combo = new ComboNisae();
+                    combo.setId(String.valueOf(listaServicio.getId()));
+                    combo.setValor(listaServicio.getNombreWS());
+                    retorno.add(combo);
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("getComboServiciosWebDisponibles  " + codOrganizacion + " Error : " + e.getMessage(), e);
+            throw e;
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+            LOG.info("getComboServiciosWebDisponibles - End ()" + formatDate.format(new Date()));
+        }
+        return retorno;
+    }
+    
+    public InteropServiciosNisae getInteropServiciosNisaeById(int codOrganizacion,int id,AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("getInteropServiciosNisaeById - Begin () " + formatDate.format(new Date()));
+        Connection con = null;
+        try {
+            con=adaptador.getConnection();
+            return daoService.getInteropServiciosNisaeById(codOrganizacion,id,con);
+        } catch (Exception e) {
+            LOG.error("getInteropServiciosNisaeById  " + codOrganizacion + " Error : " + e.getMessage(), e);
+            throw e;
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+            LOG.info("getInteropServiciosNisaeById - End ()" + formatDate.format(new Date()));
+        }
+    }
+    
+    public List<InteropServiciosNisae> getAllInteropServiciosNisae(int codOrganizacion,AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("getAllInteropServiciosNisae - Begin () " + formatDate.format(new Date()));
+        Connection con = null;
+        try {
+            con=adaptador.getConnection();
+            return daoService.getAllInteropServiciosNisae(codOrganizacion,con);
+        } catch (Exception e) {
+            LOG.error("getAllInteropServiciosNisae  " + codOrganizacion + " Error : " + e.getMessage(), e);
+            throw e;
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+            LOG.info("getAllInteropServiciosNisae - End ()" + formatDate.format(new Date()));
+        }
+    }
+    
+    private String prepararRespuestaServicioParaCampoSupleHHFF(net.lanbide.interoperability.otddff.beans.LanNISAESalida respuesta) {
+        String retorno = "Respuesta :";
+        try {
+            if (respuesta != null && respuesta.getCodigoEstado() != null) {
+//                if("0002".equalsIgnoreCase(respuesta.getCodigoEstado()) 
+//                        || "0003".equalsIgnoreCase(respuesta.getCodigoEstado())){
+//                    retorno = "Estado - ";
+//                }else{                    
+//                    retorno="Error - ";
+//                }
+                retorno += " " + (respuesta.getCodigoEstado() != null ? respuesta.getCodigoEstado() : "")
+                        + " " + (respuesta.getLiteralEstado() != null ? respuesta.getLiteralEstado() : "")
+                        + " - Resultado : " + (respuesta.getResultado() != null ? respuesta.getResultado() : "")
+                        + " - " + (respuesta.getDescripcionResultado() != null ? respuesta.getDescripcionResultado() : "")
+                        + " Estado Secundario : " + (respuesta.getCodigoEstadoSecundario() != null ? respuesta.getCodigoEstadoSecundario() : "")
+                        + " Motivos no Cumple: " + (respuesta.getMotivosNoCumple() != null ? respuesta.getMotivosNoCumple() : "")
+                        + " Motivo Error: " + (respuesta.getMotivosError() != null ? respuesta.getMotivosError() : "")
+                        + " Tiempo Estimado Respuesta : " + (respuesta.getTiempoEstimadoRespuesta() != null ? respuesta.getTiempoEstimadoRespuesta() : "")
+                        + " Fecha Hora Consulta : " + (respuesta.getFechaHoraRespuestaPendiente()!= null ? respuesta.getFechaHoraRespuestaPendiente() : "")
+                        ;
+                
+            } else {
+                LOG.error("Las respuestas del servicio NISAE han llegado a null");
+                retorno += " La respuesta del servicio NISAE han llegado a null. No se ha procesado la peticion.";
+            }
+        } catch (Exception e) {
+            LOG.error("Error al procesar la respuesta del servicio NISA para guardar en campo suplementario", e);
+            retorno += " Error Generico procesando la peticion : " + e.getMessage();
+        }
+        return retorno;
+    }
+    
+    private String prepararRespuestaServicioParaCampoSupleTGSS(LanNISAESalida respuesta) {
+        String retorno = "Respuesta :";
+        try {
+            if (respuesta != null && respuesta.getCodigoEstado() != null) {
+//                if("0002".equalsIgnoreCase(respuesta.getCodigoEstado()) 
+//                        || "0003".equalsIgnoreCase(respuesta.getCodigoEstado())){
+//                    retorno = "Estado - ";
+//                }else{                    
+//                    retorno="Error - ";
+//                }
+                retorno += " " + (respuesta.getCodigoEstado() != null ? respuesta.getCodigoEstado() : "")
+                        + " " + (respuesta.getLiteralEstado() != null ? respuesta.getLiteralEstado() : "")
+                        + " - Resultado : " + (respuesta.getResultado() != null ? respuesta.getResultado() : "")
+                        + " - " + (respuesta.getDescripcionResultado() != null ? respuesta.getDescripcionResultado() : "")
+                        + " Estado Secundario : " + (respuesta.getCodigoEstadoSecundario() != null ? respuesta.getCodigoEstadoSecundario() : "")
+                        + " Motivos no Cumple: " + (respuesta.getMotivosNoCumple() != null ? respuesta.getMotivosNoCumple() : "")
+                        + " Motivo Error: " + (respuesta.getMotivosError() != null ? respuesta.getMotivosError() : "")
+                        + " Tiempo Estimado Respuesta : " + (respuesta.getTiempoEstimadoRespuesta() != null ? respuesta.getTiempoEstimadoRespuesta() : "")
+                        + " Fecha Hora Consulta : " + (respuesta.getFechaHoraRespuestaPendiente()!= null ? respuesta.getFechaHoraRespuestaPendiente() : "")
+                        ;
+            } else {
+                LOG.error("Las respuestas del servicio NISAE han llegado a null");
+                retorno += " La respuesta del servicio NISAE han llegado a null. No se ha procesado la peticion.";
+            }
+        } catch (Exception e) {
+            LOG.error("Error al procesar la respuesta del servicio NISA para guardar en campo suplementario", e);
+            retorno += " Error Generico procesando la peticion : " + e.getMessage();
+        }
+        return retorno;
+    }
+   private String prepararDatosPeticionParaCampoSuplePadron(RequestRestServicePadron llamada)
+   {
+       Date now = new Date();
+       SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+       String retorno = "Fecha/Hora: " + dateFormat.format(now) + " Llamada : ";
+       try {
+           retorno += "{nombrePersona: " + (llamada.getNombrePersona() != null ? llamada.getNombrePersona() : "")
+                   + ", apellido1: " + (llamada.getApellido1() != null ? llamada.getApellido1() : "")
+                   + ", apellido2: " + (llamada.getApellido2() != null ? llamada.getApellido2() : "")
+                   + ", fechaNacimiento: " + (llamada.getFechaNacimiento() != null ? llamada.getFechaNacimiento() : "")
+                   + ", municipioNoraReferencia: " + (llamada.getMunicipioNoraReferencia() != null ? llamada.getMunicipioNoraReferencia() : "")
+                   + ", provinciaNoraReferencia: " + (llamada.getProvinciaNoraReferencia() != null ? llamada.getProvinciaNoraReferencia() : "");
+           if (llamada.getTramitador() != null) {
+               Tramitador t = llamada.getTramitador();
+               retorno += ", tramitador:{ nifUsuarioTramitador: " + (t.getNifUsuarioTramitador() != null ? t.getNifUsuarioTramitador() : "")
+                       + ", usuarioTramitador: " + (t.getUsuarioTramitador() != null ? t.getUsuarioTramitador() : "")
+                       + ", procedimientoPadron: " + (t.getProcedimientoPadron() != null ? t.getProcedimientoPadron() : "")
+                       + ", nombreProcedimientoAutorizado: " + (t.getNombreProcedimientoAutorizado() != null ? t.getNombreProcedimientoAutorizado() : "")
+                       + ", finalidadProcedimiento: " + (t.getFinalidadProcedimiento() != null ? t.getFinalidadProcedimiento() : "")
+                       + ", consentimientoFirmado: " + (t.getConsentimientoFirmado() != null ? t.getConsentimientoFirmado() : "")
+                       + ", autorizacionLlamarINE: " + (t.getAutorizacionLlamarINE() != null ? t.getAutorizacionLlamarINE() : "")
+                       + "}";
+           } else {
+               retorno += ", tramitador:{}";
+           }
+           if(llamada.getDocumentosPersona()==null || llamada.getDocumentosPersona().isEmpty()){
+               retorno += ", documentoPersona: [{}]";
+           }else{
+               int control=llamada.getDocumentosPersona().size();
+               retorno += ", documentoPersona: [";
+               for (DocumentoPersona d : llamada.getDocumentosPersona()) {
+                   control--;
+                   retorno +=  " {tipoDoc: " + (d.getTipoDoc() != null ? d.getTipoDoc() : "")
+                           + ", numDoc: " + (d.getNumDoc() != null ? d.getNumDoc() : "")
+                           + "}";
+                   if(control>0)
+                       retorno += ",";
+               }
+               retorno += "]";
+           }
+           retorno += "}";
+           
+
+       } catch (Exception ex) {
+            LOG.error("Error al procesar la llamada del servicio NISA para guardar en campo suplementario", ex);
+           retorno += " Error Generico procesando la peticion : " + ex.getMessage();
+       }
+       
+       return retorno;
+   }
+    
+   
+   private String prepararDatosPeticionParaCampoSupleCVL(RequestRestServiceCVL llamada)
+   {
+       Date now = new Date();
+       SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+       String retorno = "Fecha/Hora: " + dateFormat.format(now) + " Llamada : ";
+       try {
+           if (llamada.getTramitador() != null) {
+               es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.cvl.Tramitador t = llamada.getTramitador();
+               retorno += ", tramitador:{ nifUsuarioTramitador: " + (t.getNifUsuarioTramitador() != null ? t.getNifUsuarioTramitador() : "")
+                       + ", usuarioTramitador: " + (t.getUsuarioTramitador() != null ? t.getUsuarioTramitador() : "")
+                       + ", codProcedimiento: " + (t.getCodProcedimiento() != null ? t.getCodProcedimiento() : "")
+                       + ", nombreProcedimiento: " + (t.getNombreProcedimiento() != null ? t.getNombreProcedimiento() : "")
+                       + ", finalidadProcedimiento: " + (t.getFinalidadProcedimiento() != null ? t.getFinalidadProcedimiento() : "")
+                       + ", consentimientoFirmado: " + (t.getConsentimientoFirmado() != null ? t.getConsentimientoFirmado() : "")
+                       + "}";
+           } else {
+               retorno += ", tramitador:{}";
+           }
+           if(llamada.getPersona()==null){
+               //retorno += ", listaPersonas: [{}]";
+               retorno += ", persona:{}";
+           }else{
+               //int control=llamada.getListaPersona().size();
+                   //control--;
+                   retorno +=  " {persona: " + (llamada.getPersona().getNombrePersona() != null ? llamada.getPersona().getNombrePersona() : "")
+                           + ", apellido1: " + (llamada.getPersona().getApellido1() != null ? llamada.getPersona().getApellido1() : "")
+                           + ", apellido2: " + (llamada.getPersona().getApellido2() != null ? llamada.getPersona().getApellido2() : "")
+                           + ", tipoDocumento: " + (llamada.getPersona().getTipoDocumento() != null ? llamada.getPersona().getTipoDocumento() : "")
+                           + ", numDocumento: " + (llamada.getPersona().getNumDocumento() != null ? llamada.getPersona().getNumDocumento() : "")
+                           + "}";
+                   /*if(control>0)
+                       retorno += ",";*/
+               //retorno += "]";
+           }
+           
+           if(llamada.getDatosEspecificos()!= null){
+               DatosEspecificos datosEspecificos = llamada.getDatosEspecificos();
+               retorno += ", datosEspecificos:{ fechaDesde: " + (datosEspecificos.getFechaDesde() != null ? datosEspecificos.getFechaDesde() : "")
+                       + ", fechaHasta: " + (datosEspecificos.getFechaHasta() != null ? datosEspecificos.getFechaHasta() : "")
+                       + "}";
+           }else{
+               retorno += ", datosEspecificos:{}";
+           }
+           
+           
+           retorno += "}";
+           
+
+       } catch (Exception ex) {
+            LOG.error("Error al procesar la llamada del servicio NISA para guardar en campo suplementario", ex);
+           retorno += " Error Generico procesando la peticion : " + ex.getMessage();
+       }
+       
+       return retorno;
+   }
+  
+   private String prepararRespuestaServicioParaCampoSuplePadron(ResponseRestServicePadron respuesta){
+       String retorno = "Respuesta : ";
+       try{
+           retorno += " " + respuesta.getCodRespuesta() + " - " + respuesta.getDescRespuesta()
+                   + " tipoPadron: " + (respuesta.getPadron().getTipoPadron() !=null ? respuesta.getPadron().getTipoPadron() : "")
+                   + " tipoDoc: " + (respuesta.getPadron().getTipoDoc()!= null ? respuesta.getPadron().getTipoDoc() : "")
+                   + " numDoc: " + (respuesta.getPadron().getNumDoc() != null ? respuesta.getPadron().getNumDoc() : "")
+                   + " nombrePersona: " + (respuesta.getPadron().getNombrePersona() != null ? respuesta.getPadron().getNombrePersona() : "")
+                   + " apellido1Persona: " + (respuesta.getPadron().getApellido1Persona() != null ? respuesta.getPadron().getApellido1Persona() : "")
+                   + " apellido2Persona: " + (respuesta.getPadron().getApellido2Persona() != null ? respuesta.getPadron().getApellido2Persona() : "")
+                   + " fechaNacimiento: " + (respuesta.getPadron().getFechaNacimiento() != null ? respuesta.getPadron().getFechaNacimiento() : "")
+                   + " codProvincia: " + (respuesta.getPadron().getCodProvincia() != null ? respuesta.getPadron().getCodProvincia() : "")
+                   + " descProvincia: " + (respuesta.getPadron().getDescProvincia() != null ? respuesta.getPadron().getDescProvincia() : "")
+                   + " codMunicipio: " + (respuesta.getPadron().getCodMunicio()!= null ? respuesta.getPadron().getCodMunicio() : "")
+                   + " descMunicipio: " + (respuesta.getPadron().getDescMunicipio()!= null ? respuesta.getPadron().getDescMunicipio() : "")
+                   + " codigoVia: " + (respuesta.getPadron().getCodigoVia()!= null ? respuesta.getPadron().getCodigoVia() : "")
+                   + " nombreVia: " + (respuesta.getPadron().getNombreVia()!= null ? respuesta.getPadron().getNombreVia() : "")
+                   + " nombreViaEusk: " + (respuesta.getPadron().getNombreViaEusk()!= null ? respuesta.getPadron().getNombreViaEusk() : "")
+                   + " entidadSingular: " + (respuesta.getPadron().getEntidadSingular()!= null ? respuesta.getPadron().getEntidadSingular() : "")
+                   + " entidadColectiva: " + (respuesta.getPadron().getEntidadColectiva()!= null ? respuesta.getPadron().getEntidadColectiva() : "")
+                   + " nucleo: " + (respuesta.getPadron().getNucleo()!= null ? respuesta.getPadron().getNucleo() : "")
+                   + " codUnidadPoblacional: " + (respuesta.getPadron().getCodUnidadPoblacional()!= null ? respuesta.getPadron().getCodUnidadPoblacional() : "")
+                   + " codUltVariacion: " + (respuesta.getPadron().getCodUltVariacion()!= null ? respuesta.getPadron().getCodUltVariacion() : "")
+                   + " descUltVariacion: " + (respuesta.getPadron().getDescUltVariacion()!= null ? respuesta.getPadron().getDescUltVariacion() : "")
+                   + " bloque: " + (respuesta.getPadron().getBloque()!= null ? respuesta.getPadron().getBloque() : "")
+                   + " portal: " + (respuesta.getPadron().getPortal()!= null ? respuesta.getPadron().getPortal() : "")
+                   + " numero: " + (respuesta.getPadron().getNumero()!= null ? respuesta.getPadron().getNumero() : "")
+                   + " kmt: " + (respuesta.getPadron().getKmt()!= null ? respuesta.getPadron().getKmt() : "")
+                   + " hmt: " + (respuesta.getPadron().getHmt()!= null ? respuesta.getPadron().getHmt() : "")
+                   + " bis: " + (respuesta.getPadron().getBis()!= null ? respuesta.getPadron().getBis() : "")
+                   + " escalera: " + (respuesta.getPadron().getEscalera()!= null ? respuesta.getPadron().getEscalera() : "")
+                   + " planta: " + (respuesta.getPadron().getPlanta()!= null ? respuesta.getPadron().getPlanta() : "")
+                   + " puerta: " + (respuesta.getPadron().getPuerta()!= null ? respuesta.getPadron().getPuerta() : "")
+                   + " codPostal: " + (respuesta.getPadron().getCodPostal()!= null ? respuesta.getPadron().getCodPostal() : "")
+                   + " codigoPaisNacimiento: " + (respuesta.getPadron().getCodigoPaisNacimiento()!= null ? respuesta.getPadron().getCodigoPaisNacimiento() : "")
+                   + " nombrePaisNacimiento: " + (respuesta.getPadron().getNombrePaisNacimiento()!= null ? respuesta.getPadron().getNombrePaisNacimiento() : "")
+                   + " codigoProvinciaNacimiento: " + (respuesta.getPadron().getCodigoProvinciaNacimiento()!= null ? respuesta.getPadron().getCodigoProvinciaNacimiento() : "")
+                   + " nombreProvinciaNacimiento: " + (respuesta.getPadron().getNombreProvinciaNacimiento()!= null ? respuesta.getPadron().getNombreProvinciaNacimiento() : "")
+                   + " codigoMunicipioNacimiento: " + (respuesta.getPadron().getCodigoMunicipioNacimiento()!= null ? respuesta.getPadron().getCodigoMunicipioNacimiento() : "")
+                   + " nombreMunicipioNacimiento: " + (respuesta.getPadron().getNombreMunicipioNacimiento()!= null ? respuesta.getPadron().getNombreMunicipioNacimiento() : "")
+                   + " sexo: " + (respuesta.getPadron().getSexo()!= null ? respuesta.getPadron().getSexo() : "")
+                   + " fechaAltaPadron: " + (respuesta.getPadron().getFechaAltaPadron()!= null ? respuesta.getPadron().getFechaAltaPadron() : "")
+                   + " fechaUltimaVariacion: " + (respuesta.getPadron().getFechaUltimaVariacion()!= null ? respuesta.getPadron().getFechaUltimaVariacion() : "")
+                   + " noraCalle: " + (respuesta.getPadron().getNoraCalle()!= null ? respuesta.getPadron().getNoraCalle() : "")
+                   + " noraPortal: " + (respuesta.getPadron().getNoraPortal()!= null ? respuesta.getPadron().getNoraPortal() : "")
+                   ;
+       } catch (Exception e){
+           LOG.error("Error al procesar la respuesta del servicio NISA para guardar en campo suplementario", e);
+           retorno += " Error Generico procesando la peticion : " + e.getMessage();
+       }
+       
+       return retorno;
+   }
+   
+   private String prepararRespuestaServicioParaCampoSupleCVL(ResponseRestServiceCVL respuesta){
+       String retorno = "Respuesta : ";
+       try{
+           retorno += " " + respuesta.getCodRespuesta() + " - " + respuesta.getDescRespuesta()
+                   + " codigoEstado: " + (respuesta.getCodigoEstado() !=null ? respuesta.getCodigoEstado() : "")
+                   + " textoEstado: " + (respuesta.getTextoEstado() != null ? respuesta.getTextoEstado() : "");
+                   //+ " xmlRespuesta: " + (respuesta.getXmlRespuesta() != null ? respuesta.getXmlRespuesta() : "");
+           
+           if (respuesta.getIdentidad() != null) {
+               Identidad i = respuesta.getIdentidad();
+               retorno += ", identidad:{ ";
+                       if (respuesta.getIdentidad().getCabecera() != null) {
+                           retorno += ", cabecera:{ fechaNacimiento: " + (i.getCabecera().getFechaNacimiento() != null ? i.getCabecera().getFechaNacimiento() : "")
+                           + ", transferenciaDerechosCEE: " + (i.getCabecera().getTransferenciaDerechosCEE() != null ? i.getCabecera().getTransferenciaDerechosCEE() : "");
+                           retorno += ", listaNumerosAfiliacion:{ ";
+                           if (respuesta.getIdentidad().getCabecera().getListaNumerosAfiliacion() != null) {
+                                retorno += ", listaNumerosAfiliacion:{ numeroAfiliacionVL: " + (i.getCabecera().getListaNumerosAfiliacion().getNumeroAfiliacionVL() != null ? i.getCabecera().getListaNumerosAfiliacion().getNumeroAfiliacionVL() : null);
+                           }else{
+                             retorno += ", listaNumerosAfiliacion:{}";    
+                           }
+                           retorno += "}";
+                       }else{
+                         retorno += ", cabecera:{}";  
+                       }
+                       retorno += ", numeroSituaciones: " + (i.getNumeroSituaciones() != null ? i.getNumeroSituaciones() : "");
+
+                       if (respuesta.getIdentidad().getResumen() != null) {
+                           retorno += ", resumen:{ ";
+                           
+                           if (respuesta.getIdentidad().getResumen().getPluriempleo() != null) {
+                             retorno += ", pluriempleo:{ aniosAlta: " + (i.getResumen().getPluriempleo().getAniosAlta() != null ? i.getResumen().getPluriempleo().getAniosAlta() : 0)  
+                             + ", diasAlta: " + (i.getResumen().getPluriempleo().getDiasAlta() != null ? i.getResumen().getPluriempleo().getDiasAlta() : 0)
+                             + ", mesesAlta: " + (i.getResumen().getPluriempleo().getMesesAlta() != null ? i.getResumen().getPluriempleo().getMesesAlta() : 0)
+                             + ", totalDiasAlta: " + (i.getResumen().getPluriempleo().getTotalDiasAlta() != null ? i.getResumen().getPluriempleo().getTotalDiasAlta() : 0);
+                           }else{
+                             retorno += ", pluriempleo:{}";   
+                           }
+                           
+                           if (respuesta.getIdentidad().getResumen().getTotales() != null) {
+                             retorno += ", totales:{ aniosAlta: " + (i.getResumen().getTotales().getAniosAlta() != null ? i.getResumen().getTotales().getAniosAlta() : 0)  
+                             + ", diasAlta: " + (i.getResumen().getTotales().getDiasAlta() != null ? i.getResumen().getTotales().getDiasAlta() : 0)
+                             + ", mesesAlta: " + (i.getResumen().getTotales().getMesesAlta() != null ? i.getResumen().getTotales().getMesesAlta() : 0)
+                             + ", totalDiasAlta: " + (i.getResumen().getTotales().getTotalDiasAlta() != null ? i.getResumen().getTotales().getTotalDiasAlta() : 0);
+                           }else{
+                             retorno += ", totales:{}";   
+                           }
+                                                  
+                           retorno += "}";
+                       }else{
+                        retorno += ", resumen:{}";     
+                       }
+                       
+                       if(respuesta.getIdentidad().getListaSituaciones() == null){
+                           retorno += ", listaSituaciones:{}";
+                       }else{
+                        if (respuesta.getIdentidad().getListaSituaciones() == null) {
+                           retorno += ", listaSituaciones:{}";
+                        }else{
+                           for(Situacion situacion : respuesta.getIdentidad().getListaSituaciones().getSituacion()){
+                              retorno += ", situacion:{ codigoCuentaCotizacion: " + (situacion.getCodigoCuentaCotizacion() != null ? situacion.getCodigoCuentaCotizacion() : 0)  
+                             + ", diasAlta: " + (situacion.getDiasAlta() != null ? situacion.getDiasAlta() : 0)
+                             + ", grupoCotizacion: " + (situacion.getGrupoCotizacion() != null ? situacion.getGrupoCotizacion() : 0)
+                             + ", provincia: " + (situacion.getProvincia() != null ? situacion.getProvincia() : 0)
+                             + ", contratoTiempoParcial: " + (situacion.getContratoTiempoParcial() != null ? situacion.getContratoTiempoParcial() : "")
+                             + ", contratoTrabajo: " + (situacion.getContratoTrabajo() != null ? situacion.getContratoTrabajo() : "")
+                             + ", empresa: " + (situacion.getEmpresa() != null ? situacion.getEmpresa() : "")
+                             + ", fechaAlta: " + (situacion.getFechaAlta() != null ? situacion.getFechaAlta() : "")     
+                             + ", fechaBaja: " + (situacion.getFechaBaja() != null ? situacion.getFechaBaja() : "")
+                             + ", fechaEfectos: " + (situacion.getFechaEfectos() != null ? situacion.getFechaEfectos() : "")
+                             + ", numeroAfiliacion: " + (situacion.getNumeroAfiliacion() != null ? situacion.getNumeroAfiliacion() : "")
+                             + ", regimen: " + (situacion.getRegimen() != null ? situacion.getRegimen() : "");
+                           }
+                        }      
+                       }
+                                        
+                       retorno += "}";
+           } else {
+               retorno += ", identidad:{}";
+           }
+           
+       } catch (Exception e){
+           LOG.error("Error al procesar la respuesta del servicio NISA para guardar en campo suplementario", e);
+           retorno += " Error Generico procesando la peticion : " + e.getMessage();
+       }
+       
+       return retorno;
+   }
+    
+    public List<ExpedienteNisaeVO> getExpedientesProcesarNISAEFiltroExpedientesEspecificos(int codOrganizacion, InteropLlamadasServiciosNisae interopLlamadasServiciosNisae, AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("getExpedientesProcesarNISAEFiltroExpedientesEspecificos - Begin () " + formatDate.format(new Date()));
+        List<ExpedienteNisaeVO> retorno = null;
+        Connection con = null;
+        try {
+            con = adaptador.getConnection();
+            retorno = daoService.getExpedientesProcesarNISAEFiltroExpedientesEspecificos(codOrganizacion, interopLlamadasServiciosNisae, con);
+        } catch (BDException ex) {
+            LOG.error("Se ha producido una excepcion en la BBDD recuperando los expedientes a procesar " + interopLlamadasServiciosNisae.getEjercicioHHFF() + " " + interopLlamadasServiciosNisae.getProcedimientoHHFF() + " " + interopLlamadasServiciosNisae.getEstadoExpediente() + " " + interopLlamadasServiciosNisae.getNumeroExpedienteDesde() + " " + interopLlamadasServiciosNisae.getNumeroExpedienteHasta() + interopLlamadasServiciosNisae.getSoloPeticionesEstEnProceso() + interopLlamadasServiciosNisae.getFkWSSolicitado() + " Error : " + ex.getMensaje(), ex);
+            throw ex;
+        } catch (Exception e) {
+            LOG.error("Error al leer los expedientes a procesar en ala llamadas a los servicios NISAE " + interopLlamadasServiciosNisae.getEjercicioHHFF() + " " + interopLlamadasServiciosNisae.getProcedimientoHHFF() + " " + interopLlamadasServiciosNisae.getEstadoExpediente() + " " + interopLlamadasServiciosNisae.getNumeroExpedienteDesde() + " " + interopLlamadasServiciosNisae.getNumeroExpedienteHasta() + interopLlamadasServiciosNisae.getSoloPeticionesEstEnProceso() + interopLlamadasServiciosNisae.getFkWSSolicitado() + " Error : " + e.getMessage(), e);
+            throw e;
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("getExpedientesProcesarNISAEFiltroExpedientesEspecificos - End ()" + formatDate.format(new Date()));
+        return retorno;
+    }
+
+    public int getExpedientesProcesarNISAEFiltroExpedientesEspecificosTotalProcesar(int codOrganizacion, InteropLlamadasServiciosNisae interopLlamadasServiciosNisae, AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("getExpedientesProcesarNISAEFiltroExpedientesEspecificosTotalProcesar - Begin () " + formatDate.format(new Date()));
+        int retorno = 0;
+        Connection con = null;
+        try {
+            con = adaptador.getConnection();
+            retorno = daoService.getExpedientesProcesarNISAEFiltroExpedientesEspecificosTotalProcesar(codOrganizacion, interopLlamadasServiciosNisae, con);
+        } catch (BDException ex) {
+            LOG.error("Se ha producido una excepcion en la BBDD recuperando los expedientes a procesar " + interopLlamadasServiciosNisae.getEjercicioHHFF() + " " + interopLlamadasServiciosNisae.getProcedimientoHHFF() + " " + interopLlamadasServiciosNisae.getEstadoExpediente() + " " + interopLlamadasServiciosNisae.getNumeroExpedienteDesde() + " " + interopLlamadasServiciosNisae.getNumeroExpedienteHasta() + interopLlamadasServiciosNisae.getSoloPeticionesEstEnProceso() + interopLlamadasServiciosNisae.getFkWSSolicitado() + " Error : " + ex.getMensaje(), ex);
+            throw ex;
+        } catch (Exception e) {
+            LOG.error("Error al leer los expedientes a procesar en ala llamadas a los servicios NISAE " + interopLlamadasServiciosNisae.getEjercicioHHFF() + " " + interopLlamadasServiciosNisae.getProcedimientoHHFF() + " " + interopLlamadasServiciosNisae.getEstadoExpediente() + " " + interopLlamadasServiciosNisae.getNumeroExpedienteDesde() + " " + interopLlamadasServiciosNisae.getNumeroExpedienteHasta() + interopLlamadasServiciosNisae.getSoloPeticionesEstEnProceso() + interopLlamadasServiciosNisae.getFkWSSolicitado() + " Error : " + e.getMessage(), e);
+            throw e;
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("getExpedientesProcesarNISAEFiltroExpedientesEspecificosTotalProcesar - End ()" + formatDate.format(new Date()));
+        return retorno;
+    }
+    
+    public void registarFiltroExpedienteEspcificoLista(int codOrganizacion,  List<InteropServiciosNisaeExpFi> interopServiciosNisaeExpFiList, AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("registarFiltroExpedienteEspcificoLista - Begin () " + formatDate.format(new Date()));
+        Connection con = null;
+        try {
+            con = adaptador.getConnection();
+            daoService.registarFiltroExpedienteEspcificoLista(codOrganizacion, interopServiciosNisaeExpFiList, con);
+        } catch (BDException ex) {
+            LOG.error("Se ha producido una excepcion en la BBDD recuperando los expedientes a procesar " + " Error : " + ex.getMensaje(), ex);
+            throw ex;
+        } catch (Exception e) {
+            LOG.error("Error al leer los expedientes a procesar en ala llamadas a los servicios NISAE " + " Error : " + e.getMessage(), e);
+            throw e;
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("registarFiltroExpedienteEspcificoLista - End ()" + formatDate.format(new Date()));
+    }
+    
+    public List<InteropServiciosNisaeExpFi>  getListaFiltroExpedientesEspecificos(int codOrganizacion, AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("getListaFiltroExpedientesEspecificos - Begin () " + formatDate.format(new Date()));
+        Connection con = null;
+        List<InteropServiciosNisaeExpFi> retorno=new ArrayList<InteropServiciosNisaeExpFi>();
+        try {
+            con = adaptador.getConnection();
+            retorno=daoService.getListaFiltroExpedientesEspecificos(codOrganizacion,con);
+        } catch (BDException ex) {
+            LOG.error("Se ha producido una excepcion en la BBDD recuperando los expedientes a procesar " + " Error : " + ex.getMensaje(), ex);
+            throw ex;
+        } catch (Exception e) {
+            LOG.error("Error al leer los expedientes a procesar en ala llamadas a los servicios NISAE " + " Error : " + e.getMessage(), e);
+            throw e;
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("getListaFiltroExpedientesEspecificos - End ()" + formatDate.format(new Date()));
+        return retorno;
+    }
+    
+    public RetornoResultadoNISAELog getLogInteropServiciosNISAE(int codOrganizacion, AdaptadorSQLBD adaptador, FiltrosNisaeLogVO filtros) throws Exception {
+        LOG.info("getLogInteropServiciosNISAE - Begin () " + formatDate.format(new Date()));
+        Connection con = null;
+        RetornoResultadoNISAELog retorno = new RetornoResultadoNISAELog();     
+
+        try { 
+            con = adaptador.getConnection();
+            //recuperar registros a devolver
+            retorno.setLstRegistros(daoService.getPeticionesConsultasNISAExExpediente(codOrganizacion, con, filtros, false));
+            //recuperar numero total de registros
+            int totalRecords = daoService.getNumRegistrosTotalConsultasNISAEExpediente(codOrganizacion, con, filtros);
+            retorno.setDraw(filtros.getDraw());
+            retorno.setRecordsFiltered(totalRecords);
+            retorno.setRecordsTotal(totalRecords);
+        } catch (BDException ex){
+            LOG.error("Se ha producido una excepcion en la BBDD recuperando el log de las llamadas a NISAE " + " Error : " + ex.getMensaje(), ex);
+            throw ex;
+        } catch(Exception e){
+            LOG.error("Error al leer el log de las llamadas a NISAE " + " Error : " + e.getMessage());
+            throw e;
+        } finally {
+            try{
+                adaptador.devolverConexion(con);
+            }catch (Exception e){
+                LOG.error("Error al cerrar conexion a la BBDD; " + e.getMessage());
+            }
+        }
+        LOG.info("getLogInteropServiciosNISAE - End () " + formatDate.format(new Date()));
+        return retorno;
+    }
+    
+    public List<InteropLlamadasServiciosNisae> getListaLogInteropServiciosNISAE(int codOrganizacion, AdaptadorSQLBD adaptador, FiltrosNisaeLogVO filtros) throws Exception {
+        LOG.info("getLogInteropServiciosNISAE - Begin () " + formatDate.format(new Date()));
+        Connection con = null;
+        List<InteropLlamadasServiciosNisae> retorno = null;     
+
+        try { 
+            con = adaptador.getConnection();
+            //recuperar registros a devolver
+            retorno = daoService.getPeticionesConsultasNISAExExpediente(codOrganizacion, con, filtros, true);
+        } catch (BDException ex){
+            LOG.error("Se ha producido una excepcion en la BBDD recuperando el log de las llamadas a NISAE " + " Error : " + ex.getMensaje(), ex);
+            throw ex;
+        } catch(Exception e){
+            LOG.error("Error al leer el log de las llamadas a NISAE " + " Error : " + e.getMessage());
+            throw e;
+        } finally {
+            try{
+                adaptador.devolverConexion(con);
+            }catch (Exception e){
+                LOG.error("Error al cerrar conexion a la BBDD; " + e.getMessage());
+            }
+        }
+        LOG.info("getLogInteropServiciosNISAE - End () " + formatDate.format(new Date()));
+        return retorno;
+    }
+    
+    public void actualizarEstadoExpedienteInListaFiltroExptsEspecificos(int codOrganizacion,String numeroExpediente, Integer  procesoEjecutado, String observaciones, AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("actualizarEstadoExpedienteInListaFiltroExptsEspecificos - Begin () " + formatDate.format(new Date()));
+        Connection con = null;
+        try {
+            con = adaptador.getConnection();
+            daoService.actualizarEstadoExpedienteInListaFiltroExptsEspecificos(codOrganizacion,numeroExpediente,procesoEjecutado,observaciones, con);
+        } catch (BDException ex) {
+            LOG.error("Se ha producido una excepcion en la BBDD actualizar estado expedientes filtro especificos " + " Error : " + ex.getMensaje(), ex);
+            throw ex;
+        } catch (Exception e) {
+            LOG.error("Error  BBDD al actualizar estado expedientes filtro especificos " + " Error : " + e.getMessage(), e);
+            throw e;
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("actualizarEstadoExpedienteInListaFiltroExptsEspecificos - End ()" + formatDate.format(new Date()));
+    }
+    
+    public int crearRegistroBBDDLogLlamadaEIKA(Integer codOrganizacion, InteropLlamadasServiciosNisae interopLlamadasServiciosNisae,String textoJsonDatosEnviados,AdaptadorSQLBD adaptador) throws BDException, Exception {
+        LOG.info("crearRegistroBBDDLogLlamadaEIKA - Begin () " + formatDate.format(new Date()) );
+        Connection con = null;
+        int retorno =0;
+        try {
+            con = adaptador.getConnection();
+            retorno = daoService.crearRegistroBBDDLogLlamada(codOrganizacion,interopLlamadasServiciosNisae,textoJsonDatosEnviados,"",interopLlamadasServiciosNisae.getNumeroExpediente(),interopLlamadasServiciosNisae.getDocumentoInteresado(),
+                    interopLlamadasServiciosNisae.getTerritorioHistorico(),interopLlamadasServiciosNisae.getObservaciones(),con);
+        }catch (Exception e) {
+            LOG.error("crearRegistroBBDDLogLlamadaEIKA  "+ interopLlamadasServiciosNisae.getEjercicioHHFF() + " " + interopLlamadasServiciosNisae.getProcedimientoHHFF()+ " " + interopLlamadasServiciosNisae.getEstadoExpediente()+ " " + interopLlamadasServiciosNisae.getNumeroExpedienteDesde()+ " " + interopLlamadasServiciosNisae.getNumeroExpedienteHasta()+ " " + interopLlamadasServiciosNisae.getNumeroExpediente() + "Error : " + e.getMessage(), e);
+            throw e;
+        }finally {
+            try
+            {
+                adaptador.devolverConexion(con);       
+            }
+            catch(Exception e)
+            {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("crearRegistroBBDDLogLlamadaTGSS - End ()" + formatDate.format(new Date()) );
+        return retorno;
+    }
+    
+    public void actualizarRegistroBBDDLogLlamadaEIKA(int idRegistroLog,ConsultaTercerosResponse respuesta, AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("actualizarRegistroBBDDLogLlamadaEIKA - Begin () " + formatDate.format(new Date()));
+        Connection con = null;
+        try {
+            if (respuesta != null) {
+                con = adaptador.getConnection();
+                daoService.actualizarRegistroBBDDLogLlamada(idRegistroLog
+                        ,(respuesta.getMensaje()!=null ?respuesta.getMensaje().getCodRdo():"")
+                        ,(respuesta.getMensaje()!=null ?respuesta.getMensaje().getDescrip():"")
+                        , "",interopServiciosNisaeJsonUtils.getJSONfromObject(respuesta), "", "", "", con);
+            } else {
+                LOG.error("Datos de envio recibido null , no se puede Actualiza BD ... ");
+            }
+
+        } catch (Exception e) {
+            LOG.error("actualizarRegistroBBDDLogLlamadaEIKA  " + idRegistroLog + " Error : " + e.getMessage(), e);
+            throw e;
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("actualizarRegistroBBDDLogLlamadaEIKA - End ()" + formatDate.format(new Date()));
+    }
+    
+    public void actualizarCamposSuplementariosNISAE_EIKA(Integer codOrganizacion,String numeroExpediente,ConsultaTercerosResponse respuesta,AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("actualizarCamposSuplementariosNISAE_EIKA - Begin () " + formatDate.format(new Date()));
+        String codigoCampoSupleIdPeticion = "";
+        String codigoCampoSupleRespuesta = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.CODIGO_CAMPO_SUPLE_RESPUESTA_CONSULTA_NISAE + "_EIKA", ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
+        Connection con = null;
+        try {
+            if (respuesta != null) {
+                con=adaptador.getConnection();
+                String respuestaInBD=prepararRespuestaServicioParaCampoSupleEIKA(respuesta);
+                daoService.actualizarCamposSuplementariosNISAE(codOrganizacion,numeroExpediente, "", respuestaInBD,codigoCampoSupleIdPeticion,codigoCampoSupleRespuesta, con);
+            } else {
+                LOG.error("Respuesta del servicio recibida null , no se puede procesar ");
+            }
+        } catch (Exception e) {
+            LOG.error("actualizarCamposSuplementariosNISAE_TGSS  " + numeroExpediente + " Error : " + e.getMessage(), e);
+            throw e;
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("actualizarCamposSuplementariosNISAE_TGSS - End ()" + formatDate.format(new Date()));
+    }
+    
+    private String prepararRespuestaServicioParaCampoSupleEIKA(ConsultaTercerosResponse respuesta) {
+        String retorno = "Respuesta :";
+        try {
+            if (respuesta != null) {
+                retorno += " " + (respuesta.getMensaje()!= null  ? respuesta.getMensaje().getCodRdo() : "")
+                        + " " + (respuesta.getMensaje()!= null && !"null".equalsIgnoreCase(respuesta.getMensaje().getDescrip())  ? respuesta.getMensaje().getDescrip() : "")
+                        + " - Resultado : " + 
+                        (respuesta.getDatosGeneralesTercero()!=null ? respuesta.getDatosGeneralesTercero().getEstado() + " - " + respuesta.getDatosGeneralesTercero().getSituacion()
+                        : " - "
+                        )
+                        + " Datos: " + interopServiciosNisaeJsonUtils.getJSONfromObject(respuesta)
+                        ;
+            } else {
+                LOG.error("Las respuestas del servicio NISAE-EIKA han llegado a null");
+                retorno += " La respuesta del servicio NISAE-EIKA han llegado a null. No se ha procesado la peticion.";
+            }
+        } catch (Exception e) {
+            LOG.error("Error al procesar la respuesta del servicio NISAE-EIKA para guardar en campo suplementario", e);
+            retorno += " Error Generico procesando la peticion : " + e.getMessage();
+        }
+        return retorno;
+    }
+
+    void actualizarRegistroBBDDLogLlamada(int idRegistroLog, Object respuesta, AdaptadorSQLBD adaptador) throws Exception {
+      LOG.info("actualizarRegistroBBDDLogLlamada - Begin () " + formatDate.format(new Date()));
+        Connection con = null;
+        try {
+            if (respuesta != null) {                
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                gsonBuilder.serializeNulls();
+                Gson gson = gsonBuilder.create();
+                String textoJsonDatosRecibidos = "";
+                String estado = "";
+                String descripcionEstado = "";
+                String resultado = "";
+                String codigoEstadoSecundario = "";
+                String tiempoEstimadoRespuesta = "";
+                String observaciones = "";
+                
+                LOG.info("respuesta: " + respuesta);
+                
+                if(respuesta instanceof es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.cvl.ResponseRestServiceCVL){
+                   textoJsonDatosRecibidos = gson.toJson(respuesta, es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.cvl.ResponseRestServiceCVL.class);
+                   estado = ((ResponseRestServiceCVL) respuesta).getCodigoEstado();
+                   descripcionEstado = ((ResponseRestServiceCVL) respuesta).getTextoEstado();
+                   resultado = ((ResponseRestServiceCVL) respuesta).getCodRespuesta();
+                   observaciones = ((ResponseRestServiceCVL) respuesta).getDescRespuesta();
+                }
+                                          
+                con = adaptador.getConnection();
+                daoService.actualizarRegistroBBDDLogLlamada(idRegistroLog
+                        ,estado
+                        ,descripcionEstado
+                        , resultado ,textoJsonDatosRecibidos, codigoEstadoSecundario, tiempoEstimadoRespuesta, observaciones, con);
+            } else {
+                LOG.error("Datos de envio recibido null , no se puede Actualiza BD ... ");
+            }
+
+        } catch (Exception e) {
+            LOG.error("actualizarRegistroBBDDLogLlamada  " + idRegistroLog + " Error : " + e.getMessage(), e);
+            throw e;
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("actualizarRegistroBBDDLogLlamada - End ()" + formatDate.format(new Date()));  
+    }
+
+    String rescatarUnidadTramitadora(String numeroExpediente, AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("rescatarUnidadTramitadora - Begin () " + formatDate.format(new Date()));
+        Connection con = null;  
+        String retorno;
+        try {                                         
+            con = adaptador.getConnection();
+            retorno = daoService.rescatarUnidadTramitadora(numeroExpediente, con);
+        } catch (Exception e) {
+            LOG.error("rescatarUnidadTramitadora  " + "-" + " Error : " + e.getMessage(), e);
+            throw e;
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("rescatarUnidadTramitadora - End ()" + formatDate.format(new Date()));
+        
+        return retorno;
+    }
+
+    void crearVLInformacionControl(Date today, int idRegistroLog, String cifUsuarioLogueado, String nombreUsuarioLogueado, String unidadTramitadora, AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("crearVLInformacionControl - Begin () " + formatDate.format(new Date()) );
+        Connection con = null;
+        try {
+            con = adaptador.getConnection();
+            daoService.crearVLInformacionControl(today,idRegistroLog,cifUsuarioLogueado,nombreUsuarioLogueado,unidadTramitadora,con);
+        }catch (Exception e) {
+            LOG.error("crearVLInformacionControl  "+ today + " " + idRegistroLog+ " " + cifUsuarioLogueado+ " " + nombreUsuarioLogueado+ " " + unidadTramitadora + "Error : " + e.getMessage(), e);
+            throw e;
+        }finally {
+            try
+            {
+                adaptador.devolverConexion(con);       
+            }
+            catch(Exception e)
+            {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("crearVLInformacionControl - End ()" + formatDate.format(new Date()) );
+    }
+
+    void crearInteropVL(ResponseRestServiceCVL responseRestServiceCVL, RequestRestServiceCVL requestRestServiceCVL, int idRegistroLog, String valorDNI, String tipo_doc, AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("crearInteropVL - Begin () " + formatDate.format(new Date()) );
+        Connection con = null;
+        try {
+            con = adaptador.getConnection();
+            daoService.crearInteropVL(responseRestServiceCVL, requestRestServiceCVL, idRegistroLog, valorDNI, tipo_doc, con);
+        }catch (Exception e) {
+            LOG.error("crearInteropVL  "+ responseRestServiceCVL + "Error : " + e.getMessage(), e);
+            throw e;
+        }finally {
+            try
+            {
+                adaptador.devolverConexion(con);       
+            }
+            catch(Exception e)
+            {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("crearInteropVL - End ()" + formatDate.format(new Date()) );
+    }
+    
+    void actualizarRegistroBBDDLogLlamadaPadron(int idRegistroLog,  ResponseRestServicePadron responseRestServicePadron, String observaciones, AdaptadorSQLBD adaptador) throws Exception {
+        LOG.info("actualizarRegistroBBDDLogLlamadaPadron - Begin () " + formatDate.format(new Date()));
+        Connection con = null;
+        try {
+            if (responseRestServicePadron != null) {
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                gsonBuilder.serializeNulls();
+                Gson gson = gsonBuilder.create();
+                String textoJsonDatosRecibidos = gson.toJson(responseRestServicePadron, ResponseRestServicePadron.class);
+                con = adaptador.getConnection();
+                daoService.actualizarRegistroBBDDLogLlamada(idRegistroLog, "", "", "", textoJsonDatosRecibidos, "", "", observaciones, con);
+            } else {
+                LOG.error("Respuesta del servicio recibida null , no se puede procesar ");
+            }
+        } catch (Exception e) {
+            LOG.error("actualizarRegistroBBDDLogLlamadaPadron  " + idRegistroLog + " Error : " + e.getMessage(), e);
+            throw e;
+        } finally {
+            try {
+                adaptador.devolverConexion(con);
+            } catch (Exception e) {
+                LOG.error("Error al cerrar conexion a la BBDD: " + e.getMessage());
+            }
+        }
+        LOG.info("actualizarRegistroBBDDLogLlamadaTGSS - End ()" + formatDate.format(new Date()));
+    }
+}

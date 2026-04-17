@@ -1,0 +1,1962 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package es.altia.flexia.integracion.moduloexterno.melanbide_interop.nisae;
+
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.nisae.entities.InteropLlamadasServiciosNisae;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.nisae.entities.InteropServiciosNisae;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.nisae.entities.InteropServiciosNisaeExpFi;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.util.ConfigurationParameter;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.util.ConstantesMeLanbideInterop;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.util.MeLanbideInteropMappingUtils;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.FiltrosNisaeLogVO;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.cvl.RequestRestServiceCVL;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.cvl.ResponseRestServiceCVL;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.cvl.Situacion;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.tercero.TerceroVO;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import org.apache.log4j.Logger;
+
+/**
+ *
+ * @author INGDGC
+ */
+public class GestionServiciosNISAEDao {
+
+    private static final Logger log = Logger.getLogger(GestionServiciosNISAEDao.class);
+    SimpleDateFormat formatDate = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+
+    public List<ExpedienteNisaeVO> getExpedientesProcesarNISAE(int codOrganizacion, InteropLlamadasServiciosNisae interopLlamadasServiciosNisae, Connection con) throws Exception {
+        log.info("getExpedientesProcesarNISAE - Begin () " + formatDate.format(new Date()));
+        List<ExpedienteNisaeVO> retorno = new ArrayList<ExpedienteNisaeVO>();
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+        try {
+            String query = getExpedientesProcesarNISAEPrepararQuery(codOrganizacion, interopLlamadasServiciosNisae, false);
+            log.info("sql = " + query);
+            pt = con.prepareStatement(query);
+            pt.setInt(1, (interopLlamadasServiciosNisae.getEjercicioHHFF() != null && !interopLlamadasServiciosNisae.getEjercicioHHFF().isEmpty() ? Integer.valueOf(interopLlamadasServiciosNisae.getEjercicioHHFF()) : 0));
+            pt.setString(2, interopLlamadasServiciosNisae.getProcedimientoHHFF());
+            log.info("Parametros ? : " + interopLlamadasServiciosNisae.getEjercicioHHFF() + " " + interopLlamadasServiciosNisae.getProcedimientoHHFF());
+            rs = pt.executeQuery();
+            while (rs.next()) {
+                ExpedienteNisaeVO expedienteNisaeVO = new ExpedienteNisaeVO();
+                expedienteNisaeVO.setNumeroExpediente(rs.getString("numeroExpediente"));
+                expedienteNisaeVO.setDocumentoInteresadoPeticion(rs.getString("documentointeresadopeticion"));
+                expedienteNisaeVO.setEstadoPeticion(rs.getString("estadopeticion"));
+                expedienteNisaeVO.setCodigoEstadoSecundarioPeticion(rs.getString("codigoestadosecundariopeticion"));
+                expedienteNisaeVO.setIdPeticionPreviaBBDDLog(rs.getInt("idpeticionpreviabbddlog"));
+                expedienteNisaeVO.setObservaciones(rs.getString("observaciones"));
+                expedienteNisaeVO.setFkWSSolicitado(rs.getInt("fkWSSolicitado"));
+                TerceroVO terceroVO = this.getDatosTerceroExpedienteNISAE(codOrganizacion, expedienteNisaeVO.getNumeroExpediente(), "1", con);
+                expedienteNisaeVO.setTitularExpediente(terceroVO);
+                retorno.add(expedienteNisaeVO);
+            }
+        } catch (Exception ex) {
+            log.info("Se ha producido un error recuperando Expedientes Procesar  ", ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                if (pt != null) {
+                    pt.close();
+                }
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (Exception e) {
+                log.error("Se ha producido un error cerrando el preparedstatement y el resulset", e);
+                throw new Exception(e);
+            }
+        }
+        log.info("getExpedientesProcesarNISAE - End () " + formatDate.format(new Date()));
+        return retorno;
+    }
+
+    public int getExpedientesProcesarNISAENumeroTotalProcesar(int codOrganizacion, InteropLlamadasServiciosNisae interopLlamadasServiciosNisae, Connection con) throws Exception {
+        log.info("getExpedientesProcesarNISAE - Begin () " + formatDate.format(new Date()));
+        int retorno = 0;
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+        try {
+            String query = getExpedientesProcesarNISAEPrepararQuery(codOrganizacion, interopLlamadasServiciosNisae, true);
+            log.info("sql = " + query);
+            pt = con.prepareStatement(query);
+            pt.setInt(1, (interopLlamadasServiciosNisae.getEjercicioHHFF() != null && !interopLlamadasServiciosNisae.getEjercicioHHFF().isEmpty() ? Integer.valueOf(interopLlamadasServiciosNisae.getEjercicioHHFF()) : 0));
+            pt.setString(2, interopLlamadasServiciosNisae.getProcedimientoHHFF());
+            log.info("Parametros ? : " + interopLlamadasServiciosNisae.getEjercicioHHFF() + " " + interopLlamadasServiciosNisae.getProcedimientoHHFF());
+            rs = pt.executeQuery();
+            if (rs.next()) {
+                retorno = rs.getInt("numeroExpedientesProcesar");
+            }
+        } catch (Exception ex) {
+            log.info("Se ha producido un error recuperando Expedientes Procesar  ", ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                if (pt != null) {
+                    pt.close();
+                }
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (Exception e) {
+                log.error("Se ha producido un error cerrando el preparedstatement y el resulset", e);
+                throw new Exception(e);
+            }
+        }
+        log.info("getExpedientesProcesarNISAE - End () " + formatDate.format(new Date()));
+        return retorno;
+    }
+
+    private String getExpedientesProcesarNISAEPrepararQuery(int codOrganizacion, InteropLlamadasServiciosNisae interopLlamadasServiciosNisae, boolean soloCalcularNumeroTotalTratados) {
+        String query = "";
+        try {
+            if (interopLlamadasServiciosNisae != null) {
+                if (soloCalcularNumeroTotalTratados) {
+                    query = " SELECT count(1) numeroExpedientesProcesar ";
+                } else {
+                    query = " SELECT exp.EXP_NUM numeroExpediente, IDPETICION_NISAE_HHFF.TXT_VALOR idPeticionPreviaCampoSuple "
+                            + " ,peticionesLog.documentoInteresado documentoInteresadoPeticion,peticionesLog.estado estadoPeticion, peticionesLog.codigoEstadoSecundario codigoEstadoSecundarioPeticion,peticionesLog.id idPeticionPreviaBBDDLog,peticionesLog.observaciones,peticionesLog.fkWSSolicitado ";
+                }
+                query += " FROM E_EXP exp ";
+                if (interopLlamadasServiciosNisae.getEjecutarFiltroExpedientesEspecificos() != null && !interopLlamadasServiciosNisae.getEjecutarFiltroExpedientesEspecificos().isEmpty() && interopLlamadasServiciosNisae.getEjecutarFiltroExpedientesEspecificos().equalsIgnoreCase("1")) {
+                    query += " INNER JOIN INTEROP_SERVICIOS_NISAE_EXP_FI ON numeroExpediente=exp.EXP_NUM AND (procesoEjecutado=0 OR procesoEjecutado IS NULL)  ";
+                }
+                query += " LEFT JOIN E_TXT IDPETICION_NISAE_HHFF on exp.exp_mun=IDPETICION_NISAE_HHFF.TXT_MUN and exp.EXP_EJE=TXT_EJE and exp.EXP_NUM=IDPETICION_NISAE_HHFF.TXT_NUM and IDPETICION_NISAE_HHFF.TXT_COD='IDPETICIONNISAEHF' "
+                        + " LEFT JOIN " + ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.NOMBRE_TABLA_LOG_LLAMADAS_NISAE, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES) + " peticionesLog on peticionesLog.numeroExpediente=exp.EXP_NUM and peticionesLog.codigoEstadoSecundario=IDPETICION_NISAE_HHFF.TXT_VALOR  AND peticionesLog.estado='0002' and (peticionesLog.idPeticionPadre is null or peticionesLog.idPeticionPadre=0)"
+                        + " WHERE exp.EXP_EJE=? "
+                        + " AND  exp.EXP_PRO=? "
+                        + " AND exp.EXP_EST" + (interopLlamadasServiciosNisae.getEstadoExpediente() != null && !interopLlamadasServiciosNisae.getEstadoExpediente().isEmpty() && Integer.valueOf(interopLlamadasServiciosNisae.getEstadoExpediente()) >= 0 ? "=" + interopLlamadasServiciosNisae.getEstadoExpediente() : " IS NOT NULL ");
+                if (interopLlamadasServiciosNisae.getNumeroExpedienteDesde() != null && !interopLlamadasServiciosNisae.getNumeroExpedienteDesde().isEmpty() && interopLlamadasServiciosNisae.getNumeroExpedienteHasta() != null && !interopLlamadasServiciosNisae.getNumeroExpedienteHasta().isEmpty()) {
+                    query += " AND (to_number(substr(exp.exp_num,-6)) between " + interopLlamadasServiciosNisae.getNumeroExpedienteDesde() + " and " + interopLlamadasServiciosNisae.getNumeroExpedienteHasta() + ") ";
+                } else if (interopLlamadasServiciosNisae.getNumeroExpedienteDesde() != null && !interopLlamadasServiciosNisae.getNumeroExpedienteDesde().isEmpty()) {
+                    query += " AND (to_number(substr(exp.exp_num,-6)) >= " + interopLlamadasServiciosNisae.getNumeroExpedienteDesde() + " ) ";
+                } else if (interopLlamadasServiciosNisae.getNumeroExpedienteHasta() != null && !interopLlamadasServiciosNisae.getNumeroExpedienteHasta().isEmpty()) {
+                    query += " AND (to_number(substr(exp.exp_num,-6)) <= " + interopLlamadasServiciosNisae.getNumeroExpedienteHasta() + " ) ";
+                }
+
+                if (interopLlamadasServiciosNisae.getSoloPeticionesEstEnProceso() != null && !interopLlamadasServiciosNisae.getSoloPeticionesEstEnProceso().isEmpty() && interopLlamadasServiciosNisae.getSoloPeticionesEstEnProceso().equalsIgnoreCase("1")) {
+                    query += " and peticionesLog.estado='0002' and peticionesLog.fkWSSolicitado=" + (interopLlamadasServiciosNisae.getFkWSSolicitado() != null ? interopLlamadasServiciosNisae.getFkWSSolicitado() : "0");
+                }
+                query += " order by exp.EXP_NUM ";
+            }
+
+        } catch (Exception e) {
+            log.error("Error al preparar la query recuperacion de datos expedientes a tratar ", e);
+        }
+        return query;
+    }
+
+    public TerceroVO getDatosTerceroExpedienteNISAE(int codOrganizacion, String numExpediente, String codRol, Connection con) throws Exception {
+        Statement st = null;
+        ResultSet rs = null;
+        TerceroVO tercero = new TerceroVO();
+        try {
+            String query = "";
+            query = "SELECT T_HTE.HTE_TER TER_COD,T_HTE.HTE_nvr TER_nvr, HTE_TID TER_TID, HTE_DOC TER_DOC, HTE_NOM TER_NOM, HTE_AP1 TER_AP1, HTE_AP2 TER_AP2,HTE_NOC ter_NOC , '' AS NUM_SOPORTE "
+                    + "       , TSEXOTERCERO.VALOR TSEXOTERCERO , TFECNACIMIENTO.VALOR TFECNACIMIENTO , TNACIONTERCERO.VALOR TNACIONTERCERO "
+                    + "       , E_EXT.EXT_ROL TER_CODROL,  E_ROL.ROL_DES as TER_ROL , E_EXT.EXT_NUM  "
+                    + " ,LPAD(T_DNN.DNN_PRV,2,0) DNN_PRV,LPAD(T_DNN.Dnn_mun,3,0) Dnn_mun "
+                    + " FROM E_EXT "
+                    + " LEFT JOIN T_HTE ON T_HTE.HTE_TER=E_EXT.EXT_TER AND T_HTE.HTE_NVR=E_EXT.EXT_NVR "
+                    + " LEFT JOIN T_CAMPOS_DESPLEGABLE TSEXOTERCERO ON TSEXOTERCERO.COD_MUNICIPIO=E_EXT.EXT_MUN AND TSEXOTERCERO.COD_TERCERO=T_HTE.HTE_TER AND TSEXOTERCERO.COD_CAMPO='TSEXOTERCERO' "
+                    + " LEFT JOIN T_CAMPOS_FECHA TFECNACIMIENTO ON TFECNACIMIENTO.COD_MUNICIPIO=E_EXT.EXT_MUN AND TFECNACIMIENTO.COD_TERCERO=T_HTE.HTE_TER AND TFECNACIMIENTO.COD_CAMPO='TFECNACIMIENTO' "
+                    + " LEFT JOIN T_CAMPOS_DESPLEGABLE TNACIONTERCERO ON TNACIONTERCERO.COD_MUNICIPIO=E_EXT.EXT_MUN AND TNACIONTERCERO.COD_TERCERO=T_HTE.HTE_TER AND TNACIONTERCERO.COD_CAMPO='TNACIONTERCERO' "
+                    + " LEFT JOIN E_ROL ON E_ROL.ROL_MUN=E_EXT.EXT_MUN AND E_ROL.ROL_PRO=E_EXT.EXT_PRO AND E_ROL.ROL_COD=E_EXT.EXT_ROL  "
+                    + " LEFT JOIN T_dnn ON T_DNN.DNN_dom=e_ext.ext_dot "
+                    + " WHERE E_EXT.EXT_NUM='" + numExpediente + "' AND EXT_MUN=" + codOrganizacion
+                    + " and E_EXT.EXT_ROL=" + (codRol != null && !codRol.isEmpty() ? codRol : "null")
+                    + " ORDER BY ter_NOC ";
+
+            log.info("sql = " + query);
+            st = con.createStatement();
+            rs = st.executeQuery(query);
+            while (rs.next()) {
+                tercero = (TerceroVO) MeLanbideInteropMappingUtils.getInstance().map(rs, TerceroVO.class);
+            }
+        } catch (Exception ex) {
+            log.error("Se ha producido un error recuperando Terceros x Expediente - interoperabilidad ", ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                if (log.isDebugEnabled()) {
+                    log.debug("Procedemos a cerrar el statement y el resultset");
+                }
+                if (st != null) {
+                    st.close();
+                }
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (Exception e) {
+                log.error("Se ha producido un error cerrando el statement y el resulset", e);
+                throw new Exception(e);
+            }
+        }
+        return tercero;
+    }
+
+    int crearRegistroBBDDLogLlamada(Integer codOrganizacion, InteropLlamadasServiciosNisae interopLlamadasServiciosNisae, String textoJsonDatosEnviados, String textoJsonDatosRecibidos, String numeroExpediente, String documentoInteresado, String territorioHistorico, String observaciones, Connection con) throws Exception {
+        PreparedStatement ps = null;
+        int rs = 0;
+        int idSecuencia;
+        try {
+            idSecuencia = this.getNextId(ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.NOMBRE_SECUENCIA_ID_LOG_LLAMADAS_NISAE, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES), con);
+            String query = "INSERT into " + ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.NOMBRE_TABLA_LOG_LLAMADAS_NISAE, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES)
+                    + " (id,codOrganizacion,ejercicioHHFF,procedimientoHHFF,estadoExpediente,numeroExpedienteDesde,numeroExpedienteHasta,textoJsonDatosEnviados,numeroExpediente,fechaHoraEnvioPeticion,textoJsonDatosRecibidos,documentoInteresado,territorioHistorico,observaciones,idPeticionPadre,fkWSSolicitado,fechadesde,fechahasta) "
+                    + " values (?,?,?,?,?,?,?,?,?,SYStimestamp,?,?,?,?,?,?,?,?)";
+            log.info("sql = " + query);
+            log.info("params = idSecuencia:" + idSecuencia
+                    + " codOrganizacion:" + codOrganizacion
+                    + " ejercicioHHFF:" + interopLlamadasServiciosNisae.getEjercicioHHFF()
+                    + " procedimientoHHFF:" + interopLlamadasServiciosNisae.getProcedimientoHHFF()
+                    + " estadoExpediente:" + interopLlamadasServiciosNisae.getEstadoExpediente()
+                    + " numeroExpedienteDesde:" + interopLlamadasServiciosNisae.getNumeroExpedienteDesde()
+                    + " numeroExpedienteHasta:" + interopLlamadasServiciosNisae.getNumeroExpedienteHasta()
+                    + " textoJsonDatosEnviados:" + textoJsonDatosEnviados
+                    + " numeroExpediente:" + numeroExpediente
+                    + " textoJsonDatosRecibidos:" + textoJsonDatosRecibidos
+                    + " documentoInteresado:" + documentoInteresado
+                    + " territorioHistorico:" + territorioHistorico
+                    + " observaciones:" + observaciones
+                    + " idPeticionPadre:" + (interopLlamadasServiciosNisae.getIdPeticionPadre() != null ? interopLlamadasServiciosNisae.getIdPeticionPadre() : 0)
+                    + " fkWSSolicitado:" + (interopLlamadasServiciosNisae.getFkWSSolicitado() != null ? interopLlamadasServiciosNisae.getFkWSSolicitado() : 0)
+                    + " fechadesde:" + interopLlamadasServiciosNisae.getFechaDesdeCVL()
+                    + " fechahasta:" + interopLlamadasServiciosNisae.getFechaHastaCVL()
+            );
+
+            ps = con.prepareStatement(query);
+            ps.setInt(1, idSecuencia);
+            ps.setInt(2, codOrganizacion);
+            ps.setString(3, interopLlamadasServiciosNisae.getEjercicioHHFF());
+            ps.setString(4, interopLlamadasServiciosNisae.getProcedimientoHHFF());
+            ps.setString(5, interopLlamadasServiciosNisae.getEstadoExpediente());
+            ps.setString(6, interopLlamadasServiciosNisae.getNumeroExpedienteDesde());
+            ps.setString(7, interopLlamadasServiciosNisae.getNumeroExpedienteHasta());
+            
+            if (textoJsonDatosEnviados != null && !textoJsonDatosEnviados.isEmpty()) {
+                Clob datosEnviados = con.createClob();
+                datosEnviados.setString(1, textoJsonDatosEnviados);
+                ps.setClob(8, datosEnviados);
+            } else {
+                ps.setNull(8, java.sql.Types.NULL);
+            }
+            
+            //ps.setString(8, textoJsonDatosEnviados);
+            ps.setString(9, numeroExpediente);
+            
+            if (textoJsonDatosRecibidos != null && !textoJsonDatosRecibidos.isEmpty()) {
+                Clob datosRecibidos = con.createClob();
+                datosRecibidos.setString(1, textoJsonDatosRecibidos);
+                ps.setClob(10, datosRecibidos);
+            } else {
+                ps.setNull(10, java.sql.Types.NULL);
+            }
+                     
+            //ps.setString(10, textoJsonDatosRecibidos);
+            ps.setString(11, documentoInteresado);
+            ps.setString(12, territorioHistorico);
+            ps.setString(13, observaciones);
+            ps.setInt(14, (interopLlamadasServiciosNisae.getIdPeticionPadre() != null ? interopLlamadasServiciosNisae.getIdPeticionPadre() : 0));
+            ps.setInt(15, (interopLlamadasServiciosNisae.getFkWSSolicitado() != null ? interopLlamadasServiciosNisae.getFkWSSolicitado() : 0));
+            if (interopLlamadasServiciosNisae.getFechaDesdeCVL() != null ) {
+                ps.setDate(16, java.sql.Date.valueOf(interopLlamadasServiciosNisae.getFechaDesdeCVL()));
+            } else {
+                ps.setNull(16, java.sql.Types.NULL);
+            }
+            if (interopLlamadasServiciosNisae.getFechaDesdeCVL() != null ) {
+                ps.setDate(17, java.sql.Date.valueOf(interopLlamadasServiciosNisae.getFechaHastaCVL()));
+            } else {
+                ps.setNull(17, java.sql.Types.NULL);
+            }
+            
+            rs = ps.executeUpdate();
+        } catch (Exception ex) {
+            log.error("ERROR AL CREAR EL ID DE PETICION SERVICIOS NISAE ", ex);
+            throw ex;
+        } finally {
+            if (log.isDebugEnabled()) {
+                log.debug("Procedemos a cerrar el statement y el resultset");
+            }
+            if (ps != null) {
+                ps.close();
+            }
+        }
+        return idSecuencia;
+    }
+
+    void actualizarRegistroBBDDLogLlamada(Integer id, String estado, String descripcionEstado, String resultado, String textoJsonDatosRecibidos, String codigoEstadoSecundario, String tiempoEstimadoRespuesta, String observaciones, Connection con) throws Exception {
+        PreparedStatement ps = null;
+        int rs = 0;
+        int idSecuencia;
+        try {
+            String query = "update " + ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.NOMBRE_TABLA_LOG_LLAMADAS_NISAE, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES)
+                    + " set "
+                    + " estado=?"
+                    + " ,descripcionEstado=?"
+                    + " ,resultado=?"
+                    + " ,textoJsonDatosRecibidos=?"
+                    + " ,codigoEstadoSecundario=?"
+                    + " ,tiempoEstimadoRespuesta=?"
+                    + " ,observaciones=?"
+                    + " where id=?";
+            log.info("sql = " + query);
+            log.info("params = estado:" + estado
+                    + " descripcionEstado:" + descripcionEstado
+                    + " resultado:" + resultado
+                    + " textoJsonDatosRecibidos:" + textoJsonDatosRecibidos
+                    + " codigoEstadoSecundario:" + codigoEstadoSecundario
+                    + " tiempoEstimadoRespuesta:" + tiempoEstimadoRespuesta
+                    + " observaciones:" + observaciones
+                    + " id:" + id
+            );
+
+            ps = con.prepareStatement(query);
+            ps.setString(1, estado);
+            ps.setString(2, descripcionEstado);
+            ps.setString(3, resultado);
+            
+            if (textoJsonDatosRecibidos != null && !textoJsonDatosRecibidos.isEmpty()) {
+                Clob datosRecibidos = con.createClob();
+                datosRecibidos.setString(1, textoJsonDatosRecibidos);
+                ps.setClob(4, datosRecibidos);
+            } else {
+                ps.setNull(4, java.sql.Types.NULL);
+            }
+            
+            //ps.setString(4, textoJsonDatosRecibidos);
+            ps.setString(5, codigoEstadoSecundario);
+            ps.setString(6, tiempoEstimadoRespuesta);
+            ps.setString(7, observaciones);
+            ps.setLong(8, id);
+
+            rs = ps.executeUpdate();
+            log.info("filas actualizadas: " + rs);
+        } catch (Exception ex) {
+            log.error("ERROR AL CREAR EL ID DE PETICION SERVICIOS NISAE ", ex);
+            throw new Exception(ex);
+        } finally {
+            if (log.isDebugEnabled()) {
+                log.debug("Procedemos a cerrar el statement y el resultset");
+            }
+            if (ps != null) {
+                ps.close();
+            }
+        }
+    }
+
+    void actualizarCamposSuplementariosNISAE(Integer codOrganizacion, String numeroExpediente, String codigoEstadoSecundario, String respuestaInBD, String codCampoIdPeticion, String codCampoRespuesta, Connection con) throws Exception {
+        PreparedStatement ps = null;
+        log.info("actualizarCamposSuplementariosNISAE = " + formatDate.format(new Date()));
+        int rs = 0;
+        try {
+            // Si existe actualizamos 
+            if (existeDatosparaCampoSuplementarioExpediente(codOrganizacion, numeroExpediente, codCampoIdPeticion, ConstantesMeLanbideInterop.CAMPO_SUPLEMENTARIO_TIPO_TEXTO, con)) {
+                if (codigoEstadoSecundario != null && !codigoEstadoSecundario.isEmpty()) {
+                    String query = "update e_txt "
+                            + " set txt_valor=?"
+                            + " where TXT_MUN=?"
+                            + " AND TXT_NUM=?"
+                            + " AND TXT_COD=?";
+                    log.info("sql = " + query);
+                    log.info("params = valor:" + (codigoEstadoSecundario)
+                            + " codOrganizacion:" + codOrganizacion
+                            + " numeroExpediente:" + numeroExpediente
+                            + " codCampoIdPeticion:" + codCampoIdPeticion
+                    );
+                    ps = con.prepareStatement(query);
+                    ps.setString(1, codigoEstadoSecundario);
+                    ps.setInt(2, codOrganizacion);
+                    ps.setString(3, numeroExpediente);
+                    ps.setString(4, codCampoIdPeticion);
+                    ps.executeUpdate();
+                } else {
+                    log.error("-- Campo suplementario no Actualizado  - Valor para campo recibido a null o vacio - Puede que se haya presentado un error - : respuesta.getCodigoEstadoSecundario()=" + codigoEstadoSecundario);
+                }
+
+            } else {
+                if (codigoEstadoSecundario != null && !codigoEstadoSecundario.isEmpty()) {
+                    String query = "insert into e_txt(TXT_MUN, TXT_EJE, TXT_NUM, TXT_COD, TXT_VALOR)"
+                            + " values(?,?,?,?,?)";
+                    log.info("sql = " + query);
+                    int ejercicio = (numeroExpediente != null && !numeroExpediente.isEmpty() ? Integer.valueOf(numeroExpediente.substring(0, 4)) : 0);
+                    log.info("params = codOrganizacion:" + codOrganizacion
+                            + " ejercicio:" + ejercicio
+                            + " numeroExpediente:" + numeroExpediente
+                            + " codigoCampoSuple:" + codCampoIdPeticion
+                            + " respuesta.getCodigoEstadoSecundario():" + codigoEstadoSecundario
+                    );
+                    ps = con.prepareStatement(query);
+                    ps.setInt(1, codOrganizacion);
+                    ps.setInt(2, ejercicio);
+                    ps.setString(3, numeroExpediente);
+                    ps.setString(4, codCampoIdPeticion);
+                    ps.setString(5, codigoEstadoSecundario);
+                    ps.executeUpdate();
+                } else {
+                    log.error("-- Campo suplementario no guardado - Valor para campo recibido a null o vacio : respuesta.getCodigoEstadoSecundario()=" + codigoEstadoSecundario);
+                }
+            }
+            //Campos Respuesta
+            if (existeDatosparaCampoSuplementarioExpediente(codOrganizacion, numeroExpediente, codCampoRespuesta, ConstantesMeLanbideInterop.CAMPO_SUPLEMENTARIO_TIPO_TEXTO_LARGO, con)) {
+                String query = "update E_TTL "
+                        + " set TTL_valor=?"
+                        + " where TTL_MUN=?"
+                        + "AND TTL_NUM=?"
+                        + "AND TTL_COD=?";
+                log.info("sql = " + query);
+                log.info("params = respuestaInBD:" + respuestaInBD
+                        + " codOrganizacion:" + codOrganizacion
+                        + " numeroExpediente:" + numeroExpediente
+                        + " codCampoRespuesta:" + codCampoRespuesta
+                );
+                ps = con.prepareStatement(query);
+                ps.setString(1, respuestaInBD);
+                ps.setInt(2, codOrganizacion);
+                ps.setString(3, numeroExpediente);
+                ps.setString(4, codCampoRespuesta);
+                ps.executeUpdate();
+            } else {
+                String query = "insert into E_TTL(TTL_MUN, TTL_EJE, TTL_NUM, TTL_COD, TTL_VALOR)"
+                        + " values(?,?,?,?,?)";
+                log.info("sql = " + query);
+                int ejercicio = (numeroExpediente != null && !numeroExpediente.isEmpty() ? Integer.valueOf(numeroExpediente.substring(0, 4)) : 0);
+                log.info("params = codOrganizacion:" + codOrganizacion
+                        + " ejercicio:" + ejercicio
+                        + " numeroExpediente:" + numeroExpediente
+                        + " codCampoRespuesta:" + codCampoRespuesta
+                        + " respuestaInBD:" + respuestaInBD
+                );
+                ps = con.prepareStatement(query);
+                ps.setInt(1, codOrganizacion);
+                ps.setInt(2, ejercicio);
+                ps.setString(3, numeroExpediente);
+                ps.setString(4, codCampoRespuesta);
+                ps.setString(5, respuestaInBD);
+                ps.executeUpdate();
+            }
+
+        } catch (Exception ex) {
+            log.error("ERROR actualizar campos suplementarios SERVICIOS NISAE ", ex);
+            throw new Exception(ex);
+        } finally {
+            if (log.isDebugEnabled()) {
+                log.debug("Procedemos a cerrar el statement y el resultset");
+            }
+            if (ps != null) {
+                ps.close();
+            }
+        }
+    }
+
+    private Integer getNextId(String seqName, Connection con) throws Exception {
+
+        Statement st = null;
+        ResultSet rs = null;
+        Integer numSec = null;
+        try {
+            String query = null;
+            //Creo el id con la secuencia
+            query = "select " + seqName + ".nextval from dual";
+            if (log.isDebugEnabled()) {
+                log.info("sql = " + query);
+            }
+            st = con.createStatement();
+            rs = st.executeQuery(query);
+            if (rs.next()) {
+                numSec = rs.getInt(1);
+                if (rs.wasNull()) {
+                    throw new Exception();
+                }
+            }
+        } catch (Exception ex) {
+            log.error("Se ha producido un error generando el siguiente valor de la secuencia " + seqName, ex);
+            throw new Exception(ex);
+        } finally {
+            if (log.isDebugEnabled()) {
+                log.debug("Procedemos a cerrar el statement y el resultset");
+            }
+            if (rs != null) {
+                rs.close();
+            }
+            if (st != null) {
+                st.close();
+            }
+
+        }
+        return numSec;
+    }
+
+    private boolean existeDatosparaCampoSuplementarioExpediente(int codOrganizacion, String numeroExpediente, String codCampo, String tipoCampo, Connection con) throws Exception {
+        log.info("existeDatosparaCampoSuplementarioExpediente = " + formatDate.format(new Date()));
+        ResultSet rs = null;
+        PreparedStatement ps = null;
+        int numeroRegistros = 0;
+        try {
+            String query = "";
+            if (ConstantesMeLanbideInterop.CAMPO_SUPLEMENTARIO_TIPO_TEXTO.equalsIgnoreCase(tipoCampo)) {
+                query = "SELECT COUNT(1) EXISTE "
+                        + " FROM E_TXT "
+                        + " WHERE TXT_MUN=? "
+                        + " AND TXT_NUM=? "
+                        + " AND TXT_COD=? ";
+            } else if (ConstantesMeLanbideInterop.CAMPO_SUPLEMENTARIO_TIPO_TEXTO_LARGO.equalsIgnoreCase(tipoCampo)) {
+                query = "SELECT COUNT(1) EXISTE "
+                        + " FROM E_TTL "
+                        + " WHERE TTL_MUN=? "
+                        + " AND TTL_NUM=? "
+                        + " AND TTL_COD=? ";
+            } else {
+                log.error("Tipo de dato no recibido, no se puede comprobar si existe campo ..." + tipoCampo);
+                return false;
+            }
+
+            log.info("sql = " + query);
+            log.info("params = codOrganizacion:" + codOrganizacion
+                    + " numeroExpediente:" + numeroExpediente
+                    + " codCampo:" + codCampo
+            );
+            ps = con.prepareStatement(query);
+            ps.setInt(1, codOrganizacion);
+            ps.setString(2, numeroExpediente);
+            ps.setString(3, codCampo);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                numeroRegistros = rs.getInt("EXISTE");
+            }
+        } catch (Exception ex) {
+            log.error("Se ha producid comprobando si existe un campo suplementario ... ", ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                if (log.isDebugEnabled()) {
+                    log.debug("Procedemos a cerrar el statement y el resultset");
+                }
+                if (ps != null) {
+                    ps.close();
+                }
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (Exception e) {
+                log.error("Se ha producido un error cerrando el statement y el resulset", e);
+                throw new Exception(e);
+            }
+        }
+        return numeroRegistros > 0;
+    }
+
+    public List<InteropLlamadasServiciosNisae> getPeticionesConsultasPendientesNISAExExpedienteDocTercero(int codOrganizacion, String numeroExpediente, String documentoInteresado, Connection con) throws Exception {
+        log.info("getPeticionesConsultasPendientesNISAExExpedienteDocTercero - Begin () " + formatDate.format(new Date()));
+        List<InteropLlamadasServiciosNisae> retorno = new ArrayList<InteropLlamadasServiciosNisae>();
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+        try {
+            String query = " SELECT * "
+                    + " FROM " + ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.NOMBRE_TABLA_LOG_LLAMADAS_NISAE, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES)
+                    + " WHERE estado='0002'"
+                    + " and numeroExpediente=?"
+                    + " AND documentoInteresado=?";
+
+            log.info("sql = " + query);
+            pt = con.prepareStatement(query);
+            pt.setString(1, numeroExpediente);
+            pt.setString(2, documentoInteresado);
+            log.info("Param ? : " + numeroExpediente + " " + documentoInteresado);
+            rs = pt.executeQuery();
+            while (rs.next()) {
+                InteropLlamadasServiciosNisae elementoListaRetorno = new InteropLlamadasServiciosNisae();
+                elementoListaRetorno.setId(rs.getInt("id"));
+                elementoListaRetorno.setCodOrganizacion(rs.getInt("codOrganizacion"));
+                elementoListaRetorno.setEjercicioHHFF(rs.getString("ejercicioHHFF"));
+                elementoListaRetorno.setProcedimientoHHFF(rs.getString("procedimientoHHFF"));
+                elementoListaRetorno.setEstadoExpediente(rs.getString("estadoExpediente"));
+                elementoListaRetorno.setNumeroExpedienteDesde(rs.getString("numeroExpedienteDesde"));
+                elementoListaRetorno.setNumeroExpedienteHasta(rs.getString("numeroExpedienteHasta"));
+                
+                String textoJsonDatosEnviados =  getClobString(rs.getClob("textoJsonDatosEnviados"));
+                elementoListaRetorno.setTextoJsonDatosEnviados(textoJsonDatosEnviados);
+                
+                //elementoListaRetorno.setTextoJsonDatosEnviados(rs.getString("textoJsonDatosEnviados"));
+                
+                elementoListaRetorno.setNumeroExpediente(rs.getString("numeroExpediente"));
+                elementoListaRetorno.setFechaHoraEnvioPeticion(rs.getString("fechaHoraEnvioPeticion"));
+                elementoListaRetorno.setCodigoEstadoSecundario(rs.getString("codigoEstadoSecundario"));
+                elementoListaRetorno.setEstado(rs.getString("estado"));
+                elementoListaRetorno.setDescripcionEstado(rs.getString("descripcionEstado"));
+                elementoListaRetorno.setResultado(rs.getString("resultado"));
+                
+                String textoJsonDatosRecibidos =  getClobString(rs.getClob("textoJsonDatosRecibidos"));
+                elementoListaRetorno.setTextoJsonDatosRecibidos(textoJsonDatosRecibidos);
+                
+                //elementoListaRetorno.setTextoJsonDatosRecibidos(rs.getString("textoJsonDatosRecibidos"));
+                
+                elementoListaRetorno.setDocumentoInteresado(rs.getString("documentoInteresado"));
+                elementoListaRetorno.setTiempoEstimadoRespuesta(rs.getString("tiempoEstimadoRespuesta"));
+                elementoListaRetorno.setTerritorioHistorico(rs.getString("territorioHistorico"));
+                elementoListaRetorno.setObservaciones(rs.getString("observaciones"));
+                elementoListaRetorno.setIdPeticionPadre(rs.getInt("idPeticionPadre"));
+                elementoListaRetorno.setFkWSSolicitado(rs.getInt("fkWSSolicitado"));
+                retorno.add(elementoListaRetorno);
+            }
+        } catch (Exception ex) {
+            log.info("Se ha producido un error peticiones pendientes de un expediente consultas a NISAE ", ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                if (pt != null) {
+                    pt.close();
+                }
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (Exception e) {
+                log.error("Se ha producido un error cerrando el preparedstatement y el resulset", e);
+                throw new Exception(e);
+            }
+        }
+        log.info("getExpedientesProcesarNISAE - End () " + formatDate.format(new Date()));
+        return retorno;
+    }
+    
+    public static String getClobString(Clob clob) throws SQLException,
+            IOException {
+        BufferedReader stringReader = new BufferedReader(
+                clob.getCharacterStream());
+        String singleLine = null;
+        StringBuffer strBuff = new StringBuffer();
+        while ((singleLine = stringReader.readLine()) != null) {
+            strBuff.append(singleLine);
+        }
+        return strBuff.toString();
+    }
+
+    public List<InteropLlamadasServiciosNisae> getPeticionesConsultasNISAExExpediente(int codOrganizacion, Connection con, FiltrosNisaeLogVO filtros, boolean exportar) throws Exception {
+        log.info("getPeticionesConsultasNISAExExpediente - Begin () " + formatDate.format(new Date()));
+        List<InteropLlamadasServiciosNisae> retorno = new ArrayList<InteropLlamadasServiciosNisae>();
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+        try {
+            String query = "";
+            if (exportar) {
+                query = " SELECT * FROM " + ConfigurationParameter.getParameter(
+                        ConstantesMeLanbideInterop.NOMBRE_TABLA_LOG_LLAMADAS_NISAE,
+                        ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
+            } else {
+                query = "SELECT * FROM ("
+                        + " SELECT I.*, ROWNUM rnum FROM ("
+                        + " SELECT * FROM " + ConfigurationParameter.getParameter(
+                                ConstantesMeLanbideInterop.NOMBRE_TABLA_LOG_LLAMADAS_NISAE,
+                                ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
+            }
+            if (filtros != null) {
+                log.info("params : " + filtros.getStart() + ", "
+                        + filtros.getFinish() + ", "
+                        + filtros.getEjercicioHHFF() + ", "
+                        + filtros.getProcedimientoHHFF() + ", "
+                        + filtros.getEstadoExpediente() + ", "
+                        + filtros.getNumeroExpedienteDesde() + ", "
+                        + filtros.getNumeroExpedienteHasta() + ", "
+                        + filtros.getFechaEnvioPeticion() + ", "
+                        + filtros.getEstado() + ", "
+                        + filtros.getResultado() + ","
+                        + filtros.getDocumentoInteresado() + "."
+                        );
+                boolean isFirst = true;
+                if (filtros.getEjercicioHHFF() != null && !filtros.getEjercicioHHFF().isEmpty()) {
+                    log.info("aplicando condición --> ejercicio");
+                    query += " WHERE EJERCICIOHHFF = '" + filtros.getEjercicioHHFF() + "'";
+                    isFirst = false;
+                }
+                if (filtros.getProcedimientoHHFF() != null && !filtros.getProcedimientoHHFF().isEmpty()) {
+                    log.info("aplicando condición --> procedimiento");
+                    if (isFirst) {
+                        query += " WHERE PROCEDIMIENTOHHFF = '" + filtros.getProcedimientoHHFF() + "'";
+                        isFirst = false;
+                    } else {
+                        query += " AND PROCEDIMIENTOHHFF = '" + filtros.getProcedimientoHHFF() + "'";
+                    }
+                }
+                if (filtros.getEstadoExpediente() != null && !filtros.getEstadoExpediente().isEmpty()) {
+                    log.info("aplicando condición --> estadoExpediente");
+                    if (isFirst) {
+                        query += " WHERE ESTADOEXPEDIENTE = '" + filtros.getEstadoExpediente() + "'";
+                        isFirst = false;
+                    } else {
+                        query += " AND ESTADOEXPEDIENTE = '" + filtros.getEstadoExpediente() + "'";
+                    }
+                }
+                if (filtros.getNumeroExpedienteDesde() != null && !filtros.getNumeroExpedienteDesde().isEmpty()) {
+                    log.info("aplicando condición --> numeroExpedienteDesde");
+                    if (isFirst) {
+                        query += " WHERE NUMEROEXPEDIENTEDESDE = '" + filtros.getNumeroExpedienteDesde() + "'";
+                        isFirst = false;
+                    } else {
+                        query += " AND NUMEROEXPEDIENTEDESDE = '" + filtros.getNumeroExpedienteDesde() + "'";
+                    }
+                }
+                if (filtros.getNumeroExpedienteHasta() != null && !filtros.getNumeroExpedienteHasta().isEmpty()) {
+                    log.info("aplicando condición --> numeroExpedienteHasta");
+                    if (isFirst) {
+                        query += " WHERE NUMEROEXPEDIENTEHASTA = '" + filtros.getNumeroExpedienteHasta() + "'";
+                        isFirst = false;
+                    } else {
+                        query += " AND NUMEROEXPEDIENTEHASTA = '" + filtros.getNumeroExpedienteHasta() + "'";
+                    }
+                }
+                if (filtros.getFechaEnvioPeticion() != null && !filtros.getFechaEnvioPeticion().isEmpty()) {
+                    log.info("aplicando condición --> fechaEnvioPeticion");
+                    if (isFirst) {
+                        query += " WHERE to_char(fechahoraenviopeticion,'dd/mm/yyyy')='" + filtros.getFechaEnvioPeticion() + "'";
+                        isFirst = false;
+                    } else {
+                        query += " AND to_char(fechahoraenviopeticion,'dd/mm/yyyy')='" + filtros.getFechaEnvioPeticion() + "'";
+                    }
+                }
+                if (filtros.getEstado() != null && !filtros.getEstado().isEmpty()) {
+                    log.info("aplicando condición --> estado");
+                    if (isFirst) {
+                        query += " WHERE ESTADO = '" + filtros.getEstado() + "'";
+                        isFirst = false;
+                    } else {
+                        query += " AND ESTADO = '" + filtros.getEstado() + "'";
+                    }
+                }
+                if (filtros.getResultado() != null && !filtros.getResultado().isEmpty()) {
+                    log.info("aplicando condición --> resultado");
+                    if (isFirst) {
+                        query += " WHERE RESULTADO = '" + filtros.getResultado() + "'";
+                        isFirst = false;
+                    } else {
+                        query += " AND RESULTADO = '" + filtros.getResultado() + "'";
+                    }
+                }
+                
+                if (filtros.getDocumentoInteresado()!= null && !filtros.getDocumentoInteresado().isEmpty()) {
+                    log.info("aplicando condición --> documentoInteresado");
+                    if (isFirst) {
+                        query += " WHERE DOCUMENTOINTERESADO = '" + filtros.getDocumentoInteresado()+ "'";
+                        isFirst = false;
+                    } else {
+                        query += " AND DOCUMENTOINTERESADO = '" + filtros.getDocumentoInteresado()+ "'";
+                    }
+                }
+                log.info("----Fin aplicar condiciones----");
+
+            }
+            if(exportar){
+                query += " ORDER BY ID ASC";
+            }else{
+            query += " ORDER BY ID DESC) I "
+                    + "WHERE ROWNUM <= " + filtros.getFinish() + ") "
+                    + "WHERE rnum > " + filtros.getStart();
+            }
+            log.info("sql = " + query);
+            pt = con.prepareStatement(query);
+            rs = pt.executeQuery();
+
+            while (rs.next()) {
+                InteropLlamadasServiciosNisae elementoListaRetorno = new InteropLlamadasServiciosNisae();
+                elementoListaRetorno.setId(rs.getInt("id"));
+                elementoListaRetorno.setCodOrganizacion(rs.getInt("codOrganizacion"));
+                elementoListaRetorno.setEjercicioHHFF(rs.getString("ejercicioHHFF"));
+                elementoListaRetorno.setProcedimientoHHFF(rs.getString("procedimientoHHFF"));
+                elementoListaRetorno.setEstadoExpediente(rs.getString("estadoExpediente"));
+                elementoListaRetorno.setNumeroExpedienteDesde(rs.getString("numeroExpedienteDesde"));
+                elementoListaRetorno.setNumeroExpedienteHasta(rs.getString("numeroExpedienteHasta"));
+                elementoListaRetorno.setTextoJsonDatosEnviados(rs.getString("textoJsonDatosEnviados"));
+                elementoListaRetorno.setNumeroExpediente(rs.getString("numeroExpediente"));
+                elementoListaRetorno.setFechaHoraEnvioPeticion(rs.getString("fechaHoraEnvioPeticion"));
+                elementoListaRetorno.setCodigoEstadoSecundario(rs.getString("codigoEstadoSecundario"));
+                elementoListaRetorno.setEstado(rs.getString("estado"));
+                elementoListaRetorno.setDescripcionEstado(rs.getString("descripcionEstado"));
+                elementoListaRetorno.setResultado(rs.getString("resultado"));
+                elementoListaRetorno.setTextoJsonDatosRecibidos(rs.getString("textoJsonDatosRecibidos"));
+                elementoListaRetorno.setDocumentoInteresado(rs.getString("documentoInteresado"));
+                elementoListaRetorno.setTiempoEstimadoRespuesta(rs.getString("tiempoEstimadoRespuesta"));
+                elementoListaRetorno.setTerritorioHistorico(rs.getString("territorioHistorico"));
+                elementoListaRetorno.setObservaciones(rs.getString("observaciones"));
+                elementoListaRetorno.setIdPeticionPadre(rs.getInt("idPeticionPadre"));
+                elementoListaRetorno.setFkWSSolicitado(rs.getInt("fkWSSolicitado"));
+                retorno.add(elementoListaRetorno);
+            }
+        } catch (Exception ex) {
+            log.info("Se ha producido un error consultando el log de NISAE ", ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                if (pt != null) {
+                    pt.close();
+                }
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (Exception e) {
+                log.error("Se ha producido un error cerrando el preparedstatement y el resulset", e);
+                throw new Exception(e);
+            }
+        }
+        log.info("getPeticionesConsultasNISAExExpediente - End () " + formatDate.format(new Date()));
+        return retorno;
+    }
+
+    public int getNumRegistrosTotalConsultasNISAEExpediente(int codOrganizacion, Connection con, FiltrosNisaeLogVO filtros) throws Exception {
+        log.info("getNumRegistrosTotalConsultasNISAEExpediente - Begin () " + formatDate.format(new Date()));
+        int retorno = 0;
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+
+        try {
+            String query = " SELECT COUNT(*) FROM " + ConfigurationParameter.getParameter(
+                    ConstantesMeLanbideInterop.NOMBRE_TABLA_LOG_LLAMADAS_NISAE,
+                    ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
+
+            if (filtros != null) {
+                log.info("params : " + filtros.getEjercicioHHFF() + ", "
+                        + filtros.getProcedimientoHHFF() + ", "
+                        + filtros.getEstadoExpediente() + ", "
+                        + filtros.getNumeroExpedienteDesde() + ", "
+                        + filtros.getNumeroExpedienteHasta() + ", "
+                        + filtros.getFechaEnvioPeticion() + ", "
+                        + filtros.getEstado() + ", "
+                        + filtros.getResultado() + ".");
+
+                boolean isFirst = true;
+                if (filtros.getEjercicioHHFF() != null && !filtros.getEjercicioHHFF().isEmpty()) {
+                    log.info("aplicando condición --> ejercicio");
+                    query += " WHERE EJERCICIOHHFF = '" + filtros.getEjercicioHHFF() + "'";
+                    isFirst = false;
+                }
+                if (filtros.getProcedimientoHHFF() != null && !filtros.getProcedimientoHHFF().isEmpty()) {
+                    log.info("aplicando condición --> procedimiento");
+                    if (isFirst) {
+                        query += " WHERE PROCEDIMIENTOHHFF = '" + filtros.getProcedimientoHHFF() + "'";
+                        isFirst = false;
+                    } else {
+                        query += " AND PROCEDIMIENTOHHFF = '" + filtros.getProcedimientoHHFF() + "'";
+                    }
+                }
+                if (filtros.getEstadoExpediente() != null && !filtros.getEstadoExpediente().isEmpty()) {
+                    log.info("aplicando condición --> estadoExpediente");
+                    if (isFirst) {
+                        query += " WHERE ESTADOEXPEDIENTE = '" + filtros.getEstadoExpediente() + "'";
+                        isFirst = false;
+                    } else {
+                        query += " AND ESTADOEXPEDIENTE = '" + filtros.getEstadoExpediente() + "'";
+                    }
+                }
+                if (filtros.getNumeroExpedienteDesde() != null && !filtros.getNumeroExpedienteDesde().isEmpty()) {
+                    log.info("aplicando condición --> numeroExpedienteDesde");
+                    if (isFirst) {
+                        query += " WHERE NUMEROEXPEDIENTEDESDE = '" + filtros.getNumeroExpedienteDesde() + "'";
+                        isFirst = false;
+                    } else {
+                        query += " AND NUMEROEXPEDIENTEDESDE = '" + filtros.getNumeroExpedienteDesde() + "'";
+                    }
+                }
+                if (filtros.getNumeroExpedienteHasta() != null && !filtros.getNumeroExpedienteHasta().isEmpty()) {
+                    log.info("aplicando condición --> numeroExpedienteHasta");
+                    if (isFirst) {
+                        query += " WHERE NUMEROEXPEDIENTEHASTA = '" + filtros.getNumeroExpedienteHasta() + "'";
+                        isFirst = false;
+                    } else {
+                        query += " AND NUMEROEXPEDIENTEHASTA = '" + filtros.getNumeroExpedienteHasta() + "'";
+                    }
+                }
+                if (filtros.getFechaEnvioPeticion() != null && !filtros.getFechaEnvioPeticion().isEmpty()) {
+                    log.info("aplicando condición --> fechaEnvioPeticion");
+                    if (isFirst) {
+                        query += " WHERE to_char(fechahoraenviopeticion,'dd/mm/yyyy')='" + filtros.getFechaEnvioPeticion() + "'";
+                        isFirst = false;
+                    } else {
+                        query += " AND to_char(fechahoraenviopeticion,'dd/mm/yyyy')='" + filtros.getFechaEnvioPeticion() + "'";
+                    }
+                }
+                if (filtros.getEstado() != null && !filtros.getEstado().isEmpty()) {
+                    log.info("aplicando condición --> estado");
+                    if (isFirst) {
+                        query += " WHERE ESTADO = '" + filtros.getEstado() + "'";
+                        isFirst = false;
+                    } else {
+                        query += " AND ESTADO = '" + filtros.getEstado() + "'";
+                    }
+                }
+                if (filtros.getResultado() != null && !filtros.getResultado().isEmpty()) {
+                    log.info("aplicando condición --> resultado");
+                    if (isFirst) {
+                        query += " WHERE RESULTADO = '" + filtros.getResultado() + "'";
+                        isFirst = false;
+                    } else {
+                        query += " AND RESULTADO = '" + filtros.getResultado() + "'";
+                    }
+                }
+                if (filtros.getDocumentoInteresado() != null && !filtros.getDocumentoInteresado().isEmpty()) {
+                    log.info("aplicando condición --> documentoInteresado");
+                    if (isFirst) {
+                        query += " WHERE DOCUMENTOINTERESADO = '" + filtros.getDocumentoInteresado() + "'";
+                        isFirst = false;
+                    } else {
+                        query += " AND DOCUMENTOINTERESADO = '" + filtros.getDocumentoInteresado() + "'";
+                    }
+                }
+                log.info("----Fin aplicar condiciones----");
+            }
+
+            pt = con.prepareStatement(query);
+
+            rs = pt.executeQuery();
+            log.info("sql = " + query);
+
+            while (rs.next()) {
+                retorno = rs.getInt(1);
+            }
+        } catch (Exception ex) {
+            log.info("Se ha producido un error consultando el log de NISAE ", ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                if (pt != null) {
+                    pt.close();
+                }
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (Exception e) {
+                log.error("Se ha producido un error cerrando el preparedstatement y el resulset", e);
+                throw new Exception(e);
+            }
+        }
+
+        log.info("getNumRegistrosTotalConsultasNISAEExpediente - Begin () " + formatDate.format(new Date()));
+        return retorno;
+    }
+
+    void actualizarSoloEstadoYdescripcionRegistroBBDDLogLlamada(int idRegistroLog, String estado, String descripcionEstado, Connection con) throws Exception {
+        PreparedStatement ps = null;
+        int rs = 0;
+        try {
+            String query = "update " + ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.NOMBRE_TABLA_LOG_LLAMADAS_NISAE, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES)
+                    + " set "
+                    + " estado=?"
+                    + " ,descripcionEstado=?"
+                    + " where id=?";
+            log.info("sql = " + query);
+            log.info("params = estado:" + estado
+                    + " descripcionEstado:" + descripcionEstado
+                    + " id:" + idRegistroLog
+            );
+
+            ps = con.prepareStatement(query);
+            ps.setString(1, estado);
+            ps.setString(2, descripcionEstado);
+            ps.setInt(3, idRegistroLog);
+
+            rs = ps.executeUpdate();
+            log.info("filas actualizadas: " + rs);
+        } catch (Exception ex) {
+            log.error("ERROR AL CREAR EL ID DE PETICION SERVICIOS NISAE ", ex);
+            throw new Exception(ex);
+        } finally {
+            if (log.isDebugEnabled()) {
+                log.debug("Procedemos a cerrar el statement y el resultset");
+            }
+            if (ps != null) {
+                ps.close();
+            }
+        }
+    }
+
+    void actualizarTextoJsonDatosEnviadosDocTTHHPeticionRegistroBBDDLogLlamada(int idRegistroLog, String textoJsonDatosEnviados, String documentoInteresado, String territorioHistorico, Connection con) throws Exception {
+        PreparedStatement ps = null;
+        int rs = 0;
+        try {
+            String query = "update " + ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.NOMBRE_TABLA_LOG_LLAMADAS_NISAE, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES)
+                    + " set "
+                    + " textoJsonDatosEnviados=?"
+                    + " ,documentoInteresado=?"
+                    + " ,territorioHistorico=?"
+                    + " where id=?";
+            log.info("sql = " + query);
+            log.info("params = textoJsonDatosEnviados:" + textoJsonDatosEnviados
+                    + " territorioHistorico:" + territorioHistorico
+                    + " documentoInteresado:" + documentoInteresado
+                    + " id:" + idRegistroLog
+            );
+
+            ps = con.prepareStatement(query);
+            ps.setString(1, textoJsonDatosEnviados);
+            ps.setString(2, documentoInteresado);
+            ps.setString(3, territorioHistorico);
+            ps.setInt(4, idRegistroLog);
+
+            rs = ps.executeUpdate();
+            log.info("filas actualizadas: " + rs);
+        } catch (Exception ex) {
+            log.error("ERROR AL CREAR EL ID DE PETICION SERVICIOS NISAE ", ex);
+            throw new Exception(ex);
+        } finally {
+            if (log.isDebugEnabled()) {
+                log.debug("Procedemos a cerrar el statement y el resultset");
+            }
+            if (ps != null) {
+                ps.close();
+            }
+        }
+    }
+
+    public List<ComboNisae> getComboNisaeProcedimiento(int codOrganizacion, Connection con) throws Exception {
+        log.info("getComboNisaeProcedimiento - Begin () " + formatDate.format(new Date()));
+        List<ComboNisae> retorno = new ArrayList<ComboNisae>();
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+        try {
+            String query = " SELECT PRO_COD, PRO_DES "
+                    + " FROM E_PRO "
+                    + " WHERE PRO_EST=1 "
+                    + " AND PRO_MUN=? "
+                    + " ORDER BY PRO_COD ";
+
+            log.info("sql = " + query);
+            pt = con.prepareStatement(query);
+            pt.setInt(1, codOrganizacion);
+            log.info("Param ? : " + codOrganizacion);
+            rs = pt.executeQuery();
+            while (rs.next()) {
+                ComboNisae elementoListaRetorno = new ComboNisae();
+                elementoListaRetorno.setId(rs.getString("PRO_COD"));
+                elementoListaRetorno.setValor(rs.getString("PRO_DES"));
+                retorno.add(elementoListaRetorno);
+            }
+        } catch (Exception ex) {
+            log.info("Se ha producido un error recoger combos ... ", ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                if (pt != null) {
+                    pt.close();
+                }
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (Exception e) {
+                log.error("Se ha producido un error cerrando el preparedstatement y el resulset", e);
+                throw new Exception(e);
+            }
+        }
+        log.info("getComboNisaeProcedimiento - End () " + formatDate.format(new Date()));
+        return retorno;
+    }
+
+    public InteropServiciosNisae getInteropServiciosNisaeById(int codOrganizacion, int id, Connection con) throws Exception {
+        log.info("getInteropServiciosNisaeById - Begin () " + formatDate.format(new Date()));
+        InteropServiciosNisae retorno = new InteropServiciosNisae();
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+        try {
+            String query = " SELECT * "
+                    + " FROM INTEROP_SERVICIOS_NISAE "
+                    + " WHERE codOrganizacion=? "
+                    + " AND id=?";
+
+            log.info("sql = " + query);
+            pt = con.prepareStatement(query);
+            pt.setInt(1, codOrganizacion);
+            pt.setInt(2, id);
+            log.info("Param ? : codOrganizacion" + codOrganizacion
+                    + " id:" + id
+            );
+            rs = pt.executeQuery();
+            if (rs.next()) {
+                retorno.setId(rs.getInt("id"));
+                retorno.setCodOrganizacion(rs.getInt("codOrganizacion"));
+                retorno.setCodTextWS(rs.getString("codTextWS"));
+                retorno.setEstado(rs.getInt("estado"));
+                retorno.setNombreWS(rs.getString("nombreWS"));
+            }
+        } catch (Exception ex) {
+            log.info("Se ha producido un error recoger entity InteropSeriveNisae ... ", ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                if (pt != null) {
+                    pt.close();
+                }
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (Exception e) {
+                log.error("Se ha producido un error cerrando el preparedstatement y el resulset", e);
+                throw new Exception(e);
+            }
+        }
+        log.info("getInteropServiciosNisaeById - End () " + formatDate.format(new Date()));
+        return retorno;
+    }
+
+    public List<InteropServiciosNisae> getAllInteropServiciosNisae(int codOrganizacion, Connection con) throws Exception {
+        log.info("getAllInteropServiciosNisae - Begin () " + formatDate.format(new Date()));
+        List<InteropServiciosNisae> retorno = new ArrayList<InteropServiciosNisae>();
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+        try {
+            String query = " SELECT * "
+                    + " FROM INTEROP_SERVICIOS_NISAE "
+                    + " WHERE codOrganizacion=? "
+                    + " ORDER BY ID ";
+
+            log.info("sql = " + query);
+            pt = con.prepareStatement(query);
+            pt.setInt(1, codOrganizacion);
+            log.info("Param ? : codOrganizacion" + codOrganizacion
+            );
+            rs = pt.executeQuery();
+            while (rs.next()) {
+                InteropServiciosNisae elementoLista = new InteropServiciosNisae();
+                elementoLista.setId(rs.getInt("id"));
+                elementoLista.setCodOrganizacion(rs.getInt("codOrganizacion"));
+                elementoLista.setCodTextWS(rs.getString("codTextWS"));
+                elementoLista.setEstado(rs.getInt("estado"));
+                elementoLista.setNombreWS(rs.getString("nombreWS"));
+                retorno.add(elementoLista);
+            }
+        } catch (Exception ex) {
+            log.info("Se ha producido un error recoger entity InteropSeriveNisae ... ", ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                if (pt != null) {
+                    pt.close();
+                }
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (Exception e) {
+                log.error("Se ha producido un error cerrando el preparedstatement y el resulset", e);
+                throw new Exception(e);
+            }
+        }
+        log.info("getAllInteropServiciosNisae - End () " + formatDate.format(new Date()));
+        return retorno;
+    }
+
+    public List<InteropServiciosNisae> getAllDisponiblesInteropServiciosNisae(int codOrganizacion, Connection con) throws Exception {
+        log.info("getAllInteropServiciosNisae - Begin () " + formatDate.format(new Date()));
+        List<InteropServiciosNisae> retorno = new ArrayList<InteropServiciosNisae>();
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+        try {
+            String query = " SELECT * "
+                    + " FROM INTEROP_SERVICIOS_NISAE "
+                    + " WHERE codOrganizacion=? "
+                    + " AND estado=1 ";
+
+            log.info("sql = " + query);
+            pt = con.prepareStatement(query);
+            pt.setInt(1, codOrganizacion);
+            log.info("Param ? : codOrganizacion" + codOrganizacion
+            );
+            rs = pt.executeQuery();
+            while (rs.next()) {
+                InteropServiciosNisae elementoLista = new InteropServiciosNisae();
+                elementoLista.setId(rs.getInt("id"));
+                elementoLista.setCodOrganizacion(rs.getInt("codOrganizacion"));
+                elementoLista.setCodTextWS(rs.getString("codTextWS"));
+                elementoLista.setEstado(rs.getInt("estado"));
+                elementoLista.setNombreWS(rs.getString("nombreWS"));
+                retorno.add(elementoLista);
+            }
+        } catch (Exception ex) {
+            log.info("Se ha producido un error recoger entity InteropSeriveNisae ... ", ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                if (pt != null) {
+                    pt.close();
+                }
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (Exception e) {
+                log.error("Se ha producido un error cerrando el preparedstatement y el resulset", e);
+                throw new Exception(e);
+            }
+        }
+        log.info("getAllInteropServiciosNisae - End () " + formatDate.format(new Date()));
+        return retorno;
+    }
+
+    public void registarFiltroExpedienteEspcificoLista(Integer codOrganizacion, List<InteropServiciosNisaeExpFi> interopServiciosNisaeExpFiList, Connection con) throws Exception {
+        PreparedStatement ps = null;
+        int rs = 0;
+        int idSecuencia;
+        try {
+            if (interopServiciosNisaeExpFiList != null) {
+                for (InteropServiciosNisaeExpFi interopServiciosNisaeExpFi : interopServiciosNisaeExpFiList) {
+                    String query = "INSERT into INTEROP_SERVICIOS_NISAE_EXP_FI "
+                            + " (codOrganizacion,numeroExpediente) "
+                            + " values (?,?)";
+                    log.info("sql = " + query);
+                    log.info("params = codOrganizacion:" + codOrganizacion
+                            + " numeroExpediente:" + interopServiciosNisaeExpFi.getNumeroExpediente()
+                    );
+
+                    ps = con.prepareStatement(query);
+                    ps.setInt(1, codOrganizacion);
+                    ps.setString(2, interopServiciosNisaeExpFi.getNumeroExpediente());
+                    rs = ps.executeUpdate();
+                }
+            } else {
+                log.info("La lista de expedientes a insertar viene Vacia... NO se inserta");
+            }
+        } catch (Exception ex) {
+            log.error("ERROR AL agregar lista de expedientes filtro personalizado ", ex);
+            throw ex;
+        } finally {
+            if (log.isDebugEnabled()) {
+                log.debug("Procedemos a cerrar el statement y el resultset");
+            }
+            if (ps != null) {
+                ps.close();
+            }
+        }
+    }
+
+    public boolean estaExpedientePendienteListaFiltro(int codOrganizacion, String numeroExpediente, Connection con) throws Exception {
+        log.info("estaExpedientePendienteListaFiltro - Begin () " + formatDate.format(new Date()));
+        boolean retorno = false;
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+        try {
+            String query = " SELECT count(1) estaExp "
+                    + " FROM INTEROP_SERVICIOS_NISAE_EXP_FI "
+                    + " WHERE codOrganizacion=? "
+                    + " AND numeroExpediente=? "
+                    + " and (procesoEjecutado=0 or procesoEjecutado is null ";
+
+            log.info("sql = " + query);
+            pt = con.prepareStatement(query);
+            pt.setInt(1, codOrganizacion);
+            log.info("Param ? : codOrganizacion" + codOrganizacion
+            );
+            rs = pt.executeQuery();
+            while (rs.next()) {
+                retorno = rs.getInt("estaExp") > 0;
+            }
+        } catch (Exception ex) {
+            log.info("Se ha producido un error recoger entity InteropSeriveNisae ... ", ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                if (pt != null) {
+                    pt.close();
+                }
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (Exception e) {
+                log.error("Se ha producido un error cerrando el preparedstatement y el resulset", e);
+                throw new Exception(e);
+            }
+        }
+        log.info("estaExpedientePendienteListaFiltro - End () " + formatDate.format(new Date()));
+        return retorno;
+    }
+
+    public List<ExpedienteNisaeVO> getExpedientesProcesarNISAEFiltroExpedientesEspecificos(int codOrganizacion, InteropLlamadasServiciosNisae interopLlamadasServiciosNisae, Connection con) throws Exception {
+        log.info("getExpedientesProcesarNISAEFiltroExpedientesEspecificos - Begin () " + formatDate.format(new Date()));
+        List<ExpedienteNisaeVO> retorno = new ArrayList<ExpedienteNisaeVO>();
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+        try {
+            String query = getExpedientesProcesarNISAEFiltroExpedientesEspecificosPrepararQuery(codOrganizacion, interopLlamadasServiciosNisae, false);
+            log.info("sql = " + query);
+            pt = con.prepareStatement(query);
+            pt.setInt(1, (interopLlamadasServiciosNisae.getEjercicioHHFF() != null && !interopLlamadasServiciosNisae.getEjercicioHHFF().isEmpty() ? Integer.valueOf(interopLlamadasServiciosNisae.getEjercicioHHFF()) : 0));
+            pt.setString(2, interopLlamadasServiciosNisae.getProcedimientoHHFF());
+            log.info("Parametros ? : " + interopLlamadasServiciosNisae.getEjercicioHHFF() + " " + interopLlamadasServiciosNisae.getProcedimientoHHFF());
+            rs = pt.executeQuery();
+            while (rs.next()) {
+                ExpedienteNisaeVO expedienteNisaeVO = new ExpedienteNisaeVO();
+                expedienteNisaeVO.setNumeroExpediente(rs.getString("numeroExpediente"));
+                expedienteNisaeVO.setDocumentoInteresadoPeticion(rs.getString("documentointeresadopeticion"));
+                expedienteNisaeVO.setEstadoPeticion(rs.getString("estadopeticion"));
+                expedienteNisaeVO.setCodigoEstadoSecundarioPeticion(rs.getString("codigoestadosecundariopeticion"));
+                expedienteNisaeVO.setIdPeticionPreviaBBDDLog(rs.getInt("idpeticionpreviabbddlog"));
+                expedienteNisaeVO.setObservaciones(rs.getString("observaciones"));
+                expedienteNisaeVO.setFkWSSolicitado(rs.getInt("fkWSSolicitado"));
+                TerceroVO terceroVO = this.getDatosTerceroExpedienteNISAE(codOrganizacion, expedienteNisaeVO.getNumeroExpediente(), "1", con);
+                expedienteNisaeVO.setTitularExpediente(terceroVO);
+                retorno.add(expedienteNisaeVO);
+            }
+        } catch (Exception ex) {
+            log.info("Se ha producido un error recuperando Expedientes Procesar  ", ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                if (pt != null) {
+                    pt.close();
+                }
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (Exception e) {
+                log.error("Se ha producido un error cerrando el preparedstatement y el resulset", e);
+                throw new Exception(e);
+            }
+        }
+        log.info("getExpedientesProcesarNISAEFiltroExpedientesEspecificos - End () " + formatDate.format(new Date()));
+        return retorno;
+    }
+
+    public int getExpedientesProcesarNISAEFiltroExpedientesEspecificosTotalProcesar(int codOrganizacion, InteropLlamadasServiciosNisae interopLlamadasServiciosNisae, Connection con) throws Exception {
+        log.info("getExpedientesProcesarNISAE - Begin () " + formatDate.format(new Date()));
+        int retorno = 0;
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+        try {
+            String query = getExpedientesProcesarNISAEFiltroExpedientesEspecificosPrepararQuery(codOrganizacion, interopLlamadasServiciosNisae, true);
+            log.info("sql = " + query);
+            pt = con.prepareStatement(query);
+            pt.setInt(1, (interopLlamadasServiciosNisae.getEjercicioHHFF() != null && !interopLlamadasServiciosNisae.getEjercicioHHFF().isEmpty() ? Integer.valueOf(interopLlamadasServiciosNisae.getEjercicioHHFF()) : 0));
+            pt.setString(2, interopLlamadasServiciosNisae.getProcedimientoHHFF());
+            log.info("Parametros ? : " + interopLlamadasServiciosNisae.getEjercicioHHFF() + " " + interopLlamadasServiciosNisae.getProcedimientoHHFF());
+            rs = pt.executeQuery();
+            if (rs.next()) {
+                retorno = rs.getInt("numeroExpedientesProcesar");
+            }
+        } catch (Exception ex) {
+            log.info("Se ha producido un error recuperando Expedientes Procesar  ", ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                if (pt != null) {
+                    pt.close();
+                }
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (Exception e) {
+                log.error("Se ha producido un error cerrando el preparedstatement y el resulset", e);
+                throw new Exception(e);
+            }
+        }
+        log.info("getExpedientesProcesarNISAE - End () " + formatDate.format(new Date()));
+        return retorno;
+    }
+
+    private String getExpedientesProcesarNISAEFiltroExpedientesEspecificosPrepararQuery(int codOrganizacion, InteropLlamadasServiciosNisae interopLlamadasServiciosNisae, boolean soloCalcularNumeroTotalTratados) {
+        String query = "";
+        try {
+            if (interopLlamadasServiciosNisae != null) {
+                if (soloCalcularNumeroTotalTratados) {
+                    query = " SELECT count(1) numeroExpedientesProcesar ";
+                } else {
+                    query = " SELECT exp.EXP_NUM numeroExpediente, IDPETICION_NISAE_HHFF.TXT_VALOR idPeticionPreviaCampoSuple "
+                            + " ,peticionesLog.documentoInteresado documentoInteresadoPeticion,peticionesLog.estado estadoPeticion, peticionesLog.codigoEstadoSecundario codigoEstadoSecundarioPeticion,peticionesLog.id idPeticionPreviaBBDDLog,peticionesLog.observaciones,peticionesLog.fkWSSolicitado ";
+                }
+                query += " FROM E_EXP exp "
+                        + " INNER JOIN INTEROP_SERVICIOS_NISAE_EXP_FI ON numeroExpediente=exp.EXP_NUM AND (procesoEjecutado=0 OR procesoEjecutado IS NULL) "
+                        + " WHERE exp.EXP_EJE=? "
+                        + " AND  exp.EXP_PRO=? ";
+            }
+
+        } catch (Exception e) {
+            log.error("Error al preparar la query recuperacion de datos expedientes a tratar ", e);
+        }
+        return query;
+    }
+
+    public List<InteropServiciosNisaeExpFi> getListaFiltroExpedientesEspecificos(int codOrganizacion, Connection con) throws Exception {
+        log.info("getListaFiltroExpedientesEspecificos - Begin () " + formatDate.format(new Date()));
+        List<InteropServiciosNisaeExpFi> retorno = new ArrayList<InteropServiciosNisaeExpFi>();
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+        try {
+            String query = " SELECT codOrganizacion,numeroExpediente,procesoEjecutado,observaciones, to_date(to_char(fechaAlta,'dd/mm/yyyy'),'dd/mm/yyyy') fechaAlta "
+                    + " FROM INTEROP_SERVICIOS_NISAE_EXP_FI "
+                    + " WHERE codOrganizacion=? "
+                    + " AND procesoEjecutado=0 ";
+
+            log.info("sql = " + query);
+            pt = con.prepareStatement(query);
+            pt.setInt(1, codOrganizacion);
+            log.info("Param ? : codOrganizacion" + codOrganizacion
+            );
+            rs = pt.executeQuery();
+            while (rs.next()) {
+                InteropServiciosNisaeExpFi elementoLista = new InteropServiciosNisaeExpFi();
+                elementoLista.setCodOrganizacion(rs.getInt("codOrganizacion"));
+                elementoLista.setFechaAlta(rs.getDate("fechaAlta"));
+                elementoLista.setNumeroExpediente(rs.getString("numeroExpediente"));
+                elementoLista.setObservaciones(rs.getString("observaciones"));
+                elementoLista.setProcesoEjecutado(rs.getInt("procesoEjecutado"));
+                retorno.add(elementoLista);
+            }
+        } catch (Exception ex) {
+            log.info("Se ha producido un error recoger entity InteropSeriveNisae ... ", ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                if (pt != null) {
+                    pt.close();
+                }
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (Exception e) {
+                log.error("Se ha producido un error cerrando el preparedstatement y el resulset", e);
+                throw new Exception(e);
+            }
+        }
+        log.info("getListaFiltroExpedientesEspecificos - End () " + formatDate.format(new Date()));
+        return retorno;
+    }
+
+    void actualizarEstadoExpedienteInListaFiltroExptsEspecificos(int codOrganizacion, String numeroExpediente, Integer procesoEjecutado, String observaciones, Connection con) throws Exception {
+        PreparedStatement ps = null;
+        int rs = 0;
+        try {
+            String query = "update INTEROP_SERVICIOS_NISAE_EXP_FI "
+                    + " set "
+                    + " procesoEjecutado=?"
+                    + " ,observaciones=?"
+                    + " where codOrganizacion=? "
+                    + " and numeroExpediente=? ";
+            log.info("sql = " + query);
+            log.info("params = procesoEjecutado:" + procesoEjecutado
+                    + " observaciones:" + observaciones
+                    + " codOrganizacion:" + codOrganizacion
+                    + " numeroExpediente:" + numeroExpediente
+            );
+
+            ps = con.prepareStatement(query);
+            ps.setInt(1, procesoEjecutado);
+            ps.setString(2, observaciones);
+            ps.setInt(3, codOrganizacion);
+            ps.setString(4, numeroExpediente);
+
+            rs = ps.executeUpdate();
+            log.info("filas actualizadas: " + rs);
+        } catch (Exception ex) {
+            log.error("ERROR Actualizar estado de expediente especifico procesado", ex);
+            throw new Exception(ex);
+        } finally {
+            if (log.isDebugEnabled()) {
+                log.debug("Procedemos a cerrar el statement y el resultset");
+            }
+            if (ps != null) {
+                ps.close();
+            }
+        }
+    }
+    
+    void actualizarTextoJsonDatosEnviados(int idRegistroLog, String textoJsonDatosEnviados,Connection con) throws Exception {
+        PreparedStatement ps = null;
+        int rs = 0;
+        try {
+            String query = "update " + ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.NOMBRE_TABLA_LOG_LLAMADAS_NISAE, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES)
+                    + " set "
+                    + " textoJsonDatosEnviados=?"
+                    + " where id=?";
+            log.info("sql = " + query);
+            log.info("params = textoJsonDatosEnviados:" + textoJsonDatosEnviados
+                    + " id:" + idRegistroLog
+            );
+
+            ps = con.prepareStatement(query);
+            ps.setString(1, textoJsonDatosEnviados);
+            ps.setInt(2, idRegistroLog);
+
+            rs = ps.executeUpdate();
+            log.info("filas actualizadas: " + rs);
+        } catch (Exception ex) {
+            log.error("ERROR AL CREAR EL ID DE PETICION SERVICIOS NISAE ", ex);
+            throw new Exception(ex);
+        } finally {
+            if (log.isDebugEnabled()) {
+                log.debug("Procedemos a cerrar el statement y el resultset");
+            }
+            if (ps != null) {
+                ps.close();
+            }
+        }
+    }
+
+    String rescatarUnidadTramitadora(String numeroExpediente, Connection con) throws Exception {
+       log.info("rescatarUnidadTramitadora - Begin () " + formatDate.format(new Date()));
+        String retorno = "";
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+        try {
+            String query = "SELECT a_uor.uor_cod_vis ||'-'|| a_uor.uor_nom as nombre "
+                    + " FROM E_EXP "
+                    + " LEFT JOIN A_UOR ON EXP_UOR=a_uor.uor_cod "
+                    + " where exp_num =?";
+
+            log.info("sql = " + query);
+            pt = con.prepareStatement(query);
+            pt.setString(1, numeroExpediente);
+            log.info("Param ? : numeroExpediente" + numeroExpediente
+            );
+            rs = pt.executeQuery();
+            while (rs.next()) {                     
+                retorno = rs.getString("nombre");
+            } 
+        
+        } catch (Exception ex) {
+                log.info("Se ha producido un error recoger unidadTramitadora rescatarUnidadTramitadora ... ", ex);
+            throw new Exception(ex);
+        } finally {
+            try {
+                if (pt != null) {
+                    pt.close();
+                }
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (Exception e) {
+                log.error("Se ha producido un error cerrando el preparedstatement y el resulset", e);
+                throw new Exception(e);
+            }
+        }
+        log.info("rescatarUnidadTramitadora - End () " + formatDate.format(new Date()));
+        return retorno;
+    }
+
+    void crearVLInformacionControl(Date today, int idRegistroLog, String cifUsuarioLogueado, String nombreUsuarioLogueado, String unidadTramitadora, Connection con) throws Exception {
+        PreparedStatement ps = null;
+        java.sql.Date sqlDate = new java.sql.Date(today.getTime());
+        try {
+            String query = "INSERT INTO INTEROP_VIDALABORAL_IC(FECHACARGA, ID_PETICION, IDENTIFICADORSOLICITANTE, NOMBRESOLICITANTE, UNIDADTRAMITADORA)"
+                            + " values(?,?,?,?,?)";
+            log.info("sql = " + query);
+            log.info("params = FECHACARGA:" + today
+                    + " ID_PETICION:" + idRegistroLog
+                    + " IDENTIFICADORSOLICITANTE:" + cifUsuarioLogueado
+                    + " NOMBRESOLICITANTE:" + nombreUsuarioLogueado
+                    + " UNIDADTRAMITADORA:" + unidadTramitadora
+            );
+            ps = con.prepareStatement(query);
+            ps.setDate(1, sqlDate);
+            ps.setString(2, Integer.toString(idRegistroLog));
+            ps.setString(3, cifUsuarioLogueado);
+            ps.setString(4, nombreUsuarioLogueado);
+            ps.setString(5, unidadTramitadora);
+            ps.executeUpdate();
+
+        } catch (Exception ex) {
+            log.error("ERROR actualizar campos suplementarios SERVICIOS NISAE ", ex);
+            throw new Exception(ex);
+        } finally {
+            if (log.isDebugEnabled()) {
+                log.debug("Procedemos a cerrar el statement y el resultset");
+            }
+            if (ps != null) {
+                ps.close();
+            }
+        }
+    }
+
+    void crearInteropVL(ResponseRestServiceCVL responseRestServiceCVL, RequestRestServiceCVL requestRestServiceCVL, int idRegistroLog, String valorDNI, String tipo_doc, Connection con) throws Exception {
+        PreparedStatement ps = null;
+        try { 
+            String query = "INSERT INTO INTEROP_VIDALABORAL(IDPETICION, TIPODOCUMENTACION, DOCUMENTACION, FECHADESDE, FECHAHASTA, NUMEROSITUACIONES, NUMEROAFILIACION_L, FECHANACIMIENTO,"
+            + "TRANSFDERECHOSCEE, RESUMEN_CONPL_TOTALDIASALTA, RESUMEN_CONPL_DIASPLURIEMPLEO, RESUMEN_CONPL_ANIOSALTA, RESUMEN_CONPL_MESESALTA, RESUMEN_CONPL_DIASALTA,"
+            + "RESUMEN_TOTALDIASALTA, RESUMEN_ANIOSALTA, RESUMEN_MESESALTA, RESUMEN_DIASALTA, NUMEROAFILIACION, REGIMEN, EMPRESA, CODCUENTACOT, PROVINCIA, FECHAALTA,"
+            + "FECHAEFECTOS, FECHABAJA, CONTRATOTRABAJO, DESCCONTRATOTRABAJO, CONTRATOTPARCIAL, GRUPOCOTIZACION, DIASALTA, DIASALTA_CALCULADOS, ORDEN_SITLAB)"
+                    + " values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+           log.info("sql = " + query);
+           int contador = 0; 
+           java.sql.Date sqlFechaDesdeDate = null;
+           java.sql.Date sqlFechaHastaDate = null;
+           java.sql.Date sqlFechaNacimientoDate = null;
+           java.sql.Date sqlFechaAltaDate = null;
+           java.sql.Date sqlFechaEfectosDate = null;
+           java.sql.Date sqlFechaBajaDate = null;
+           Integer numeroSituaciones = 0;
+           Integer pluriEmpleoDias = 0;
+           Integer pluriEmpleoMeses = 0;
+           Integer pluriEmpleoAnios = 0;
+           Integer pluriEmpleoTotalDias = 0;
+           Integer totalesTotalDias = 0;
+           Integer totalesAnios = 0;
+           Integer totalesMeses = 0;
+           Integer totalesDias = 0;
+           Integer diasPluriEmpleo = 0;
+           String transferenciaDerechosCEE = "";    
+           List<String> numeroAfiliacionVL = null;
+           
+           if(responseRestServiceCVL.getIdentidad() != null){
+             ps = con.prepareStatement(query);  
+             if(responseRestServiceCVL.getIdentidad().getNumeroSituaciones() == null){
+               numeroSituaciones = 0;
+             }else{
+               numeroSituaciones = responseRestServiceCVL.getIdentidad().getNumeroSituaciones();
+             }
+             ps.setInt(6, numeroSituaciones);
+             log.info("NUMEROSITUACIONES:" + numeroSituaciones);
+             // 1 - RESUMEN
+             if(responseRestServiceCVL.getIdentidad().getResumen() != null){ 
+                 // 1.1 - RESUMEN - PLURIEMPLEO
+                 if(responseRestServiceCVL.getIdentidad().getResumen().getPluriempleo() != null){ 
+                    if(responseRestServiceCVL.getIdentidad().getResumen().getPluriempleo().getTotalDiasAlta() == null){
+                      pluriEmpleoTotalDias = 0;
+                    }else{
+                      pluriEmpleoTotalDias = responseRestServiceCVL.getIdentidad().getResumen().getPluriempleo().getTotalDiasAlta();
+                    }
+                    if(responseRestServiceCVL.getIdentidad().getResumen().getPluriempleo().getAniosAlta() == null){
+                      pluriEmpleoAnios = 0;
+                    }else{
+                      pluriEmpleoAnios = responseRestServiceCVL.getIdentidad().getResumen().getPluriempleo().getAniosAlta();  
+                    }
+                    if(responseRestServiceCVL.getIdentidad().getResumen().getPluriempleo().getMesesAlta() == null){
+                      pluriEmpleoMeses = 0;
+                    }else{
+                      pluriEmpleoMeses = responseRestServiceCVL.getIdentidad().getResumen().getPluriempleo().getMesesAlta(); 
+                    }
+                    if(responseRestServiceCVL.getIdentidad().getResumen().getPluriempleo().getDiasAlta() == null){
+                      pluriEmpleoDias = 0;
+                    }else{
+                      pluriEmpleoDias = responseRestServiceCVL.getIdentidad().getResumen().getPluriempleo().getDiasAlta();  
+                    }
+       
+                    ps.setInt(15, pluriEmpleoTotalDias);
+                    ps.setInt(16, pluriEmpleoAnios);
+                    ps.setInt(17, pluriEmpleoMeses);
+                    ps.setInt(18, pluriEmpleoDias);
+                    log.info("RESUMEN_TOTALDIASALTA:"  +pluriEmpleoTotalDias
+                    + " RESUMEN_ANIOSALTA:" + pluriEmpleoAnios
+                    + " RESUMEN_MESESALTA:" + pluriEmpleoMeses
+                    + " RESUMEN_DIASALTA:" + pluriEmpleoDias);
+                    }else{
+                         log.info("NO EXISTE RESUMEN-PLURIEMPLEO");
+                         ps.setInt(15, 0);
+                         ps.setInt(16, 0);
+                         ps.setInt(17, 0);
+                         ps.setInt(18, 0);
+                    }
+                    // 1.2 - RESUMEN - TOTALES
+                    if(responseRestServiceCVL.getIdentidad().getResumen().getTotales() != null){
+                       if(responseRestServiceCVL.getIdentidad().getResumen().getTotales().getTotalDiasAlta() == null){
+                         totalesTotalDias = 0;
+                       }else{
+                         totalesTotalDias = responseRestServiceCVL.getIdentidad().getResumen().getTotales().getTotalDiasAlta();
+                       }
+                       if(responseRestServiceCVL.getIdentidad().getResumen().getTotales().getDiasPluriempleo() == null){
+                         diasPluriEmpleo = 0;
+                       }else{
+                         diasPluriEmpleo = responseRestServiceCVL.getIdentidad().getResumen().getTotales().getDiasPluriempleo(); 
+                       }
+                       if(responseRestServiceCVL.getIdentidad().getResumen().getTotales().getAniosAlta() == null){
+                         totalesAnios = 0;
+                       }else{
+                         totalesAnios = responseRestServiceCVL.getIdentidad().getResumen().getTotales().getAniosAlta();
+                       }
+                       if(responseRestServiceCVL.getIdentidad().getResumen().getTotales().getMesesAlta() == null){
+                         totalesMeses = 0;
+                       }else{
+                         totalesMeses = responseRestServiceCVL.getIdentidad().getResumen().getTotales().getMesesAlta();
+                       }
+                       if(responseRestServiceCVL.getIdentidad().getResumen().getTotales().getDiasAlta() == null){
+                         totalesDias = 0;
+                       }else{
+                         totalesDias = responseRestServiceCVL.getIdentidad().getResumen().getTotales().getDiasAlta(); 
+                       }
+                       ps.setInt(10, totalesTotalDias);
+                       ps.setInt(11, diasPluriEmpleo);
+                       ps.setInt(12, totalesAnios);
+                       ps.setInt(13, totalesMeses);
+                       ps.setInt(14, totalesDias);
+                       log.info("RESUMEN_CONPL_TOTALDIASALTA:" + totalesTotalDias
+                       + "RESUMEN_CONPL_DIASPLURIEMPLEO:" + diasPluriEmpleo
+                       + " RESUMEN_CONPL_ANIOSALTA:" + totalesAnios      
+                       + " RESUMEN_CONPL_MESESALTA:" + totalesMeses
+                       + " RESUMEN_CONPL_DIASALTA:" + totalesDias);
+                    }else{
+                      log.info("NO EXISTE RESUMEN-TOTALES"); 
+                      ps.setInt(10, 0);
+                      ps.setInt(11, 0);
+                      ps.setInt(12, 0);
+                      ps.setInt(13, 0);
+                      ps.setInt(14, 0);
+                    }
+                }else{
+                      log.info("NO EXISTE RESUMEN");
+                      ps.setInt(10, 0);
+                      ps.setInt(11, 0);
+                      ps.setInt(12, 0);
+                      ps.setInt(13, 0);
+                      ps.setInt(14, 0);
+                      ps.setInt(15, 0);
+                      ps.setInt(16, 0);
+                      ps.setInt(17, 0);
+                      ps.setInt(18, 0);
+                }
+             
+                // 2 - CABECERA
+                if(responseRestServiceCVL.getIdentidad().getCabecera() != null){
+                    if(responseRestServiceCVL.getIdentidad().getCabecera().getFechaNacimiento() != null){
+                       Date fechaNacimientoDate=new SimpleDateFormat("yyyy-MM-dd").parse(responseRestServiceCVL.getIdentidad().getCabecera().getFechaNacimiento());
+                       sqlFechaNacimientoDate= new java.sql.Date(fechaNacimientoDate.getTime());
+                       log.info("FECHANACIMIENTO:" + responseRestServiceCVL.getIdentidad().getCabecera().getFechaNacimiento());
+                     }else{
+                       sqlFechaNacimientoDate = null; 
+                       log.info("NO EXISTEN FECHA DE NACIMIENTO");
+                     } 
+                     if(responseRestServiceCVL.getIdentidad().getCabecera().getTransferenciaDerechosCEE() == null){
+                       transferenciaDerechosCEE = "";
+                       log.info("NO EXISTE TRANSFERENCIA DE DERECHOS CEE");
+                     }else{
+                       transferenciaDerechosCEE = responseRestServiceCVL.getIdentidad().getCabecera().getTransferenciaDerechosCEE();
+                       log.info("TRANSFDERECHOSCEE: +responseRestServiceCVL.getIdentidad().getCabecera().getTransferenciaDerechosCEE()");
+                     }
+                     ps.setDate(8, sqlFechaNacimientoDate);
+                     ps.setString(9, transferenciaDerechosCEE);
+
+                     // 2.1 - LISTA DE NUMEROS AFILICACION
+                     if(responseRestServiceCVL.getIdentidad().getCabecera().getListaNumerosAfiliacion() != null){
+                         if(responseRestServiceCVL.getIdentidad().getCabecera().getListaNumerosAfiliacion().getNumeroAfiliacionVL() == null){
+                           numeroAfiliacionVL = null;
+                           log.info("NUMEROAFILIACION_L:" + numeroAfiliacionVL);
+                           ps.setString(7, null);
+                         }else{
+                           numeroAfiliacionVL = responseRestServiceCVL.getIdentidad().getCabecera().getListaNumerosAfiliacion().getNumeroAfiliacionVL();
+                           log.info("NUMEROAFILIACION_L:" + numeroAfiliacionVL.toString());
+                           ps.setString(7, numeroAfiliacionVL.toString());
+                         }    
+                     }else{
+                        numeroAfiliacionVL = null; 
+                        log.info("NUMEROAFILIACION_L:" + numeroAfiliacionVL);
+                        ps.setString(7, null);
+                     }    
+                 }else{
+                    log.info("NO EXISTE CABECERA");
+                    ps.setString(7, null);
+                    ps.setDate(8, sqlFechaNacimientoDate);
+                    ps.setString(9, null); 
+                 }
+                
+                // 3 - DATOS ESPECIFICOS
+                
+                if(requestRestServiceCVL.getDatosEspecificos() != null){
+                    if(requestRestServiceCVL.getDatosEspecificos().getFechaDesde() != null){
+                       Date fechaDesdeDate=new SimpleDateFormat("yyyy-MM-dd").parse(requestRestServiceCVL.getDatosEspecificos().getFechaDesde());
+                       sqlFechaDesdeDate= new java.sql.Date(fechaDesdeDate.getTime());
+                       log.info("FECHADESDE:" + requestRestServiceCVL.getDatosEspecificos().getFechaDesde());
+                    }else{
+                       sqlFechaDesdeDate = null;
+                    } 
+                   if(requestRestServiceCVL.getDatosEspecificos().getFechaHasta() != null){
+                      Date fechaHastaDate=new SimpleDateFormat("yyyy-MM-dd").parse(requestRestServiceCVL.getDatosEspecificos().getFechaHasta());
+                      sqlFechaHastaDate= new java.sql.Date(fechaHastaDate.getTime());
+                      log.info("FECHAHASTA:" + requestRestServiceCVL.getDatosEspecificos().getFechaHasta());
+                   }else{
+                      sqlFechaHastaDate = null;  
+                      log.info("NO EXISTEN FECHADESDE y FECHAHASTA");
+                   }
+                 }
+                 ps.setDate(4, sqlFechaDesdeDate);
+                 ps.setDate(5, sqlFechaHastaDate);
+             
+                 
+                 // 4 - SITUACIONES
+                 
+                 if(responseRestServiceCVL.getIdentidad().getListaSituaciones() != null){
+                    if(responseRestServiceCVL.getIdentidad().getListaSituaciones().getSituacion() == null){ 
+                       log.info(" NO EXISTEN SITUACIONES I");
+                       ps.setString(19, null);
+                       ps.setString(20, null);
+                       ps.setString(21, null);
+                       ps.setString(22, null);
+                       ps.setString(23, null);
+                       ps.setDate(24, sqlFechaAltaDate);
+                       ps.setDate(25, sqlFechaEfectosDate);
+                       ps.setDate(26, sqlFechaBajaDate);
+                       ps.setString(27, null);
+                       ps.setString(28, "");
+                       ps.setString(29, null);
+                       ps.setString(30, null);
+                       ps.setInt(31, 0);   
+                    }
+                }else{
+                   log.info(" NO EXISTEN SITUACIONES II"); 
+                   ps.setString(19, null);
+                   ps.setString(20, null);
+                   ps.setString(21, null);
+                   ps.setString(22, null);
+                   ps.setString(23, null);
+                   ps.setDate(24, sqlFechaAltaDate);
+                   ps.setDate(25, sqlFechaEfectosDate);
+                   ps.setDate(26, sqlFechaBajaDate);
+                   ps.setString(27, null);
+                   ps.setString(28, "");
+                   ps.setString(29, null);
+                   ps.setString(30, null);
+                   ps.setInt(31, 0);     
+                }  
+                     
+           if(responseRestServiceCVL.getIdentidad() != null){
+            if(responseRestServiceCVL.getIdentidad().getListaSituaciones() != null){
+               if(responseRestServiceCVL.getIdentidad().getListaSituaciones().getSituacion() != null){
+                   for(Situacion situ :responseRestServiceCVL.getIdentidad().getListaSituaciones().getSituacion()){
+                        String numeroAfiliacion = "";
+                        String regimen = "";
+                        String empresa = "";
+                        String codigoCuentaCotizacion = "";
+                        String provincia = "99";
+                        String contratoTrabajo = "";
+                        String contratoTiempoParcial = "";
+                        String grupoCotizacion = "";
+                        Integer diasAlta = 0;
+                        contador++;
+                        if(situ.getFechaAlta() != null){
+                           Date fechaAltaDate=new SimpleDateFormat("yyyy-MM-dd").parse(situ.getFechaAlta());
+                           sqlFechaAltaDate= new java.sql.Date(fechaAltaDate.getTime());
+                        }else{
+                           sqlFechaAltaDate = null; 
+                        }
+                        if(situ.getFechaEfectos() != null){
+                          Date fechaEfectosDate=new SimpleDateFormat("yyyy-MM-dd").parse(situ.getFechaEfectos());
+                          sqlFechaEfectosDate= new java.sql.Date(fechaEfectosDate.getTime());        
+                        }else{
+                          sqlFechaEfectosDate = null;  
+                        }
+                        if(situ.getFechaBaja() != null){
+                         Date fechaBajaDate=new SimpleDateFormat("yyyy-MM-dd").parse(situ.getFechaBaja());
+                         sqlFechaBajaDate= new java.sql.Date(fechaBajaDate.getTime());
+                        }else{
+                          sqlFechaBajaDate = null;  
+                        } 
+                        if(situ.getNumeroAfiliacion() != null){
+                          numeroAfiliacion = situ.getNumeroAfiliacion();
+                        }
+                        if(situ.getRegimen() != null){
+                          regimen = situ.getRegimen();
+                        }
+                        if(situ.getEmpresa() != null){
+                          empresa = situ.getEmpresa();
+                        }
+                        if(situ.getCodigoCuentaCotizacion() != null){
+                          codigoCuentaCotizacion = situ.getCodigoCuentaCotizacion();
+                        }
+                        if(situ.getProvincia() != null){
+                          provincia = situ.getProvincia();
+                        }
+                        if(situ.getContratoTrabajo() != null){
+                          contratoTrabajo = situ.getContratoTrabajo();
+                        }
+                        if(situ.getContratoTiempoParcial() != null){
+                         contratoTiempoParcial = situ.getContratoTiempoParcial();
+                        } 
+                        if(situ.getGrupoCotizacion() != null){
+                         grupoCotizacion = situ.getGrupoCotizacion();
+                        }
+                        if(situ.getDiasAlta() != null){
+                         diasAlta = situ.getDiasAlta();
+                        }
+                        log.info("NUMEROAFILIACION:" + numeroAfiliacion
+                        + " REGIMEN:" + regimen
+                        + " EMPRESA:" + empresa
+                        + " CODCUENTACOT:" + codigoCuentaCotizacion
+                        + " PROVINCIA:" + provincia
+                        + " FECHAALTA:" + sqlFechaAltaDate
+                        + " FECHAEFECTOS:" + sqlFechaEfectosDate
+                        + " FECHABAJA:" + sqlFechaBajaDate
+                        + " CONTRATOTRABAJO:" + contratoTrabajo
+                        + " DESCCONTRATOTRABAJO:" + ""
+                        + " CONTRATOTPARCIAL:" + contratoTiempoParcial
+                        + " GRUPOCOTIZACION:" + grupoCotizacion
+                        + " DIASALTA:" + diasAlta); 
+
+                        ps.setString(19, numeroAfiliacion);
+                        ps.setString(20, regimen);
+                        ps.setString(21, empresa);
+                        ps.setString(22, codigoCuentaCotizacion);
+                        ps.setString(23, provincia);
+                        ps.setDate(24, sqlFechaAltaDate);
+                        ps.setDate(25, sqlFechaEfectosDate);
+                        ps.setDate(26, sqlFechaBajaDate);
+                        ps.setString(27, contratoTrabajo);
+                        ps.setString(28, "");
+                        ps.setString(29, contratoTiempoParcial);
+                        ps.setString(30, grupoCotizacion);
+                        ps.setInt(31, diasAlta);
+
+                        log.info("params = ID_PETICION:" + idRegistroLog
+                        + " TIPODOCUMENTACION:" + tipo_doc
+                        + " DOCUMENTACION:" + valorDNI
+                        + " DIASALTA_CALCULADOS:" + 0
+                        + " ORDEN_SITLAB:" + contador
+                        ); 
+                        ps.setString(1, Integer.toString(idRegistroLog));
+                        ps.setString(2, tipo_doc);
+                        ps.setString(3, valorDNI);
+                        ps.setInt(32, 0);
+                        ps.setInt(33, contador);         
+                        ps.executeUpdate();  
+                        //contador = contador++;
+                    }              	
+                }else{
+                 log.info("SE INSERTA RESPUESTA, PERO NO EXISTEN SITUACIONES II");
+                 log.info("params = ID_PETICION:" + idRegistroLog
+                     + " TIPODOCUMENTACION:" + tipo_doc
+                     + " DOCUMENTACION:" + valorDNI
+                     + " DIASALTA_CALCULADOS:" + 0
+                     + " ORDEN_SITLAB:" + contador
+                     ); 
+                     ps.setString(1, Integer.toString(idRegistroLog));
+                     ps.setString(2, tipo_doc);
+                     ps.setString(3, valorDNI);
+                     ps.setInt(32, 0);
+                     ps.setInt(33, contador);
+                     ps.executeUpdate();  
+                     //contador = contador++;  
+                }   
+               }else{
+                    log.info("SE INSERTA RESPUESTA, PERO NO EXISTEN SITUACIONES I"); 
+                    log.info("params = ID_PETICION:" + idRegistroLog
+                    + " TIPODOCUMENTACION:" + tipo_doc
+                    + " DOCUMENTACION:" + valorDNI
+                    + " DIASALTA_CALCULADOS:" + 0
+                    + " ORDEN_SITLAB:" + contador
+                    ); 
+                    ps.setString(1, Integer.toString(idRegistroLog));
+                    ps.setString(2, tipo_doc);
+                    ps.setString(3, valorDNI);
+                    ps.setInt(32, 0);
+                    ps.setInt(33, contador);
+                    ps.executeUpdate();  
+                    //contador = contador++;     
+               }
+           }else{
+            log.info(" NO EXISTE IDENTIDAD II, POR LO QUE NO SE REALIZARÁ NINGÚN PROCESO DE GUARDADO.");  
+           }
+         }else{
+            log.info(" NO EXISTE IDENTIDAD I, POR LO QUE NO SE REALIZARÁ NINGÚN PROCESO DE GUARDADO.");  
+         }
+        } catch (Exception ex) {
+            log.error("ERROR actualizar campos INTEROP_VIDALABORAL ", ex);
+            throw new Exception(ex);
+        } finally {
+            if (log.isDebugEnabled()) {
+                log.debug("Procedemos a cerrar el statement y el resultset");
+            }
+            if (ps != null) {
+                ps.close();
+            }
+        }
+    }
+}

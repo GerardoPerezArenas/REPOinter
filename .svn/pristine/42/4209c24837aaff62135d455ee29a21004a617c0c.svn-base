@@ -1,0 +1,159 @@
+<WL5G3N1:definitions name="X53jsGetDatosIdentidadWSService"
+	targetNamespace="http://requirenteWS/"
+	xmlns:WL5G3N0="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
+	xmlns:WL5G3N1="http://schemas.xmlsoap.org/wsdl/" xmlns:WL5G3N2="http://requirenteWS/"
+	xmlns:WL5G3N3="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy">
+	<WL5G3N1:types>
+		<xsd:schema xmlns:WL5G3N0="http://schemas.xmlsoap.org/wsdl/"
+			xmlns:WL5G3N1="http://requirenteWS/" xmlns:WL5G3N2="http://schemas.xmlsoap.org/wsdl/soap/"
+			xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://requirenteWS/"
+			xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+			<xsd:import namespace="http://requirenteWS/"
+				schemaLocation="x53jsGetDatosIdentidadWS.xsd" />	<!--http://svc.integracion.des.ejgv.jaso:80/ctxweb/x53jsGetDatosIdentidadWS?SCHEMA%2Fbusiness%2Fresources%2Fx53jsGetDatosIdentidadWS%2FXMLSchema_65730821 -->
+		</xsd:schema>
+	</WL5G3N1:types>
+	<WL5G3N1:message name="getDatosIdentidadWS">
+		<WL5G3N1:part element="WL5G3N2:getDatosIdentidadWS" name="parameters" />
+	</WL5G3N1:message>
+	<WL5G3N1:message name="getDatosIdentidadWSResponse">
+		<WL5G3N1:part element="WL5G3N2:getDatosIdentidadWSResponse"
+			name="parameters" />
+	</WL5G3N1:message>
+	<WL5G3N1:message name="Exception">
+		<WL5G3N1:part element="WL5G3N2:Exception" name="fault" />
+	</WL5G3N1:message>
+	<WL5G3N1:portType name="X53jsGetDatosIdentidadWSDelegate">
+		<WL5G3N1:operation name="getDatosIdentidadWS">
+			<WL5G3N1:input message="WL5G3N2:getDatosIdentidadWS" />
+			<WL5G3N1:output message="WL5G3N2:getDatosIdentidadWSResponse" />
+			<WL5G3N1:fault message="WL5G3N2:Exception" name="Exception" />
+		</WL5G3N1:operation>
+	</WL5G3N1:portType>
+	<WL5G3N1:binding name="X53jsGetDatosIdentidadWSPortBinding"
+		type="WL5G3N2:X53jsGetDatosIdentidadWSDelegate">
+		<wsp:Policy>
+			<!-- <wsp:PolicyReference URI="#Auth.xml" /> -->
+			<wsp:PolicyReference URI="#Sign.xml"
+				xmlns:wsp="http://www.w3.org/ns/ws-policy" />
+		</wsp:Policy>
+		<WL5G3N3:binding style="document"
+			transport="http://schemas.xmlsoap.org/soap/http" />
+		<WL5G3N1:operation name="getDatosIdentidadWS">
+			<WL5G3N3:operation />
+			<WL5G3N1:input>
+				<WL5G3N3:body use="literal" />
+			</WL5G3N1:input>
+			<WL5G3N1:output>
+				<WL5G3N3:body use="literal" />
+			</WL5G3N1:output>
+			<WL5G3N1:fault name="Exception">
+				<WL5G3N3:fault name="Exception" use="literal" />
+			</WL5G3N1:fault>
+		</WL5G3N1:operation>
+	</WL5G3N1:binding>
+	<WL5G3N1:service name="X53jsGetDatosIdentidadWSPortBindingQSService">
+		<WL5G3N1:port binding="WL5G3N2:X53jsGetDatosIdentidadWSPortBinding"
+			name="X53jsGetDatosIdentidadWSPortBindingQSPort">
+			<WL5G3N3:address
+				location="http://svc.integracion.des.ejgv.jaso:80/ctxweb/x53jsGetDatosIdentidadWS" />
+		</WL5G3N1:port>
+	</WL5G3N1:service>
+
+
+	<wspp:Policy
+		xmlns:s1="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
+		xmlns:sp="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702"
+		s1:Id="Auth.xml" xmlns:wspp="http://www.w3.org/ns/ws-policy">
+		<sp:SupportingTokens>
+			<wsp:Policy>
+				<sp:UsernameToken
+					sp:IncludeToken="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702/IncludeToken/AlwaysToRecipient">
+					<wsp:Policy>
+						<sp:WssUsernameToken11 />
+					</wsp:Policy>
+				</sp:UsernameToken>
+				<sp:X509Token
+					sp:IncludeToken="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702/IncludeToken/AlwaysToRecipient">
+					<wsp:Policy>
+						<sp:WssX509V3Token10 />
+					</wsp:Policy>
+				</sp:X509Token>
+			</wsp:Policy>
+		</sp:SupportingTokens>
+		<wsp:All>
+			<!-- Este tag permite configurar el acceso al keystore que contiene el 
+				certificado que se usaría para la autenticación. -->
+			<sc1:KeyStore xmlns:sc1="http://schemas.sun.com/2006/03/wss/client"
+				xmlns:wspp="http://java.sun.com/xml/ns/wsit/policy"
+				alias="CN=CA de Ciudadanos y Entidades (4) - DESARROLLO,OU=NZZ Ziurtagiri publikoa - Certificado publico SCI,O=IZENPE S.A.,C=ES2914"
+				keypass="Lanbide2011" location="../Lanbide_exportado.p12" storepass="Lanbide2011"
+				type="PKCS12" wspp:visibility="private" />
+		</wsp:All>
+	</wspp:Policy>
+
+	<wspp:Policy xmlns:sp="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy"
+		xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:s1="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
+		s1:Id="Sign.xml"
+		xsi:schemaLocation="http://schemas.xmlsoap.org/ws/2004/09/policy http://schemas.xmlsoap.org/ws/2004/09/policy/ws-policy.xsd         http://schemas.xmlsoap.org/ws/2005/07/securitypolicy http://schemas.xmlsoap.org/ws/2005/07/securitypolicy/ws-securitypolicy.xsd"
+		xmlns:wspp="http://www.w3.org/ns/ws-policy">
+		<sp:AsymmetricBinding>
+			<wsp:Policy>
+				<sp:InitiatorToken>
+					<wsp:Policy>
+						<sp:X509Token
+							sp:IncludeToken="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy/IncludeToken/Always">
+							<wsp:Policy>
+								<sp:WssX509V3Token10 />
+							</wsp:Policy>
+						</sp:X509Token>
+					</wsp:Policy>
+				</sp:InitiatorToken>
+				<sp:RecipientToken>
+					<wsp:Policy>
+						<sp:X509Token
+							sp:IncludeToken="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy/IncludeToken/Always">
+							<wsp:Policy>
+								<sp:WssX509V3Token10 />
+							</wsp:Policy>
+						</sp:X509Token>
+					</wsp:Policy>
+				</sp:RecipientToken>
+				<sp:IncludeTimestamp />
+				<sp:ProtectTokens />
+				<sp:OnlySignEntireHeadersAndBody />
+			</wsp:Policy>
+		</sp:AsymmetricBinding>
+		<wsp:All>
+			<!-- Este tag permite configurar el acceso al keystore que contiene el 
+				certificado que se usará para generar la firma que protege el mensaje. Si 
+				se indica una ruta relativa, WSIT intentará encontrar en primer lugar el 
+				recurso en el classpath a partir de la ruta META-INF/. Si no lo encuentrá 
+				intentará resolver la URL indicada para descargarlo. -->
+			<sc:KeyStore xmlns:sc="http://schemas.sun.com/2006/03/wss/client"
+				xmlns:wspp="http://java.sun.com/xml/ns/wsit/policy"
+				alias="CN=CA de Ciudadanos y Entidades (4) - DESARROLLO,OU=NZZ Ziurtagiri publikoa - Certificado publico SCI,O=IZENPE S.A.,C=ES2914"
+				keypass="Lanbide2011" location="../Lanbide_exportado.p12" storepass="Lanbide2011"
+				type="PKCS12" wspp:visibility="private" />
+			<!-- Este tag permite configurar el almacén que contiene los certificados 
+				en los que se confía para recibir respuestas firmadas del servidor. Si se 
+				indica una ruta relativa, WSIT intentará encontrar en primer lugar el recurso 
+				en el classpath a partir de la ruta META-INF/. Si no lo encuentrá intentará 
+				resolver la URL indicada para descargarlo. -->
+			<sc:TrustStore xmlns:sc="http://schemas.sun.com/2006/03/wss/client"
+				xmlns:wspp="http://java.sun.com/xml/ns/wsit/policy" location="../trustore.jks"
+				storepass="changeit" type="JKS" wspp:visibility="private" />
+			<!-- Este tag permite configurar el tiempo de caducidad del sello de tiempo 
+				asociado al mensaje (y firmado). -->
+			<sc:CallbackHandlerConfiguration
+				xmlns:sc="http://schemas.sun.com/2006/03/wss/client" xmlns:wspp="http://java.sun.com/xml/ns/wsit/policy"
+				timestampTimeout="60" wspp:visibility="private" />
+			<sp:SignedParts>
+				<sp:Body />
+			</sp:SignedParts>
+		</wsp:All>
+	</wspp:Policy>
+
+</WL5G3N1:definitions>

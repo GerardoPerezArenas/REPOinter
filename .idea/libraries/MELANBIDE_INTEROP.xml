@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="MELANBIDE_INTEROP">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/${modulo.dist}/MELANBIDE_INTEROP.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

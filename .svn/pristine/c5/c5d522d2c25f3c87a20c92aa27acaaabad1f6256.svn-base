@@ -1,0 +1,389 @@
+/* 
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+$(document).ready(function() {
+    //pleaseWait('off');
+    asignarManejadoresEventos();
+    if($("#mensajeInicial").val()!==null && $("#mensajeInicial").val()!== undefined && $("#mensajeInicial").val()!==""){
+        mostrarModalGestionMensajeOperacion($("#mensajeInicial").val());
+    }
+    $('#divListaFiltroExpedientesExpecificosBotonera').hide();
+    //$('#divListaFiltroExpedientesExpecificos').hide();
+    //ocultar el option 'Consulta Padron'
+    $("#listaWebServices option[value=3]").hide();
+});
+var parametrosLLamada ={
+        tarea:'preparar'
+        ,modulo:'MELANBIDE_INTEROP'
+        ,operacion:null
+        ,tipo:0
+        ,control:new Date().getTime()
+        ,ejercicioHHFF:null
+        ,procedimientoHHFF:null
+        ,estadoexpediente:null
+        ,numeroExpedienteDesde:null
+        ,numeroExpedienteHasta:null
+        ,soloPeticionesEstEnProceso:null
+        ,fkWSSolicitado:null
+        ,ejecutarFiltroExpedientesEspecificos:null
+        ,jsonListaExpedientes:null
+    };
+    
+
+function onChangeCVL(){
+  if($("#listaWebServices").val() === "5"){
+     document.getElementById("fechaCVL").style.display = "block"; 
+  }else{
+     document.getElementById("fechaCVL").style.display = "none";
+     document.getElementById("fechaDesdeCVL").value = "";
+     document.getElementById("fechaHastaCVL").value = "";
+  }
+}
+
+
+function asignarManejadoresEventos(){
+    
+//    $('#modalGestionMensajeOperacion').on('hidden.bs.modal', function (e) {
+//        ("#textoBodyModal").prop("text","");
+//    });
+    $('#listaWebServices').on('change', function (e) {
+        if ($("#listaWebServices").val() === "2") {
+            $('#soloPeticionesEstEnProceso').removeAttr("checked");
+            $('#soloPeticionesEstEnProceso').prop("disabled", "true");
+        } else {
+            $('#soloPeticionesEstEnProceso').removeAttr("disabled");
+        }         
+    });
+    
+    //Mostar Ocultar Options para AERTE
+    $("#listaProcedimiento").on('change', function(e) {
+       if($("#listaProcedimiento").val() == "AERTE"){
+           $("#listaWebServices option[value=1]").hide();
+           $("#listaWebServices option[value=2]").hide();
+           $("#listaWebServices option[value=3]").show();
+       }else if($("#listaProcedimiento").val() == "LAK"){
+           $("#listaWebServices option[value=1]").hide();
+           $("#listaWebServices option[value=2]").hide();
+           $("#listaWebServices option[value=3]").hide();
+           $("#listaWebServices option[value=4]").hide();
+           $("#listaWebServices option[value=5]").show();
+       }else{
+           $("#listaWebServices option[value=3]").hide();
+           $("#listaWebServices option[value=1]").show();
+           $("#listaWebServices option[value=2]").show();
+       } 
+    });
+    
+    $('#ejecutarFiltroExpedientesEspecificos').on('click', function (e) {
+        if ($("#ejecutarFiltroExpedientesEspecificos:checked").length > 0) {
+            $('#divListaFiltroExpedientesExpecificosBotonera').slideDown();
+            $("#numeroExpedienteDesde").val("")
+            $("#numeroExpedienteHasta").val("");
+            $("#numeroExpedienteDesde").prop("disabled", "true");
+            $("#numeroExpedienteHasta").prop("disabled", "true");
+        } else {
+            $('#divListaFiltroExpedientesExpecificosBotonera').hide();
+            $("#numeroExpedienteDesde").removeAttr("disabled");
+            $("#numeroExpedienteHasta").removeAttr("disabled");
+        }         
+    });
+    /*
+    $('#ejecutarFiltroExpedientesEspecificosCargarLista').on('click', function (e) {
+        if ($("#ejecutarFiltroExpedientesEspecificosCargarLista:checked").length > 0) {
+            $('#divListaFiltroExpedientesExpecificos').slideDown();
+        } else {
+            $('#ejecutarFiltroExpedientesEsupecificosCargarLista').removeAttr("checked");
+            $('#divListaFiltroExpedientesExpecificos').hide();
+        }         
+    });
+    */
+    
+}
+
+function upperCasetext(idElemento){
+    if($("#"+idElemento).val()!== null && $("#"+idElemento).val()!== ""){
+        var texto="";
+        texto=$("#"+idElemento).val();
+        $("#"+idElemento).val(texto.toUpperCase());
+    }
+}
+
+//esta funcion solo deja ingresar numeros enteros
+function numeroEntero(e) {
+    var caracter;
+    caracter = e.keyCode;
+    status = caracter;
+    if (caracter > 47 && caracter < 58) {
+        return true;
+    }
+    return false;
+}
+
+function soloTexto(e) {
+    var caracter;
+    caracter = e.keyCode;
+    status = caracter;
+    if ((caracter > 64 && caracter < 91) //Letras
+        ||(caracter > 7 && caracter < 10) // Bksp,Tab
+        ||(caracter > 36 && caracter < 41) //Arrows
+        ||(caracter === 46) //delete
+        ) {
+        return true;
+    }
+    return false;
+}
+
+function lanzarProcesoComprobacionDatosPreview(){
+    if(validarParemetrosObligatorios()){
+        //var mensaje= "Esta seguro de ejecutar el Servico Web " + $("#listaWebServices option:selected").text() + " para el Ejercicio " + $("#ejercicio").val() + " y Procedimiento " + $("#listaProcedimiento").val();
+        //mostrarModalGestionMensajeOperacion(mensaje,true);
+        getExpedientesProcesarNISAENumeroTotalProcesar();
+    }
+}
+function lanzarProcesoComprobacionDatos(){
+    $("#modalGestionMensajeOperacion").modal('hide');
+    var dataParameter = $.extend({},parametrosLLamada);
+    dataParameter.control=new Date().getTime();
+    dataParameter.ejercicioHHFF=$("#ejercicio").val();
+    dataParameter.procedimientoHHFF=$("#listaProcedimiento").val();
+    dataParameter.estadoexpediente=$('[name="filtro"]:checked').data("estadoexpediente");
+    dataParameter.numeroExpedienteDesde=$("#numeroExpedienteDesde").val();
+    dataParameter.numeroExpedienteHasta=$("#numeroExpedienteHasta").val();
+    dataParameter.soloPeticionesEstEnProceso=($("#soloPeticionesEstEnProceso:checked").length>0?"1":"0");
+    dataParameter.fkWSSolicitado=$("#listaWebServices").val(); // Tabla INTEROP_SERVICIOS_NISAE cod 1 HHFF Consulta Corriente pago Hacienda Foral HHFF
+    dataParameter.ejecutarFiltroExpedientesEspecificos=($("#ejecutarFiltroExpedientesEspecificos:checked").length>0?"1":"0");
+    if($("#listaWebServices").val()==="1"){
+        dataParameter.operacion='estasCorrienteHaciendaForalHHFFBatch';
+    }else if($("#listaWebServices").val()==="2"){
+        dataParameter.operacion='estasCorrienteSeguridadSocialTGSSBatch';
+    }else if($("#listaWebServices").val()==="3") { 
+        dataParameter.operacion='estasCorrientePadronBatch';
+    }else if($("#listaWebServices").val()==="4") { 
+        dataParameter.operacion='consultaDatosFiscalesEIKABatch';
+    }else if($("#listaWebServices").val()==="5") {
+        dataParameter.operacion='consultaVidaLaboralCVLBatch';
+        dataParameter.fechaDesdeCVL = $("#fechaDesdeCVL").val();
+        dataParameter.fechaHastaCVL = $("#fechaHastaCVL").val();
+    }else{
+        dataParameter.operacion='cargarPantallaPrincipalServiciosNISAE';
+    }
+    var urlBaseLlamada=APP_CONTEXT_PATH+"/PeticionModuloIntegracion.do";
+    $.ajax({
+        type: 'POST',
+        url: urlBaseLlamada,
+        data: dataParameter,
+        success: function(respuesta){             
+                      if(respuesta!==null){
+                         //mostrarModalGestionMensajeOperacion(respuesta);
+                         jsp_alerta_Grande("A",respuesta);
+                      }
+          },
+       //dataType: dataType,
+          error:function(jqXHR,textStatus,errorThrown ){
+              var mensajeError='Error lanzar el proceso de comprobacion ' + jqXHR + ' - ' +textStatus + '  ' + errorThrown ;
+              mostrarModalGestionMensajeOperacion(mensajeError);
+          },
+        async:true
+    });
+}
+
+function validarParemetrosObligatorios(){
+    var textoMensaje = "";
+    $("#textoValidacionCampos").text("");
+    if($("#ejercicio").val()==="" || $("#listaProcedimiento").val()===""
+            || $("#listaWebServices").val()===""){
+        textoMensaje = $("#mensajeBaseCamposOblgatorios").val();
+        if($("#ejercicio").val()==="")
+            textoMensaje=textoMensaje+" "+$("#ejercicio").prop("title")+".";
+        if($("#listaProcedimiento").val()==="")
+            textoMensaje=textoMensaje+" "+$("#listaProcedimiento").prop("title")+".";
+        if($("#listaWebServices").val()==="")
+            textoMensaje=textoMensaje+" "+$("#listaWebServices").prop("title") +".";
+        
+        $("#textoValidacionCampos").text(textoMensaje);
+        //$('#textoValidacionCampos').show();
+        //$('#textoValidacionCampos').fadeIn();
+        $('#textoValidacionCampos').slideDown();
+        return false;
+    }else if($("#numeroExpedienteDesde").val()!=="" && $("#numeroExpedienteHasta").val()!==""){
+        if(parseInt($("#numeroExpedienteHasta").val())<parseInt($("#numeroExpedienteDesde").val())){
+            $("#textoValidacionCampos").text("Rango expedientes incorrecto. Expediente Hasta menor que Expediente desde.");
+            $('#textoValidacionCampos').slideDown();
+            return false;
+        }
+    }
+    
+    if($("#listaWebServices").val() === "5"){
+       var fechasValidacion = true;
+       if($("#fechaDesdeCVL").val()===""){
+        textoMensaje=textoMensaje+" "+$("#fechaDesdeCVL").prop("title") +".";
+        fechasValidacion = false;   
+       }
+       if($("#fechaHastaCVL").val()===""){
+        textoMensaje=textoMensaje+" "+$("#fechaHastaCVL").prop("title") +".";   
+        fechasValidacion = false;   
+       }
+       
+       var date_1 = new Date($("#fechaDesdeCVL").val());
+       var date_2 = new Date($("#fechaHastaCVL").val());
+       var today = new Date();
+       var today_menor_cinco_anio = new Date(today);
+       today_menor_cinco_anio = new Date(today_menor_cinco_anio.setFullYear(today_menor_cinco_anio.getFullYear()-5));
+       if ((date_1 >= date_2) || (date_2 <= date_1) || (date_1 > today) || (date_2 > today) || (date_1 < today_menor_cinco_anio)) {
+          textoMensaje=textoMensaje+" Intervalo de fechas incorrecto";
+          fechasValidacion = false;
+       }
+       
+       if(fechasValidacion === false){
+          $("#textoValidacionCampos").text(textoMensaje);
+          $('#textoValidacionCampos').slideDown();
+          return false;
+       }
+    }
+    //else if($("#listaWebServices").val()==="2"){
+        //$('#textoValidacionCampos').text("Servicio Temporalmente no Disponible");
+       //mostrarModalGestionMensajeOperacion("Servicio Temporalmente no Disponible",false);
+        //return false;
+    //}
+    $('#textoValidacionCampos').hide();
+    return true;
+}
+
+function comprobarVerTextoValidacionCmapos(){
+    if($("#ejercicio").val()!=="" && $("#procedimiento").val()!==""){
+        $('#textoValidacionCampos').text(""); 
+        $('#textoValidacionCampos').hide();
+    }
+}
+
+function mostrarModalGestionMensajeOperacion(textoMostrar,mostrarEjecutar,textoHTMLMostrar){
+    
+    if($("#textoBodyModal")!==null && $("#textoBodyModal")!==undefined){
+        // Limpiamos mensajes Previos
+        $("#textoBodyModal").empty();
+        $("#textoBodyModal").text(textoMostrar);
+        if(textoHTMLMostrar!=null && textoHTMLMostrar!=undefined){
+             if( $("#textoBodyModal").text()!="")
+                $("#textoBodyModal").append(textoHTMLMostrar)
+            else
+                $("#textoBodyModal").prop("innerHTML",textoHTMLMostrar);
+        }
+    }
+    if($("#modalAceptarLanzarProceso")!==null && $("#modalAceptarLanzarProceso")!==undefined){
+        if (mostrarEjecutar != null && mostrarEjecutar != undefined && mostrarEjecutar) {
+            $("#modalAceptarLanzarProceso").removeProp("disabled");
+        } else {
+            $("#modalAceptarLanzarProceso").prop("disabled", "true");
+        }
+    }
+    
+    $("#modalGestionMensajeOperacion").modal('show');
+}
+
+function mostrarListaExpedientesEspecificos(){
+    var dataParameter = $.extend({}, parametrosLLamada);
+    dataParameter.control = new Date().getTime();
+    dataParameter.operacion = 'getListaFiltroExpedientesEspecificos';
+    var urlBaseLlamada = APP_CONTEXT_PATH + "/PeticionModuloIntegracion.do";
+    $.ajax({
+        type: 'POST',
+        url: urlBaseLlamada,
+        data: dataParameter,
+        success: function (respuesta) {
+            var htmlTex = "";
+            if (respuesta !== null && "" !== respuesta && respuesta.length > 0) {
+                var htmlTex = "<ul>";
+                for (var i = 0; i<respuesta.length; i++) {
+                    htmlTex += "<li>" + respuesta[i].numeroExpediente + "</li>";
+                }
+                htmlTex += "</ul>";
+
+            } else {
+                htmlTex = "No se han registrado expedientes en la tabla INTEROP_SERVICIOS_NISAE_EXP_FI para el filtro Expedientes especifios.";
+            }
+            mostrarModalGestionMensajeOperacion("", false, htmlTex);
+        },
+        //dataType: dataType,
+        error: function (jqXHR, textStatus, errorThrown) {
+            var mensajeError = 'Error lanzar el proceso de comprobacion ' + jqXHR + ' - ' + textStatus + '  ' + errorThrown;
+            mostrarModalGestionMensajeOperacion(mensajeError);
+        },
+        async: false
+    });
+}
+
+function cargarListaExpedientesEspecificos(){
+    var dataParameter = $.extend({}, parametrosLLamada);
+    dataParameter.control = new Date().getTime();
+    dataParameter.operacion = 'cargarListaFiltroExpedientesEspecificos';
+    dataParameter.jsonListaExpedientes=$("#listaFiltroExpedientesExpecificos").val();
+    var urlBaseLlamada = APP_CONTEXT_PATH + "/PeticionModuloIntegracion.do";
+    $.ajax({
+        type: 'POST',
+        url: urlBaseLlamada,
+        data: dataParameter,
+        success: function (respuesta) {
+            if (respuesta !== null) {
+                mostrarModalGestionMensajeOperacion(respuesta, false);
+            }
+        },
+        //dataType: dataType,
+        error: function (jqXHR, textStatus, errorThrown) {
+            var mensajeError = 'Error lanzar el proceso de comprobacion ' + jqXHR + ' - ' + textStatus + '  ' + errorThrown;
+            mostrarModalGestionMensajeOperacion(mensajeError);
+        },
+        async: false
+    });
+}
+/*
+function comprobarEstadoClaseBlodyControlScroll(){
+    if($('.modal.in').length > 0 && $('body').prop("class").indexOf("modal-open")<0 )
+    {
+        $('body').addClass('modal-open');
+    }
+}
+*/
+
+function getExpedientesProcesarNISAENumeroTotalProcesar(){
+    $("#modalGestionMensajeOperacion").modal('hide');
+    var dataParameter = $.extend({}, parametrosLLamada);
+    dataParameter.control = new Date().getTime();
+    dataParameter.ejercicioHHFF = $("#ejercicio").val();
+    dataParameter.procedimientoHHFF = $("#listaProcedimiento").val();
+    dataParameter.estadoexpediente = $('[name="filtro"]:checked').data("estadoexpediente");
+    dataParameter.numeroExpedienteDesde = $("#numeroExpedienteDesde").val();
+    dataParameter.numeroExpedienteHasta = $("#numeroExpedienteHasta").val();
+    dataParameter.soloPeticionesEstEnProceso = ($("#soloPeticionesEstEnProceso:checked").length > 0 ? "1" : "0");
+    dataParameter.fkWSSolicitado = $("#listaWebServices").val(); // Tabla INTEROP_SERVICIOS_NISAE cod 1:HHFF, 2:TGSS, 3:CP (Padron)
+    dataParameter.ejecutarFiltroExpedientesEspecificos = ($("#ejecutarFiltroExpedientesEspecificos:checked").length > 0 ? "1" : "0");
+    dataParameter.operacion = 'getExpedientesProcesarNISAENumeroTotalProcesar';
+          
+    var urlBaseLlamada = APP_CONTEXT_PATH + "/PeticionModuloIntegracion.do";
+    $.ajax({
+        type: 'POST',
+        url: urlBaseLlamada,
+        data: dataParameter,
+        success: function (respuesta) {
+            if (respuesta !== null && respuesta.length==2) {
+                var mensajeString = respuesta[0];
+                var mensajeHtml = '<br/><span class="badge badge-warning" id="expedientesProcesar">'+respuesta[1]+'</span>';
+                mostrarModalGestionMensajeOperacion(mensajeString,true,mensajeHtml);
+            }else{
+                if (respuesta !== null){
+                    mostrarModalGestionMensajeOperacion(respuesta,false);
+                }else{
+                    mostrarModalGestionMensajeOperacion("No se ha poodido recuperar el numero de Expedienes a procesar, operacion cancelada, consulte con el Adminstrador para ,mas detalles.",false);
+                }
+            }
+        },
+        //dataType: dataType,
+        error: function (jqXHR, textStatus, errorThrown) {
+            var mensajeError = 'Error lanzar el proceso de comprobacion ' + jqXHR + ' - ' + textStatus + '  ' + errorThrown;
+            mostrarModalGestionMensajeOperacion(mensajeError,false);
+        },
+        async: true
+    });
+}
