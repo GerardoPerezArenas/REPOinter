@@ -6183,7 +6183,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
     private String convertirExcelBase64AListaDocs(final String excelBase64) throws Exception {
         Workbook workbook = null;
         InputStream inputStream = null;
-        final StringBuffer salida = new StringBuffer();
+        final StringBuilder salida = new StringBuilder();
         try {
             final byte[] excelBytes = DatatypeConverter.parseBase64Binary(excelBase64);
             inputStream = new ByteArrayInputStream(excelBytes);
@@ -6215,12 +6215,20 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 String documento = valor0;
                 String tipoDocumento = valor1;
 
-                if (esTipoDocumento(valor0) && !esTipoDocumento(valor1)) {
+                final boolean valor0EsTipo = esTipoDocumento(valor0);
+                final boolean valor1EsTipo = esTipoDocumento(valor1);
+                final boolean valor0PareceDocumento = pareceDocumento(valor0);
+                final boolean valor1PareceDocumento = pareceDocumento(valor1);
+
+                if (valor0EsTipo && !valor1EsTipo) {
                     documento = valor1;
                     tipoDocumento = valor0;
-                } else if (esTipoDocumento(valor1) && !esTipoDocumento(valor0)) {
+                } else if (valor1EsTipo && !valor0EsTipo) {
                     documento = valor0;
                     tipoDocumento = valor1;
+                } else if (valor1PareceDocumento && !valor0PareceDocumento) {
+                    documento = valor1;
+                    tipoDocumento = valor0;
                 }
 
                 documento = documento != null ? documento.replaceAll("\\s+", "").toUpperCase() : "";
@@ -6265,10 +6273,21 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
     private boolean esCabeceraFilaDocumento(final String valor0, final String valor1) {
         final String campo0 = valor0 != null ? valor0.trim().toUpperCase() : "";
         final String campo1 = valor1 != null ? valor1.trim().toUpperCase() : "";
-        return ("TIPO_DOC".equals(campo0) || "TIPODOC".equals(campo0) || "TIPO DOCUMENTO".equals(campo0) || "TIPO".equals(campo0))
-                && ("DOCUMENTO".equals(campo1) || "NIF".equals(campo1) || "NIE".equals(campo1))
-                || ("TIPO_DOC".equals(campo1) || "TIPODOC".equals(campo1) || "TIPO DOCUMENTO".equals(campo1) || "TIPO".equals(campo1))
-                && ("DOCUMENTO".equals(campo0) || "NIF".equals(campo0) || "NIE".equals(campo0));
+        return (esCabeceraTipoDoc(campo0) && esCabeceraDocumento(campo1))
+                || (esCabeceraTipoDoc(campo1) && esCabeceraDocumento(campo0));
+    }
+
+    private boolean esCabeceraTipoDoc(final String valor) {
+        return "TIPO_DOC".equals(valor)
+                || "TIPODOC".equals(valor)
+                || "TIPO DOCUMENTO".equals(valor)
+                || "TIPO".equals(valor);
+    }
+
+    private boolean esCabeceraDocumento(final String valor) {
+        return "DOCUMENTO".equals(valor)
+                || "NIF".equals(valor)
+                || "NIE".equals(valor);
     }
 
     private boolean esTipoDocumento(final String valor) {
@@ -6284,5 +6303,21 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 || "PAS".equals(tipo)
                 || "ID".equals(tipo)
                 || "TIE".equals(tipo);
+    }
+
+    private boolean pareceDocumento(final String valor) {
+        if (valor == null) {
+            return false;
+        }
+        final String documento = valor.trim().toUpperCase();
+        if (documento.length() < 5) {
+            return false;
+        }
+        for (int i = 0; i < documento.length(); i++) {
+            if (Character.isDigit(documento.charAt(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 }
