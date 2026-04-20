@@ -6059,6 +6059,60 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         }
     }
     // Fin tarea IKER - [40984] - Interoperabilidad - Consulta vida laboral desde la ficha de expediente
+
+    /**
+     * PRUEBA E2E — PASO 5 (Servidor): Punto de entrada del proceso CVL masivo.
+     * Recibe el POST de enviarPeticionCvlMasivoExcel, decodifica el Excel en base64,
+     * extrae los NIFs y lanza el procesamiento de cada uno contra el WS de Vida Laboral.
+     *
+     * <h3>Parámetros de entrada recibidos del request HTTP:</h3>
+     * <pre>
+     *   codOrganizacion   = 15           (tomado de sesión o del parámetro codOrganizacionModulo)
+     *   codTramite        = 120
+     *   ocurrenciaTramite = 1
+     *   numExpediente     = "EXP2024/000123"
+     *   fechaDesdeCVL     = "2023-01-01"
+     *   fechaHastaCVL     = "2023-12-31"
+     *   fkWSSolicitado    = "1"
+     *   listaDocsMasivo   = ""           (vacío → se genera desde excelBase64)
+     *   excelBase64       = "UEsDBBQA..." (base64 del fichero prueba_cvl_masivo.xlsx)
+     *   usuario           = "TRAMITADOR01" (tomado de la sesión)
+     * </pre>
+     *
+     * <h3>Flujo interno:</h3>
+     * <ol>
+     *   <li>Resuelve codOrganizacion efectivo: 15</li>
+     *   <li>Como listaDocsMasivo está vacío, llama a convertirExcelBase64AListaDocs(excelBase64)
+     *       y obtiene: {@code "12345678A;NIF\nX1234567L;NIE\n87654321B;NIF"}</li>
+     *   <li>Abre conexión a BD de la organización 15.</li>
+     *   <li>Instancia InteropCvlMasivoCsvService y llama a procesarCsv(...).</li>
+     *   <li>Obtiene resumen: totalLeidos=3, Procesados=3, Correctos=2, Errores=1</li>
+     * </ol>
+     *
+     * <h3>XML de respuesta generado:</h3>
+     * <pre>
+     * &lt;RESPUESTA&gt;
+     *   &lt;CODIGO_OPERACION&gt;0&lt;/CODIGO_OPERACION&gt;
+     *   &lt;RESULTADO&gt;&lt;![CDATA[Expediente contexto=CVL_MASIVO/2024/000042,
+     *     Leidos=3, Procesados=3, Correctos=2, Errores=1 |
+     *     Detalle errores: [Linea 3: 87654321B -&gt; ERR01 Persona no encontrada]]]&gt;&lt;/RESULTADO&gt;
+     * &lt;/RESPUESTA&gt;
+     * </pre>
+     *
+     * <h3>Códigos de operación posibles:</h3>
+     * <ul>
+     *   <li>"0" → Proceso completado (puede haber errores parciales en el detalle)</li>
+     *   <li>"2" → Error técnico inesperado en la ejecución</li>
+     *   <li>"3" → Error de validación (lista vacía, organización inválida, Excel ilegible)</li>
+     * </ul>
+     *
+     * @param codOrganizacion    Código de organización de contexto (puede ser 0 si viene en el request).
+     * @param codTramite         Código del trámite asociado al expediente.
+     * @param ocurrenciaTramite  Número de ocurrencia del trámite.
+     * @param numExpediente      Número de expediente de contexto (p.ej. "EXP2024/000123").
+     * @param request            HttpServletRequest con los parámetros del POST.
+     * @param response           HttpServletResponse donde se escribe el XML de respuesta.
+     */
     public void ejecutarCvlMasivoDesdeTexto(int codOrganizacion, int codTramite, int ocurrenciaTramite,
             String numExpediente, HttpServletRequest request, HttpServletResponse response) {
         String codigoOperacion = "0";
@@ -6307,6 +6361,44 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         return null;
     }
 
+    /**
+     * PRUEBA E2E — PASO 6 (Servidor): Convierte un fichero Excel en base64 a una lista CSV de documentos.
+     *
+     * <h3>Entrada:</h3>
+     * <pre>
+     *   excelBase64 = "UEsDBBQA..."  (base64 del fichero prueba_cvl_masivo.xlsx)
+     * </pre>
+     *
+     * <h3>Contenido del Excel (primera hoja):</h3>
+     * <pre>
+     *   Columna A (índice 0) | Columna B (índice 1)
+     *   ---------------------|--------------------
+     *   TIPO_DOC             | DOCUMENTO          ← fila cabecera → se descarta
+     *   NIF                  | 12345678A
+     *   NIE                  | X1234567L
+     *   NIF                  | 87654321B
+     * </pre>
+     *
+     * <h3>Procesamiento fila a fila:</h3>
+     * <ul>
+     *   <li>Fila 0: valor0="TIPO_DOC", valor1="DOCUMENTO" → esCabeceraFilaDocumento=true → se salta</li>
+     *   <li>Fila 1: valor0="NIF"(esTipoDocumento=true), valor1="12345678A"(esTipoDocumento=false)
+     *       → documento="12345678A", tipoDocumento="NIF" → añade "12345678A;NIF"</li>
+     *   <li>Fila 2: valor0="NIE"(esTipoDocumento=true), valor1="X1234567L"(esTipoDocumento=false)
+     *       → documento="X1234567L", tipoDocumento="NIE" → añade "X1234567L;NIE"</li>
+     *   <li>Fila 3: valor0="NIF"(esTipoDocumento=true), valor1="87654321B"(esTipoDocumento=false)
+     *       → documento="87654321B", tipoDocumento="NIF" → añade "87654321B;NIF"</li>
+     * </ul>
+     *
+     * <h3>Salida:</h3>
+     * <pre>
+     *   "12345678A;NIF\nX1234567L;NIE\n87654321B;NIF"
+     * </pre>
+     *
+     * @param excelBase64 Contenido del fichero Excel (.xls / .xlsx) codificado en base64.
+     * @return String con las líneas "DOCUMENTO;TIPO_DOC" separadas por saltos de línea.
+     * @throws Exception Si el base64 no es válido o el fichero no es un Excel reconocible.
+     */
     private String convertirExcelBase64AListaDocs(final String excelBase64) throws Exception {
         Workbook workbook = null;
         InputStream inputStream = null;
