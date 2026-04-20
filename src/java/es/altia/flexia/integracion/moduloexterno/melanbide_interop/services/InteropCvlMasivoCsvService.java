@@ -30,7 +30,8 @@ public class InteropCvlMasivoCsvService {
 
     public InteropCvlMasivoResultadoVO procesarCsv(final Reader csvReader,
         final String fechaDesdeCVL, final String fechaHastaCVL,
-        final int codOrganizacion, final String numExpediente,
+        final int codOrganizacion, final int codTramite, final int ocurrenciaTramite,
+        final String numExpediente,
         final String fkWSSolicitado, final String usuario,
         final Connection con) throws Exception {
 
@@ -96,7 +97,14 @@ public class InteropCvlMasivoCsvService {
                         codRespuesta,
                         descRespuesta,
                         payloadResumen,
-                        usuario);
+                        usuario,
+                        Integer.valueOf(codOrganizacion),
+                        Integer.valueOf(codTramite),
+                        Integer.valueOf(ocurrenciaTramite),
+                        numExpedienteTrabajo,
+                        fkWSSolicitado,
+                        fechaDesdeCVL,
+                        fechaHastaCVL);
 
                 InteropCvlMasivoNifDAO.getInstance().insertarRegistro(registro, con);
 
