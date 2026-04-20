@@ -1,12 +1,11 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package es.altia.flexia.integracion.moduloexterno.melanbide_interop.util;
 
 import es.altia.flexia.integracion.moduloexterno.melanbide_interop.jobs.manager.InteropJobsUtils;
 import es.altia.flexia.integracion.moduloexterno.melanbide_interop.jobs.util.InteropJobsAKSSGAConstantes;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +38,7 @@ public class ArchivadoDocumentosHistoricos {
             if (files[i].isFile()) {
                 if (files[i].lastModified() < fechaPasada.getMillis()) {
                     result.add(files[i].getAbsolutePath());
-                    log.info("listarFicheros borrese o archívese: " + files[i].getName());
+                    log.info("listarFicheros borrese o archï¿½vese: " + files[i].getName());
                 }
                 log.info("listarFicheros " + files[i].getName() + ", " + new DateTime(files[i].lastModified()));
             }
