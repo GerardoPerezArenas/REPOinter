@@ -94,9 +94,11 @@ import net.lanbide.interoperability.otddff.beans.LanNISAESalida;
 import net.lanbide.interoperability.otddff.servicios.LanConsultaObligacionesTributariasServicio;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -124,12 +126,19 @@ import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.hssf.util.HSSFColor;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import es.altia.flexia.integracion.moduloexterno.melanbide_interop.util.MeLanbideInteropMappingUtils;
 import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.RespuestaWSVidaLaboralVO;
 import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.cvl.Persona;
 import es.altia.flexia.integracion.moduloexterno.melanbide_interop.ws.client.vidalaboralws.clientws.ClientWSVidaLaboral;
 import es.altia.flexia.integracion.moduloexterno.melanbide_interop.ws.client.vidalaboralws.response.Response;
 import es.altia.util.ajax.respuesta.RespuestaAjaxUtils;
+import javax.xml.bind.DatatypeConverter;
 import org.apache.log4j.Logger;
 
 
@@ -6066,7 +6075,8 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                     }
                 }
             }
-            final String listaDocsMasivo = request.getParameter("listaDocsMasivo");
+            String listaDocsMasivo = request.getParameter("listaDocsMasivo");
+            final String excelBase64 = request.getParameter("excelBase64");
             final String fechaDesdeCVL = request.getParameter("fechaDesdeCVL");
             final String fechaHastaCVL = request.getParameter("fechaHastaCVL");
             String fkWSSolicitado = request.getParameter("fkWSSolicitado");
@@ -6091,6 +6101,17 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                     + ", fechaHastaCVL=" + fechaHastaCVL
                     + ", fkWSSolicitado=" + fkWSSolicitado
                     + ", usuario=" + usuario);
+
+            if ((listaDocsMasivo == null || listaDocsMasivo.trim().length() == 0)
+                    && excelBase64 != null && excelBase64.trim().length() > 0) {
+                try {
+                    listaDocsMasivo = convertirExcelBase64AListaDocs(excelBase64);
+                } catch (Exception ex) {
+                    codigoOperacion = "3";
+                    resultado = "No se pudo leer el Excel recibido. Revise el formato y contenido del fichero.";
+                    log.error("ejecutarCvlMasivoDesdeTexto - Error parseando excelBase64", ex);
+                }
+            }
 
             if (codOrganizacionEfectivo <= 0) {
                 codigoOperacion = "3";
@@ -6157,5 +6178,111 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         } catch (Exception e) {
             log.error("Error preparando response ejecutarCvlMasivoDesdeTexto", e);
         }
+    }
+
+    private String convertirExcelBase64AListaDocs(final String excelBase64) throws Exception {
+        Workbook workbook = null;
+        InputStream inputStream = null;
+        final StringBuffer salida = new StringBuffer();
+        try {
+            final byte[] excelBytes = DatatypeConverter.parseBase64Binary(excelBase64);
+            inputStream = new ByteArrayInputStream(excelBytes);
+            workbook = WorkbookFactory.create(inputStream);
+            final Sheet hoja = workbook.getNumberOfSheets() > 0 ? workbook.getSheetAt(0) : null;
+            final DataFormatter dataFormatter = new DataFormatter();
+
+            if (hoja == null) {
+                return "";
+            }
+
+            for (int i = hoja.getFirstRowNum(); i <= hoja.getLastRowNum(); i++) {
+                final Row fila = hoja.getRow(i);
+                if (fila == null) {
+                    continue;
+                }
+
+                final String valor0 = normalizarCeldaExcel(fila.getCell(0), dataFormatter);
+                final String valor1 = normalizarCeldaExcel(fila.getCell(1), dataFormatter);
+
+                if (valor0.length() == 0 && valor1.length() == 0) {
+                    continue;
+                }
+
+                if (esCabeceraFilaDocumento(valor0, valor1)) {
+                    continue;
+                }
+
+                String documento = valor0;
+                String tipoDocumento = valor1;
+
+                if (esTipoDocumento(valor0) && !esTipoDocumento(valor1)) {
+                    documento = valor1;
+                    tipoDocumento = valor0;
+                } else if (esTipoDocumento(valor1) && !esTipoDocumento(valor0)) {
+                    documento = valor0;
+                    tipoDocumento = valor1;
+                }
+
+                documento = documento != null ? documento.replaceAll("\\s+", "").toUpperCase() : "";
+                tipoDocumento = tipoDocumento != null ? tipoDocumento.trim().toUpperCase() : "";
+
+                if (documento.length() == 0) {
+                    continue;
+                }
+
+                if (tipoDocumento.length() == 0) {
+                    tipoDocumento = "NIF";
+                }
+
+                if (salida.length() > 0) {
+                    salida.append('\n');
+                }
+                salida.append(documento).append(';').append(tipoDocumento);
+            }
+        } finally {
+            if (workbook != null) {
+                workbook.close();
+            }
+            if (inputStream != null) {
+                inputStream.close();
+            }
+        }
+
+        return salida.toString();
+    }
+
+    private String normalizarCeldaExcel(final Cell celda, final DataFormatter dataFormatter) {
+        if (celda == null) {
+            return "";
+        }
+        final String valor = dataFormatter.formatCellValue(celda);
+        if (valor == null) {
+            return "";
+        }
+        return valor.replace('\u00A0', ' ').trim();
+    }
+
+    private boolean esCabeceraFilaDocumento(final String valor0, final String valor1) {
+        final String campo0 = valor0 != null ? valor0.trim().toUpperCase() : "";
+        final String campo1 = valor1 != null ? valor1.trim().toUpperCase() : "";
+        return ("TIPO_DOC".equals(campo0) || "TIPODOC".equals(campo0) || "TIPO DOCUMENTO".equals(campo0) || "TIPO".equals(campo0))
+                && ("DOCUMENTO".equals(campo1) || "NIF".equals(campo1) || "NIE".equals(campo1))
+                || ("TIPO_DOC".equals(campo1) || "TIPODOC".equals(campo1) || "TIPO DOCUMENTO".equals(campo1) || "TIPO".equals(campo1))
+                && ("DOCUMENTO".equals(campo0) || "NIF".equals(campo0) || "NIE".equals(campo0));
+    }
+
+    private boolean esTipoDocumento(final String valor) {
+        if (valor == null) {
+            return false;
+        }
+        final String tipo = valor.trim().toUpperCase();
+        return "NIF".equals(tipo)
+                || "NIE".equals(tipo)
+                || "DNI".equals(tipo)
+                || "CIF".equals(tipo)
+                || "PASAPORTE".equals(tipo)
+                || "PAS".equals(tipo)
+                || "ID".equals(tipo)
+                || "TIE".equals(tipo);
     }
 }
