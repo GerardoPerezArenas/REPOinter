@@ -311,13 +311,14 @@
      *   &listaDocsMasivo=
      *   &excelBase64=UEsDBBQA...
      *
-     * Respuesta XML esperada (éxito):
+     * Respuesta XML esperada (éxito, numExpediente="EXP2024/000123" se usa tal cual al ser no vacío):
      *   <RESPUESTA>
      *     <CODIGO_OPERACION>0</CODIGO_OPERACION>
-     *     <RESULTADO><![CDATA[Expediente contexto=CVL_MASIVO/2024/000042,
+     *     <RESULTADO><![CDATA[Expediente contexto=EXP2024/000123,
      *       Leidos=3, Procesados=3, Correctos=2, Errores=1 |
      *       Detalle errores: [Linea 3: 87654321B -> ERR01 Persona no encontrada]]]></RESULTADO>
      *   </RESPUESTA>
+     * Nota: si numero fuera vacío el servidor generaría un número técnico "CVL_MASIVO/YYYY/NNNNNN".
      *
      * Resultado esperado en pantalla (codigo="0"):
      *   Ventana modal con el texto del RESULTADO anterior.

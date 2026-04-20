@@ -6089,15 +6089,20 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
      *   <li>Obtiene resumen: totalLeidos=3, Procesados=3, Correctos=2, Errores=1</li>
      * </ol>
      *
-     * <h3>XML de respuesta generado:</h3>
+     * <h3>XML de respuesta generado (numExpediente="EXP2024/000123" se usa tal cual al ser no vacío):</h3>
      * <pre>
      * &lt;RESPUESTA&gt;
      *   &lt;CODIGO_OPERACION&gt;0&lt;/CODIGO_OPERACION&gt;
-     *   &lt;RESULTADO&gt;&lt;![CDATA[Expediente contexto=CVL_MASIVO/2024/000042,
+     *   &lt;RESULTADO&gt;&lt;![CDATA[Expediente contexto=EXP2024/000123,
      *     Leidos=3, Procesados=3, Correctos=2, Errores=1 |
      *     Detalle errores: [Linea 3: 87654321B -&gt; ERR01 Persona no encontrada]]]&gt;&lt;/RESULTADO&gt;
      * &lt;/RESPUESTA&gt;
      * </pre>
+     * <p>
+     * Nota: si numExpediente fuera vacío o nulo, se generaría un número técnico automático
+     * con el formato {@code "CVL_MASIVO/YYYY/NNNNNN"} (p.ej. "CVL_MASIVO/2024/000042")
+     * consultando la secuencia configurada en BD.
+     * </p>
      *
      * <h3>Códigos de operación posibles:</h3>
      * <ul>
