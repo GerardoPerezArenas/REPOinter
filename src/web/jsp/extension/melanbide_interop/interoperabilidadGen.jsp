@@ -287,6 +287,50 @@
         return fecha;
     }
 
+    /**
+     * PRUEBA E2E — PASO 4: Envía el fichero Excel en base64 al servidor y muestra el resultado.
+     *
+     * Datos de entrada (llamada desde ejecutarCvlMasivoDesdeExcel):
+     *   · excelBase64 = "UEsDBBQA..."  (contenido del fichero prueba_cvl_masivo.xlsx en base64)
+     *   · document.getElementById("fechaDesdeCVLMasivo").value = "01/01/2023"
+     *   · document.getElementById("fechaHastaCVLMasivo").value = "31/12/2023"
+     *
+     * Conversión de fechas (convertirFechaCalendarioAFormatoWS):
+     *   · "01/01/2023" → "2023-01-01"
+     *   · "31/12/2023" → "2023-12-31"
+     *
+     * POST enviado a /PeticionModuloIntegracion.do con los parámetros:
+     *   tarea=preparar
+     *   &modulo=MELANBIDE_INTEROP
+     *   &operacion=ejecutarCvlMasivoDesdeTexto
+     *   &tipo=0
+     *   &numero=EXP2024/000123
+     *   &fechaDesdeCVL=2023-01-01
+     *   &fechaHastaCVL=2023-12-31
+     *   &fkWSSolicitado=1
+     *   &listaDocsMasivo=
+     *   &excelBase64=UEsDBBQA...
+     *
+     * Respuesta XML esperada (éxito, numExpediente="EXP2024/000123" se usa tal cual al ser no vacío):
+     *   <RESPUESTA>
+     *     <CODIGO_OPERACION>0</CODIGO_OPERACION>
+     *     <RESULTADO><![CDATA[Expediente contexto=EXP2024/000123,
+     *       Leidos=3, Procesados=3, Correctos=2, Errores=1 |
+     *       Detalle errores: [Linea 3: 87654321B -> ERR01 Persona no encontrada]]]></RESULTADO>
+     *   </RESPUESTA>
+     * Nota: si numero fuera vacío el servidor generaría un número técnico "CVL_MASIVO/YYYY/NNNNNN".
+     *
+     * Resultado esperado en pantalla (codigo="0"):
+     *   Ventana modal con el texto del RESULTADO anterior.
+     *
+     * Respuesta XML esperada (error de validación, p.ej. sin fechas):
+     *   <RESPUESTA>
+     *     <CODIGO_OPERACION>3</CODIGO_OPERACION>
+     *     <RESULTADO><![CDATA[Debe indicar una lista de NIF/NIE para procesar.]]></RESULTADO>
+     *   </RESPUESTA>
+     *
+     * @param {string} excelBase64 - Contenido del fichero Excel codificado en base64.
+     */
     function enviarPeticionCvlMasivoExcel(excelBase64)
     {
         var fechaDesde = document.getElementById("fechaDesdeCVLMasivo").value;
@@ -369,6 +413,37 @@
         }
     }
 
+    /**
+     * PRUEBA E2E — PASO 3: El usuario hace clic en el botón "Ejecutar CVL masivo".
+     *
+     * Flujo completo desde la pantalla hasta el servidor:
+     *
+     *   PASO 1 — El usuario rellena las fechas en el formulario:
+     *     · fechaDesdeCVLMasivo  = "01/01/2023"
+     *     · fechaHastaCVLMasivo  = "31/12/2023"
+     *
+     *   PASO 2 — El usuario hace clic en el input type="file" (id="listaDocsMasivoExcel")
+     *     y selecciona el fichero:  prueba_cvl_masivo.xlsx
+     *     Contenido del Excel (primera hoja):
+     *       Columna A   | Columna B
+     *       ------------|----------
+     *       TIPO_DOC    | DOCUMENTO      ← fila cabecera (se descarta)
+     *       NIF         | 12345678A
+     *       NIE         | X1234567L
+     *       NIF         | 87654321B
+     *
+     *   PASO 3 — El usuario hace clic en "Ejecutar CVL masivo".
+     *     Esta función:
+     *       1. Lee inputExcel.files[0] → { name: "prueba_cvl_masivo.xlsx", size: 4096 }
+     *       2. Valida la extensión (.xls / .xlsx) → OK
+     *       3. Crea un FileReader y llama a readAsDataURL(ficheroExcel)
+     *       4. En lector.onload extrae la parte base64:
+     *            contenido  = "data:application/vnd.openxmlformats-...;base64,UEsDBBQA..."
+     *            excelBase64 = "UEsDBBQA..."
+     *       5. Llama a enviarPeticionCvlMasivoExcel("UEsDBBQA...")
+     *
+     * Resultado esperado: se ejecuta enviarPeticionCvlMasivoExcel con el base64 del Excel.
+     */
     function ejecutarCvlMasivoDesdeExcel()
     {
         var inputExcel = document.getElementById("listaDocsMasivoExcel");
