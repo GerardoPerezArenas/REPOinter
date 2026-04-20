@@ -61,17 +61,17 @@ public class InteropCvlMasivoNifDAO {
             st.setString(7, registro.getPayloadResumen());
             st.setString(8, registro.getUsuario());
             if (registro.getCodOrganizacion() != null) {
-                st.setInt(9, registro.getCodOrganizacion().intValue());
+                st.setInt(9, registro.getCodOrganizacion());
             } else {
                 st.setNull(9, java.sql.Types.INTEGER);
             }
             if (registro.getCodTramite() != null) {
-                st.setInt(10, registro.getCodTramite().intValue());
+                st.setInt(10, registro.getCodTramite());
             } else {
                 st.setNull(10, java.sql.Types.INTEGER);
             }
             if (registro.getOcurrenciaTramite() != null) {
-                st.setInt(11, registro.getOcurrenciaTramite().intValue());
+                st.setInt(11, registro.getOcurrenciaTramite());
             } else {
                 st.setNull(11, java.sql.Types.INTEGER);
             }
@@ -127,7 +127,7 @@ public class InteropCvlMasivoNifDAO {
                 + " COD_ORGANIZACION, COD_TRAMITE, OCURRENCIA_TRAMITE, NUM_EXPEDIENTE, FK_WS_SOLICITADO, FECHA_DESDE_CVL, FECHA_HASTA_CVL"
                 + " FROM " + ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.TABLA_INTEROP_CVL_MASIVO_NIF, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES)
                 + " WHERE FECHA_EJECUCION BETWEEN ? AND ? AND UPPER(NIF)=? ORDER BY FECHA_EJECUCION DESC, ID DESC";
-        return ejecutarConsulta(sql, null, new Timestamp[]{fechaDesde, fechaHasta}, dni != null ? dni.trim().toUpperCase() : "", con);
+        return ejecutarConsulta(sql, null, new Timestamp[]{fechaDesde, fechaHasta}, dni.trim().toUpperCase(), con);
     }
 
     private List<InteropCvlMasivoNifVO> ejecutarConsulta(final String sql, final Long id,
@@ -161,9 +161,9 @@ public class InteropCvlMasivoNifDAO {
                         rs.getString("DESC_RESPUESTA"),
                         rs.getString("PAYLOAD_RESUMEN"),
                         rs.getString("USUARIO"),
-                        rs.getObject("COD_ORGANIZACION") != null ? Integer.valueOf(rs.getInt("COD_ORGANIZACION")) : null,
-                        rs.getObject("COD_TRAMITE") != null ? Integer.valueOf(rs.getInt("COD_TRAMITE")) : null,
-                        rs.getObject("OCURRENCIA_TRAMITE") != null ? Integer.valueOf(rs.getInt("OCURRENCIA_TRAMITE")) : null,
+                        getNullableInt(rs, "COD_ORGANIZACION"),
+                        getNullableInt(rs, "COD_TRAMITE"),
+                        getNullableInt(rs, "OCURRENCIA_TRAMITE"),
                         rs.getString("NUM_EXPEDIENTE"),
                         rs.getString("FK_WS_SOLICITADO"),
                         rs.getString("FECHA_DESDE_CVL"),
@@ -182,6 +182,14 @@ public class InteropCvlMasivoNifDAO {
         }
 
         return result;
+    }
+
+    private Integer getNullableInt(final ResultSet rs, final String fieldName) throws Exception {
+        final int value = rs.getInt(fieldName);
+        if (rs.wasNull()) {
+            return null;
+        }
+        return value;
     }
 
     private int getNextId(final Connection con) throws Exception {

@@ -6301,6 +6301,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 }
                 return new Timestamp(cal.getTimeInMillis());
             } catch (Exception ex) {
+                log.debug("parsearFechaConsultaCvlMasivo - Formato no valido para fecha '" + valor + "': " + formatos[i]);
             }
         }
         return null;
