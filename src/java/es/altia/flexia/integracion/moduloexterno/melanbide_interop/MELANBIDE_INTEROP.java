@@ -66,7 +66,9 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Arrays;
@@ -6132,6 +6134,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                         = servicio.procesarCsv(
                                 new java.io.StringReader(listaDocsMasivo),
                                 fechaDesdeCVL, fechaHastaCVL, codOrganizacionEfectivo,
+                                codTramite, ocurrenciaTramite,
                                 numExpediente, fkWSSolicitado, usuario, con);
 
                 resultado = "Expediente contexto=" + resumen.getNumExpedienteContexto()
@@ -6178,6 +6181,130 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         } catch (Exception e) {
             log.error("Error preparando response ejecutarCvlMasivoDesdeTexto", e);
         }
+    }
+
+    public void consultarCvlMasivoPorFechas(int codOrganizacion, int codTramite, int ocurrenciaTramite,
+            String numExpediente, HttpServletRequest request, HttpServletResponse response) {
+        String codigoOperacion = "0";
+        String resultado = "OK";
+        Connection con = null;
+        final java.util.List<java.util.Map<String, Object>> registrosSalida = new java.util.ArrayList<java.util.Map<String, Object>>();
+        int total = 0;
+        try {
+            final String fechaDesde = request.getParameter("fechaDesdeCVL");
+            final String fechaHasta = request.getParameter("fechaHastaCVL");
+            final String dni = request.getParameter("dni");
+
+            final Timestamp fechaDesdeTs = parsearFechaConsultaCvlMasivo(fechaDesde, false);
+            final Timestamp fechaHastaTs = parsearFechaConsultaCvlMasivo(fechaHasta, true);
+
+            if (fechaDesdeTs == null || fechaHastaTs == null) {
+                codigoOperacion = "3";
+                resultado = "Debe indicar las fechas desde/hasta para la consulta.";
+            } else {
+                final AdaptadorSQLBD adapt = this.getAdaptSQLBD(String.valueOf(codOrganizacion));
+                con = adapt.getConnection();
+
+                java.util.List<es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.InteropCvlMasivoNifVO> registros;
+                if (dni != null && dni.trim().length() > 0) {
+                    registros = es.altia.flexia.integracion.moduloexterno.melanbide_interop.dao.InteropCvlMasivoNifDAO
+                            .getInstance().getRegistrosByFechaEjecucionYDni(fechaDesdeTs, fechaHastaTs, dni, con);
+                } else {
+                    registros = es.altia.flexia.integracion.moduloexterno.melanbide_interop.dao.InteropCvlMasivoNifDAO
+                            .getInstance().getRegistrosByFechaEjecucion(fechaDesdeTs, fechaHastaTs, con);
+                }
+
+                total = registros != null ? registros.size() : 0;
+                if (registros != null) {
+                    for (int i = 0; i < registros.size(); i++) {
+                        final es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.InteropCvlMasivoNifVO registro = registros.get(i);
+                        final java.util.Map<String, Object> fila = new java.util.LinkedHashMap<String, Object>();
+                        fila.put("id", registro.getId());
+                        fila.put("fechaEjecucion", registro.getFechaEjecucion());
+                        fila.put("dni", registro.getNif());
+                        fila.put("tipoDoc", registro.getTipoDoc());
+                        fila.put("codRespuesta", registro.getCodRespuesta());
+                        fila.put("descRespuesta", registro.getDescRespuesta());
+                        fila.put("numExpediente", registro.getNumExpediente());
+                        fila.put("procedimiento", registro.getCodTramite());
+                        fila.put("ocurrenciaTramite", registro.getOcurrenciaTramite());
+                        fila.put("codOrganizacion", registro.getCodOrganizacion());
+                        fila.put("fkWSSolicitado", registro.getFkWSSolicitado());
+                        fila.put("fechaDesdeCVL", registro.getFechaDesdeCVL());
+                        fila.put("fechaHastaCVL", registro.getFechaHastaCVL());
+                        fila.put("payloadResumen", registro.getPayloadResumen());
+                        fila.put("usuario", registro.getUsuario());
+                        registrosSalida.add(fila);
+                    }
+                }
+                resultado = "OK";
+            }
+        } catch (Exception ex) {
+            codigoOperacion = "2";
+            resultado = "Error consultando CVL masivo: " + ex.getMessage();
+            log.error("Error en consultarCvlMasivoPorFechas", ex);
+        } finally {
+            if (con != null) {
+                try {
+                    con.close();
+                } catch (Exception ex) {
+                    log.error("Error cerrando conexion consultarCvlMasivoPorFechas", ex);
+                }
+            }
+        }
+
+        final java.util.Map<String, Object> salida = new java.util.LinkedHashMap<String, Object>();
+        salida.put("codigoOperacion", codigoOperacion);
+        salida.put("resultado", resultado);
+        salida.put("total", Integer.valueOf(total));
+        salida.put("registros", registrosSalida);
+        try {
+            final GsonBuilder gsonBuilder = new GsonBuilder();
+            gsonBuilder.serializeNulls();
+            final Gson gson = gsonBuilder.create();
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            final PrintWriter out = response.getWriter();
+            out.print(gson.toJson(salida));
+            out.flush();
+            out.close();
+        } catch (Exception ex) {
+            log.error("Error preparando response consultarCvlMasivoPorFechas", ex);
+        }
+    }
+
+    private Timestamp parsearFechaConsultaCvlMasivo(final String fecha, final boolean finDia) {
+        if (fecha == null || fecha.trim().length() == 0) {
+            return null;
+        }
+        final String valor = fecha.trim();
+        final String[] formatos = new String[]{"yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd", "dd/MM/yyyy HH:mm:ss", "dd/MM/yyyy"};
+        for (int i = 0; i < formatos.length; i++) {
+            try {
+                final SimpleDateFormat sdf = new SimpleDateFormat(formatos[i]);
+                sdf.setLenient(false);
+                final Date parsed = sdf.parse(valor);
+                final Calendar cal = Calendar.getInstance();
+                cal.setTime(parsed);
+                if (formatos[i].indexOf("HH:mm:ss") < 0) {
+                    if (finDia) {
+                        cal.set(Calendar.HOUR_OF_DAY, 23);
+                        cal.set(Calendar.MINUTE, 59);
+                        cal.set(Calendar.SECOND, 59);
+                        cal.set(Calendar.MILLISECOND, 999);
+                    } else {
+                        cal.set(Calendar.HOUR_OF_DAY, 0);
+                        cal.set(Calendar.MINUTE, 0);
+                        cal.set(Calendar.SECOND, 0);
+                        cal.set(Calendar.MILLISECOND, 0);
+                    }
+                }
+                return new Timestamp(cal.getTimeInMillis());
+            } catch (Exception ex) {
+                log.debug("parsearFechaConsultaCvlMasivo - Formato no valido para fecha '" + valor + "': " + formatos[i]);
+            }
+        }
+        return null;
     }
 
     private String convertirExcelBase64AListaDocs(final String excelBase64) throws Exception {
