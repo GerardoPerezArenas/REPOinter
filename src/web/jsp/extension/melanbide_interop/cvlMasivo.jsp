@@ -1,5 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jstl/core"%>
 <%@page import="es.altia.agora.business.escritorio.UsuarioValueObject" %>
+<%@page import="es.altia.flexia.integracion.moduloexterno.melanbide_interop.i18n.MeLanbideInteropI18n" %>
 <%
     int idiomaUsuario = 1;
     int codOrganizacion = -1;
@@ -41,6 +42,7 @@
     {
         numExpediente = "";
     }
+    MeLanbideInteropI18n meLanbideInteropI18n = MeLanbideInteropI18n.getInstance();
 %>
 
 <link rel="StyleSheet" media="screen" type="text/css" href="<%=request.getContextPath()%><%=css%>">
@@ -107,9 +109,12 @@
                 xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
                 xmlDoc.async = "false";
                 xmlDoc.loadXML(respuesta);
-            } else if (window.DOMParser)
+            } else
             {
-                xmlDoc = (new DOMParser()).parseFromString(respuesta, "text/xml");
+                if (window.DOMParser)
+                {
+                    xmlDoc = (new DOMParser()).parseFromString(respuesta, "text/xml");
+                }
             }
 
             if (xmlDoc == null)
@@ -139,12 +144,15 @@
             }
 
             codigoOperacionNumero = parseInt(codigoOperacion, 10);
-            if (codigoOperacionNumero == 0 || (textoRespuestaWS != null && textoRespuestaWS != ""))
+            if (codigoOperacionNumero == 0)
+            {
+                mostrarRespuestaWS(textoRespuestaWS);
+            } else if (textoRespuestaWS != null && textoRespuestaWS != "")
             {
                 mostrarRespuestaWS(textoRespuestaWS);
             } else
             {
-                jsp_alerta("A", "Se ha producido un error al ejecutar el proceso CVL masivo.");
+                jsp_alerta("A", '<%=meLanbideInteropI18n.getMensaje(idiomaUsuario,"error.errorGen")%>');
             }
         } catch (Err)
         {

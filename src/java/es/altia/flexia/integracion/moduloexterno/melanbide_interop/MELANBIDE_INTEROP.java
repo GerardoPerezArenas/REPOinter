@@ -4374,7 +4374,6 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
             request.setAttribute("codOrganizacionModulo", String.valueOf(codOrganizacion));
         } catch (Exception ex) {
             log.error("Se ha producido un error a cargar la pantalla principal CVL masivo " + numExpediente, ex);
-            respuestaServicio = "/jsp/extension/melanbide_interop/nisae/integracionNisaeServiceError.jsp";
             request.setAttribute("mensajeInicial", "Se ha presentado un error al cargar la pantalla de CVL masivo ...Contacte con el ADMIN para mas detalles. " + ex.getMessage());
         }
         log.info("cargarPantallaPrincipalCvlMasivo - End()" + new Date().toString() + " " + respuestaServicio);
