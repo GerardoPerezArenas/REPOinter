@@ -4316,7 +4316,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         try {
             /**
              * SEGUN PROCEDIMIENTO EJECUTAR UN METODO U OTRO.
-             * PUEDE GUARDARSE EN CS DE EXPEDIENTE, DE TRÁMITE O EN TABLAS DE MODULOS DE EXTENSION
+             * PUEDE GUARDARSE EN CS DE EXPEDIENTE, DE TRAMITE O EN TABLAS DE MODULOS DE EXTENSION
              */
             MeLanbideInteropManager interopManager = MeLanbideInteropManager.getInstance();
             if("APEC".equalsIgnoreCase(codProcExpte)
@@ -6074,7 +6074,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
      *   fechaDesdeCVL     = "2023-01-01"
      *   fechaHastaCVL     = "2023-12-31"
      *   fkWSSolicitado    = "1"
-     *   listaDocsMasivo   = ""           (vacío → se genera desde excelBase64)
+     *   listaDocsMasivo   = ""           (vacío -> se genera desde excelBase64)
      *   excelBase64       = "UEsDBBQA..." (base64 del fichero prueba_cvl_masivo.xlsx)
      *   usuario           = "TRAMITADOR01" (tomado de la sesión)
      * </pre>
@@ -6106,9 +6106,9 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
      *
      * <h3>Códigos de operación posibles:</h3>
      * <ul>
-     *   <li>"0" → Proceso completado (puede haber errores parciales en el detalle)</li>
-     *   <li>"2" → Error técnico inesperado en la ejecución</li>
-     *   <li>"3" → Error de validación (lista vacía, organización inválida, Excel ilegible)</li>
+     *   <li>"0" -> Proceso completado (puede haber errores parciales en el detalle)</li>
+     *   <li>"2" -> Error técnico inesperado en la ejecución</li>
+     *   <li>"3" -> Error de validación (lista vacía, organización inválida, Excel ilegible)</li>
      * </ul>
      *
      * @param codOrganizacion    Código de organización de contexto (puede ser 0 si viene en el request).
@@ -6378,7 +6378,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
      * <pre>
      *   Columna A (índice 0) | Columna B (índice 1)
      *   ---------------------|--------------------
-     *   TIPO_DOC             | DOCUMENTO          ← fila cabecera → se descarta
+     *   TIPO_DOC             | DOCUMENTO          <- fila cabecera -> se descarta
      *   NIF                  | 12345678A
      *   NIE                  | X1234567L
      *   NIF                  | 87654321B
@@ -6386,13 +6386,13 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
      *
      * <h3>Procesamiento fila a fila:</h3>
      * <ul>
-     *   <li>Fila 0: valor0="TIPO_DOC", valor1="DOCUMENTO" → esCabeceraFilaDocumento=true → se salta</li>
+     *   <li>Fila 0: valor0="TIPO_DOC", valor1="DOCUMENTO" -> esCabeceraFilaDocumento=true -> se salta</li>
      *   <li>Fila 1: valor0="NIF"(esTipoDocumento=true), valor1="12345678A"(esTipoDocumento=false)
-     *       → documento="12345678A", tipoDocumento="NIF" → añade "12345678A;NIF"</li>
+     *       -> documento="12345678A", tipoDocumento="NIF" -> añade "12345678A;NIF"</li>
      *   <li>Fila 2: valor0="NIE"(esTipoDocumento=true), valor1="X1234567L"(esTipoDocumento=false)
-     *       → documento="X1234567L", tipoDocumento="NIE" → añade "X1234567L;NIE"</li>
+     *       -> documento="X1234567L", tipoDocumento="NIE" -> añade "X1234567L;NIE"</li>
      *   <li>Fila 3: valor0="NIF"(esTipoDocumento=true), valor1="87654321B"(esTipoDocumento=false)
-     *       → documento="87654321B", tipoDocumento="NIF" → añade "87654321B;NIF"</li>
+     *       -> documento="87654321B", tipoDocumento="NIF" -> añade "87654321B;NIF"</li>
      * </ul>
      *
      * <h3>Salida:</h3>
@@ -6472,9 +6472,6 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 salida.append(documento).append(';').append(tipoDocumento);
             }
         } finally {
-            if (workbook != null) {
-                workbook.close();
-            }
             if (inputStream != null) {
                 inputStream.close();
             }
