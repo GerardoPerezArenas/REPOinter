@@ -42,9 +42,9 @@
     MeLanbideInteropI18n meLanbideInteropI18n = MeLanbideInteropI18n.getInstance();
 
     Config m_Config = ConfigServiceHelper.getConfig("common");
-    String nombreModulo = request.getParameter("nombreModulo");
-    String codOrganizacion = request.getParameter("codOrganizacionModulo");
-    String numExpediente = request.getParameter("numero");
+    String nombreModulo     = request.getParameter("nombreModulo");
+    String codOrganizacion  = request.getParameter("codOrganizacionModulo");
+    String numExpediente    = request.getParameter("numero");
 
     TerceroVO _tercero = new TerceroVO();
     List<TerceroVO> _tercerosxExpediente = (List<TerceroVO>) request.getAttribute("listaTerceros");
@@ -69,7 +69,8 @@
         if (navigator.appName.indexOf("Internet Explorer") != -1)
         {
             nooChlidren = uno.children.length;
-        } else
+        }
+        else
         {
             nooChlidren = uno.childElementCount;
         }
@@ -91,178 +92,124 @@
         if (window.showModalDialog)
         {
             jsp_alerta("A", texto.replace(/\n/g, "<br>"));
-        } else
+        }
+        else
         {
             alert(texto);
         }
     }
 
-    function llamarServicioCorrientePagoTgss()
-    {
+   function llamarServicioCorrientePagoTgss(){
         var listaTercerosExp = recogerListaTerceros();
         var ajax = getXMLHttpRequest();
         var nodos = null;
         var CONTEXT_PATH = '<%=request.getContextPath()%>';
         var url = CONTEXT_PATH + "/PeticionModuloIntegracion.do";
         var parametros = "tarea=preparar&modulo=MELANBIDE_INTEROP&operacion=GetConsultaCorrientePagoTGSS&tipo=0&numero=<%=numExpediente%>&listaTercerosExp=" + listaTercerosExp;
-        var xmlDoc = null;
-        var text = null;
-        var elemento = null;
-        var hijos = null;
-        var codigoOperacion = null;
-        var textoRespuestaWS = null;
-        var codigoOperacionNumero = null;
-        var j = 0;
-
-        try
-        {
+        try {
             ajax.open("POST", url, false);
             ajax.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=ISO-8859-1");
             ajax.setRequestHeader("Accept", "text/xml, application/xml, text/plain");
             ajax.send(parametros);
-
-            if (ajax.readyState == 4 && ajax.status == 200)
-            {
-                if (navigator.appName.indexOf("Internet Explorer") != -1)
-                {
-                    text = ajax.responseText;
+            if (ajax.readyState == 4 && ajax.status == 200) {
+                var xmlDoc = null;
+                if (navigator.appName.indexOf("Internet Explorer") != -1) {
+                    var text = ajax.responseText;
                     xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
                     xmlDoc.async = "false";
                     xmlDoc.loadXML(text);
-                } else
-                {
+                } else {
                     xmlDoc = ajax.responseXML;
                 }
             }
-
             nodos = xmlDoc.getElementsByTagName("RESPUESTA");
-            if (nodos.length > 0)
-            {
-                elemento = nodos[0];
-                hijos = elemento.childNodes;
-
-                for (j = 0; hijos != null && j < hijos.length; j++)
-                {
-                    if (hijos[j].nodeName == "CODIGO_OPERACION")
-                    {
+            if (nodos.length > 0) {
+                var elemento = nodos[0];
+                var hijos = elemento.childNodes;
+                var codigoOperacion = null;
+                var textoRespuestaWS = null;
+                for (j = 0; hijos != null && j < hijos.length; j++) {
+                    if (hijos[j].nodeName == "CODIGO_OPERACION") {
                         codigoOperacion = hijos[j].childNodes[0].nodeValue;
-                    } else if (hijos[j].nodeName == "RESULTADO")
-                    {
+                    } else if (hijos[j].nodeName == "RESULTADO") {
                         textoRespuestaWS = hijos[j].childNodes[0].nodeValue;
                     }
                 }
-
-                codigoOperacionNumero = parseInt(codigoOperacion, 10);
-
-                if (codigoOperacionNumero == 0)
-                {
+                if (codigoOperacion == "0") {
                     mostrarRespuestaWS(textoRespuestaWS);
-                } else if (codigoOperacionNumero == 1 || codigoOperacionNumero > 4)
-                {
+                } else if (codigoOperacion == "1" || "4" < codigoOperacion) {
                     mostrarRespuestaWS(textoRespuestaWS);
-                } else if (codigoOperacionNumero == 2)
-                {
+                } else if (codigoOperacion == "2") {
                     jsp_alerta("A", '<%=meLanbideInteropI18n.getMensaje(idiomaUsuario,"error.errorGen")%>');
-                } else if (codigoOperacionNumero == 3)
-                {
+                } else if (codigoOperacion == "3") {
                     jsp_alerta("A", '<%=meLanbideInteropI18n.getMensaje(idiomaUsuario,"error.pasoParametros")%>');
-                } else if (codigoOperacionNumero == 4)
-                {
+                } else if (codigoOperacion == "4") {
                     jsp_alerta("A", '<%=meLanbideInteropI18n.getMensaje(idiomaUsuario,"error.expSinTercero")%>');
-                } else
-                {
+                } else {
                     jsp_alerta("A", '<%=meLanbideInteropI18n.getMensaje(idiomaUsuario,"error.errorGen")%>');
                 }
-            } else
-            {
-                jsp_alerta("A", "Error procesando la solicitud. No se ha podido establecer conexion/obtener respuesta del WebService.");
+            } else {
+                jsp_alerta('A', "Error procesando la solicitud. No se ha podido establecer conexion/obtener respuesta del WebService.");
             }
-        } catch (Err)
-        {
-            jsp_alerta("A", "Error procesando la solicitud : " + Err.message);
+        } catch (Err) {
+            jsp_alerta('A', "Error procesando la solicitud : " + Err.message);
         }
     }
 
-    function llamarServicioCorrientePagoHHFF()
-    {
+    function llamarServicioCorrientePagoHHFF() {
         var listaTercerosExp = recogerListaTerceros();
         var ajax = getXMLHttpRequest();
         var nodos = null;
         var CONTEXT_PATH = '<%=request.getContextPath()%>';
         var url = CONTEXT_PATH + "/PeticionModuloIntegracion.do";
         var parametros = "tarea=preparar&modulo=MELANBIDE_INTEROP&operacion=GetConsultaCorrientePagoHHFF&tipo=0&numero=<%=numExpediente%>&listaTercerosExp=" + listaTercerosExp;
-        var xmlDoc = null;
-        var text = null;
-        var elemento = null;
-        var hijos = null;
-        var codigoOperacion = null;
-        var textoRespuestaWS = null;
-        var j = 0;
-
-        try
-        {
+        try {
             ajax.open("POST", url, false);
             ajax.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=ISO-8859-1");
             ajax.setRequestHeader("Accept", "text/xml, application/xml, text/plain");
             ajax.send(parametros);
-
-            if (ajax.readyState == 4 && ajax.status == 200)
-            {
-                if (navigator.appName.indexOf("Internet Explorer") != -1)
-                {
-                    text = ajax.responseText;
+            if (ajax.readyState == 4 && ajax.status == 200) {
+                var xmlDoc = null;
+                if (navigator.appName.indexOf("Internet Explorer") != -1) {
+                    var text = ajax.responseText;
                     xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
                     xmlDoc.async = "false";
                     xmlDoc.loadXML(text);
-                } else
-                {
+                } else {
                     xmlDoc = ajax.responseXML;
                 }
             }
-
             nodos = xmlDoc.getElementsByTagName("RESPUESTA");
-            if (nodos.length > 0)
-            {
-                elemento = nodos[0];
-                hijos = elemento.childNodes;
-
-                for (j = 0; hijos != null && j < hijos.length; j++)
-                {
-                    if (hijos[j].nodeName == "CODIGO_OPERACION")
-                    {
+            if (nodos.length > 0) {
+                var elemento = nodos[0];
+                var hijos = elemento.childNodes;
+                var codigoOperacion = null;
+                var textoRespuestaWS = null;
+                for (j = 0; hijos != null && j < hijos.length; j++) {
+                    if (hijos[j].nodeName == "CODIGO_OPERACION") {
                         codigoOperacion = hijos[j].childNodes[0].nodeValue;
-                    } else if (hijos[j].nodeName == "RESULTADO")
-                    {
+                    } else if (hijos[j].nodeName == "RESULTADO") {
                         textoRespuestaWS = hijos[j].childNodes[0].nodeValue;
                     }
                 }
-
-                if (codigoOperacion == "0")
-                {
+                if (codigoOperacion == "0") {
                     mostrarRespuestaWS(textoRespuestaWS);
-                } else if (codigoOperacion == "1" || parseInt(codigoOperacion, 10) > 4)
-                {
+                } else if (codigoOperacion == "1" || "4" < codigoOperacion) {
                     mostrarRespuestaWS(textoRespuestaWS);
-                } else if (codigoOperacion == "2")
-                {
+                } else if (codigoOperacion == "2") {
                     jsp_alerta("A", '<%=meLanbideInteropI18n.getMensaje(idiomaUsuario,"error.errorGen")%>');
-                } else if (codigoOperacion == "3")
-                {
+                } else if (codigoOperacion == "3") {
                     jsp_alerta("A", '<%=meLanbideInteropI18n.getMensaje(idiomaUsuario,"error.pasoParametros")%>');
-                } else if (codigoOperacion == "4")
-                {
+                } else if (codigoOperacion == "4") {
                     jsp_alerta("A", '<%=meLanbideInteropI18n.getMensaje(idiomaUsuario,"error.expSinTercero")%>');
-                } else
-                {
+                } else {
                     jsp_alerta("A", '<%=meLanbideInteropI18n.getMensaje(idiomaUsuario,"error.errorGen")%>');
                 }
-            } else
-            {
-                jsp_alerta("A", "Error procesando la solicitud. No se ha podido establecer conexion/obtener respuesta del WebService.");
+            } else {
+                jsp_alerta('A', "Error procesando la solicitud. No se ha podido establecer conexion/obtener respuesta del WebService.");
             }
-        } catch (Err)
-        {
-            jsp_alerta("A", "Error procesando la solicitud : " + Err.message);
+        } catch (Err) {
+            jsp_alerta('A', "Error procesando la solicitud : " + Err.message);
         }
     }
 
@@ -287,70 +234,118 @@
         return fecha;
     }
 
+    function gestionarRespuestaCvlMasivo(respuesta)
+    {
+        var xmlDoc = null;
+        var nodos = null;
+        var elemento = null;
+        var hijos = null;
+        var codigoOperacion = null;
+        var textoRespuestaWS = null;
+        var codigoOperacionNumero = null;
+        var j = 0;
+
+        try
+        {
+            if (respuesta == null || respuesta.replace(/\s/g, "").length == 0)
+            {
+                jsp_alerta("A", "La respuesta del proceso CVL masivo ha llegado vacía.");
+                return;
+            }
+
+            if (navigator.appName.indexOf("Internet Explorer") != -1)
+            {
+                xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
+                xmlDoc.async = "false";
+                xmlDoc.loadXML(respuesta);
+            } else
+            {
+                if (window.DOMParser)
+                {
+                    xmlDoc = (new DOMParser()).parseFromString(respuesta, "text/xml");
+                }
+            }
+
+            if (xmlDoc == null)
+            {
+                jsp_alerta("A", "No se pudo interpretar la respuesta del proceso CVL masivo.\n\nRespuesta recibida:\n" + respuesta);
+                return;
+            }
+
+            nodos = xmlDoc.getElementsByTagName("RESPUESTA");
+
+            if (nodos == null || nodos.length == 0)
+            {
+                jsp_alerta("A", "No se ha recibido una respuesta XML válida del proceso CVL masivo.\n\nRespuesta recibida:\n" + respuesta);
+                return;
+            }
+
+            elemento = nodos[0];
+            hijos = elemento.childNodes;
+
+            for (j = 0; hijos != null && j < hijos.length; j++)
+            {
+                if (hijos[j].nodeName == "CODIGO_OPERACION" && hijos[j].childNodes != null && hijos[j].childNodes.length > 0)
+                {
+                    codigoOperacion = hijos[j].childNodes[0].nodeValue;
+                } else if (hijos[j].nodeName == "RESULTADO" && hijos[j].childNodes != null && hijos[j].childNodes.length > 0)
+                {
+                    textoRespuestaWS = hijos[j].childNodes[0].nodeValue;
+                }
+            }
+
+            codigoOperacionNumero = parseInt(codigoOperacion, 10);
+
+            if (codigoOperacionNumero == 0)
+            {
+                mostrarRespuestaWS(textoRespuestaWS);
+            } else if (textoRespuestaWS != null && textoRespuestaWS != "")
+            {
+                mostrarRespuestaWS(textoRespuestaWS);
+            } else
+            {
+                jsp_alerta("A", '<%=meLanbideInteropI18n.getMensaje(idiomaUsuario,"error.errorGen")%>');
+            }
+        } catch (Err)
+        {
+            jsp_alerta("A", "Error procesando la respuesta CVL masiva: " + Err.message + "\n\nRespuesta recibida:\n" + respuesta);
+        }
+    }
+
     /**
-     * PRUEBA E2E — PASO 4: Envía el fichero Excel en base64 al servidor y muestra el resultado.
-     *
-     * Datos de entrada (llamada desde ejecutarCvlMasivoDesdeExcel):
-     *   · excelBase64 = "UEsDBBQA..."  (contenido del fichero prueba_cvl_masivo.xlsx en base64)
-     *   · document.getElementById("fechaDesdeCVLMasivo").value = "01/01/2023"
-     *   · document.getElementById("fechaHastaCVLMasivo").value = "31/12/2023"
-     *
-     * Conversión de fechas (convertirFechaCalendarioAFormatoWS):
-     *   · "01/01/2023" → "2023-01-01"
-     *   · "31/12/2023" → "2023-12-31"
-     *
-     * POST enviado a /PeticionModuloIntegracion.do con los parámetros:
-     *   tarea=preparar
-     *   &modulo=MELANBIDE_INTEROP
-     *   &operacion=ejecutarCvlMasivoDesdeTexto
-     *   &tipo=0
-     *   &numero=EXP2024/000123
-     *   &fechaDesdeCVL=2023-01-01
-     *   &fechaHastaCVL=2023-12-31
-     *   &fkWSSolicitado=1
-     *   &listaDocsMasivo=
-     *   &excelBase64=UEsDBBQA...
-     *
-     * Respuesta XML esperada (éxito, numExpediente="EXP2024/000123" se usa tal cual al ser no vacío):
-     *   <RESPUESTA>
-     *     <CODIGO_OPERACION>0</CODIGO_OPERACION>
-     *     <RESULTADO><![CDATA[Expediente contexto=EXP2024/000123,
-     *       Leidos=3, Procesados=3, Correctos=2, Errores=1 |
-     *       Detalle errores: [Linea 3: 87654321B -> ERR01 Persona no encontrada]]]></RESULTADO>
-     *   </RESPUESTA>
-     * Nota: si numero fuera vacío el servidor generaría un número técnico "CVL_MASIVO/YYYY/NNNNNN".
-     *
-     * Resultado esperado en pantalla (codigo="0"):
-     *   Ventana modal con el texto del RESULTADO anterior.
-     *
-     * Respuesta XML esperada (error de validación, p.ej. sin fechas):
-     *   <RESPUESTA>
-     *     <CODIGO_OPERACION>3</CODIGO_OPERACION>
-     *     <RESULTADO><![CDATA[Debe indicar una lista de NIF/NIE para procesar.]]></RESULTADO>
-     *   </RESPUESTA>
-     *
-     * @param {string} excelBase64 - Contenido del fichero Excel codificado en base64.
+     * Envía el fichero Excel en base64 al servidor y muestra el resultado.
      */
     function enviarPeticionCvlMasivoExcel(excelBase64)
     {
-        var fechaDesde = document.getElementById("fechaDesdeCVLMasivo").value;
-        var fechaHasta = document.getElementById("fechaHastaCVLMasivo").value;
-        var ajax = getXMLHttpRequest();
-        var url = '<%=request.getContextPath()%>/PeticionModuloIntegracion.do';
+        var fechaDesde = convertirFechaCalendarioAFormatoWS(document.getElementById("fechaDesdeCVLMasivo").value);
+        var fechaHasta = convertirFechaCalendarioAFormatoWS(document.getElementById("fechaHastaCVLMasivo").value);
+        var codOrganizacion = "<%=codOrganizacion != null ? codOrganizacion : ""%>";
+        var ajax = null;
+        var url = null;
         var params = "";
-        var xmlDoc = null;
-        var nodos = null;
-        var codigo = null;
-        var resultado = null;
+        var respuesta = null;
 
-        fechaDesde = convertirFechaCalendarioAFormatoWS(fechaDesde);
-        fechaHasta = convertirFechaCalendarioAFormatoWS(fechaHasta);
+        if (codOrganizacion == null || codOrganizacion.replace(/\s/g, "") == "" || codOrganizacion == "null")
+        {
+            jsp_alerta("A", "No se ha podido determinar la organización. Cierre la pantalla y vuelva a abrir el módulo desde el expediente.");
+            return;
+        }
+
+        if (excelBase64 == null || excelBase64.replace(/\s/g, "").length == 0)
+        {
+            jsp_alerta("A", "No se ha podido obtener el contenido del fichero Excel.");
+            return;
+        }
+
+        ajax = getXMLHttpRequest();
+        url = "<%=request.getContextPath()%>/PeticionModuloIntegracion.do";
 
         params = "tarea=preparar"
                 + "&modulo=MELANBIDE_INTEROP"
                 + "&operacion=ejecutarCvlMasivoDesdeTexto"
                 + "&tipo=0"
                 + "&numero=<%=numExpediente%>"
+                + "&codOrganizacionModulo=" + encodeURIComponent(codOrganizacion)
                 + "&fechaDesdeCVL=" + encodeURIComponent(fechaDesde)
                 + "&fechaHastaCVL=" + encodeURIComponent(fechaHasta)
                 + "&fkWSSolicitado=1"
@@ -366,83 +361,26 @@
 
             if (ajax.readyState == 4 && ajax.status == 200)
             {
-                if (navigator.appName.indexOf("Internet Explorer") != -1)
+                respuesta = ajax.responseText;
+
+                if (respuesta != null)
                 {
-                    xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
-                    xmlDoc.async = "false";
-                    xmlDoc.loadXML(ajax.responseText);
-                } else
-                {
-                    xmlDoc = ajax.responseXML;
+                    alert("Respuesta servidor CVL masivo:\n\n" + respuesta);
                 }
 
-                nodos = xmlDoc.getElementsByTagName("RESPUESTA");
-
-                if (nodos != null && nodos.length > 0)
-                {
-                    if (nodos[0].getElementsByTagName("CODIGO_OPERACION").length > 0
-                            && nodos[0].getElementsByTagName("CODIGO_OPERACION")[0].childNodes.length > 0)
-                    {
-                        codigo = nodos[0].getElementsByTagName("CODIGO_OPERACION")[0].childNodes[0].nodeValue;
-                    }
-
-                    if (nodos[0].getElementsByTagName("RESULTADO").length > 0
-                            && nodos[0].getElementsByTagName("RESULTADO")[0].childNodes.length > 0)
-                    {
-                        resultado = nodos[0].getElementsByTagName("RESULTADO")[0].childNodes[0].nodeValue;
-                    }
-
-                    if (codigo == "0")
-                    {
-                        jsp_alerta("A", resultado);
-                    } else
-                    {
-                        jsp_alerta("A", "Error: " + resultado);
-                    }
-                } else
-                {
-                    jsp_alerta("A", "Error procesando la solicitud. No se ha podido establecer conexion/obtener respuesta del WebService.");
-                }
+                gestionarRespuestaCvlMasivo(respuesta);
             } else
             {
-                jsp_alerta("A", "Error procesando la solicitud. No se ha podido establecer conexion/obtener respuesta del WebService.");
+                jsp_alerta("A", "Error al ejecutar CVL masivo. Estado HTTP: " + ajax.status);
             }
         } catch (Err)
         {
-            jsp_alerta("A", "Error ejecutando CVL masivo: " + Err.message);
+            jsp_alerta("A", "Error al ejecutar CVL masivo: " + Err.message);
         }
     }
 
     /**
-     * PRUEBA E2E — PASO 3: El usuario hace clic en el botón "Ejecutar CVL masivo".
-     *
-     * Flujo completo desde la pantalla hasta el servidor:
-     *
-     *   PASO 1 — El usuario rellena las fechas en el formulario:
-     *     · fechaDesdeCVLMasivo  = "01/01/2023"
-     *     · fechaHastaCVLMasivo  = "31/12/2023"
-     *
-     *   PASO 2 — El usuario hace clic en el input type="file" (id="listaDocsMasivoExcel")
-     *     y selecciona el fichero:  prueba_cvl_masivo.xlsx
-     *     Contenido del Excel (primera hoja):
-     *       Columna A   | Columna B
-     *       ------------|----------
-     *       TIPO_DOC    | DOCUMENTO      ← fila cabecera (se descarta)
-     *       NIF         | 12345678A
-     *       NIE         | X1234567L
-     *       NIF         | 87654321B
-     *
-     *   PASO 3 — El usuario hace clic en "Ejecutar CVL masivo".
-     *     Esta función:
-     *       1. Lee inputExcel.files[0] → { name: "prueba_cvl_masivo.xlsx", size: 4096 }
-     *       2. Valida la extensión (.xls / .xlsx) → OK
-     *       3. Crea un FileReader y llama a readAsDataURL(ficheroExcel)
-     *       4. En lector.onload extrae la parte base64:
-     *            contenido  = "data:application/vnd.openxmlformats-...;base64,UEsDBBQA..."
-     *            excelBase64 = "UEsDBBQA..."
-     *       5. Llama a enviarPeticionCvlMasivoExcel("UEsDBBQA...")
-     *
-     * Resultado esperado: se ejecuta enviarPeticionCvlMasivoExcel con el base64 del Excel.
+     * Lee el fichero Excel y lanza el proceso CVL masivo.
      */
     function ejecutarCvlMasivoDesdeExcel()
     {
@@ -451,13 +389,31 @@
         var nombreFichero = "";
         var lector = null;
 
-        if (inputExcel == null || inputExcel.files == null || inputExcel.files.length == 0)
+        if (typeof FileReader == "undefined")
+        {
+            jsp_alerta("A", "El navegador no soporta la carga de ficheros desde esta pantalla.");
+            return;
+        }
+
+        if (inputExcel == null)
+        {
+            jsp_alerta("A", "No se ha encontrado el campo de selección de fichero.");
+            return;
+        }
+
+        if (inputExcel.files == null || inputExcel.files.length == 0)
         {
             jsp_alerta("A", "Debe seleccionar un fichero Excel.");
             return;
         }
 
         ficheroExcel = inputExcel.files[0];
+
+        if (ficheroExcel == null)
+        {
+            jsp_alerta("A", "No se ha podido obtener el fichero seleccionado.");
+            return;
+        }
 
         if (ficheroExcel.name != null)
         {
@@ -476,19 +432,28 @@
         {
             var contenido = null;
             var excelBase64 = null;
+            var separador = -1;
 
             if (evento != null && evento.target != null)
             {
                 contenido = evento.target.result;
             }
 
-            if (contenido == null || contenido.indexOf("data:") != 0 || contenido.indexOf(",") < 0)
+            if (contenido == null)
             {
                 jsp_alerta("A", "No se pudo leer el fichero Excel seleccionado.");
                 return;
             }
 
-            excelBase64 = contenido.split(",")[1];
+            separador = contenido.indexOf(",");
+
+            if (separador < 0)
+            {
+                jsp_alerta("A", "El formato leído del fichero Excel no es válido.");
+                return;
+            }
+
+            excelBase64 = contenido.substring(separador + 1);
 
             if (excelBase64 == null || excelBase64.replace(/\s/g, "").length == 0)
             {
@@ -550,6 +515,11 @@
     }
 </script>
 
+<script type="text/javascript">
+    console.log("numExpediente=<%=numExpediente%>");
+    console.log("codOrganizacion=<%=codOrganizacion%>");
+</script>
+
 <body>
     <div class="tab-page" id="tabPageinteropGen" style="height:520px; width: 100%;">
         <h2 class="tab" id="pestanainteropGen"><%=meLanbideInteropI18n.getMensaje(idiomaUsuario,"label.interoperabilidad.tituloPestana")%></h2>
@@ -600,7 +570,8 @@
                                    style="width:90px;" />
 
                             <a href="javascript:calClick(event);return false;"
-                               onclick="mostrarCalFechaDesdeCVLMasivo(event);return false;"
+                               onclick="mostrarCalFechaDesdeCVLMasivo(event);
+                                       return false;"
                                style="text-decoration:none;">
                                 <img style="border:0px solid"
                                      height="17"
