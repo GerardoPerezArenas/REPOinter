@@ -20,6 +20,7 @@ import es.altia.flexia.integracion.moduloexterno.melanbide_interop.nisae.Gestion
 import es.altia.flexia.integracion.moduloexterno.melanbide_interop.nisae.entities.InteropLlamadasServiciosNisae;
 import es.altia.flexia.integracion.moduloexterno.melanbide_interop.nisae.entities.InteropServiciosNisaeExpFi;
 import es.altia.flexia.integracion.moduloexterno.melanbide_interop.nisae.entities.vo.RetornoResultadoNISAELog;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.services.InteropCvlMasivoCsvService;
 import es.altia.flexia.integracion.moduloexterno.melanbide_interop.telematico.dao.MEInteropCargaTelemXMLServiceDAO;
 import es.altia.flexia.integracion.moduloexterno.melanbide_interop.telematico.dto.MEInteropCargaTelemXMLExpediente;
 import es.altia.flexia.integracion.moduloexterno.melanbide_interop.telematico.dto.MEInteropCargaTelemXMLParameters;
@@ -135,6 +136,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import es.altia.flexia.integracion.moduloexterno.melanbide_interop.util.MeLanbideInteropMappingUtils;
+import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.InteropCvlMasivoResultadoVO;
 import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.RespuestaWSVidaLaboralVO;
 import es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.cvl.Persona;
 import es.altia.flexia.integracion.moduloexterno.melanbide_interop.ws.client.vidalaboralws.clientws.ClientWSVidaLaboral;
@@ -327,7 +329,6 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         log.error("***  Finalizamos y Retornamos url Principal de Interoperabilidad ****");
         return "/jsp/extension/melanbide_interop/interoperabilidad.jsp";
     }
-
     public String cargarPantallaPrincipalModuloGen(int codOrganizacion, int codTramite, int ocurrenciaTramite, String numExpediente, HttpServletRequest request, HttpServletResponse response)
     {
         log.error("***  Entramos en cargarPantallaPrincipalModuloGen (sin tabla terceros) ****");
@@ -400,8 +401,8 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         String codProcExpte = datosExpediente[1];
 
 
-        //String separador = "��";
-        //String separadortemp = "��";
+        //String separador = "§¥";
+        //String separadortemp = "§¥";
 
 
         try
@@ -945,8 +946,8 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         AdaptadorSQLBD adapt = this.getAdaptSQLBD(String.valueOf(codOrganizacion));
         String respuestaServicio = "";
         /*
-        //String separador = "��";
-        //String separadortemp = "��";
+        //String separador = "§¥";
+        //String separadortemp = "§¥";
         */
         try
         {
@@ -1152,12 +1153,12 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
             String codigo_expediente="";
 
             // Cumplimentamos los parametros obligatorios
-            //Código de centro el que realiza la llamada al WS
+            //CÃ³digo de centro el que realiza la llamada al WS
             cod_centro_usu=ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.FSE_CODIGO_CENTRO, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
-            //Código de la ubicación del centro el que realiza la llamada al WS
+            //CÃ³digo de la ubicaciÃ³n del centro el que realiza la llamada al WS
             cod_ubic_usu=ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.FSE_CODIGO_UBICACION_CENTRO, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
-            //Número de identificador más letra del demandante que se está consultando
-            //Tipo de documento del demandante que se está consultando
+            //NÃºmero de identificador mÃ¡s letra del demandante que se estÃ¡ consultando
+            //Tipo de documento del demandante que se estÃ¡ consultando
             if(_tercero != null){
                 if(_tercero.getTipoDoc().equals("1"))
                     tipo_doc="D";
@@ -1170,17 +1171,17 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 num_doc=_tercero.getDoc();
                 log.error("wsFSE_altaServicio - TipoDocumento Tecero Calculado " + tipo_doc);
             }
-            //Código del servicio a dar de alta	 	 	Número de 6 dígitos identificativo del procedimiento
+            //CÃ³digo del servicio a dar de alta	 	 	NÃºmero de 6 dÃ­gitos identificativo del procedimiento
             String[] datosExpediente = numExpediente.split(ConstantesMeLanbideInterop.BARRA_SEPARADORA);
             String codProcExpte = datosExpediente[1];
             dem_servs_cod_serv=ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.PREFIJO_TIPOWS_FSE+ConstantesMeLanbideInterop.PREFIJO_CODIGO_PROCEDIMIENTO+codProcExpte, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
             //Centro del servicio a dar de alta	 	 	00010-0002	Valor fijo
             dem_servs_centro=ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.FSE_CENTRO_SERVICIO, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
-            //Número de identificador del orientador	 	 	1016G	El que inicia el expediente.
+            //NÃºmero de identificador del orientador	 	 	1016G	El que inicia el expediente.
             num_doc_orientador=ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.FSE_IDENTIFICADOR_ORIENTADOR, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
             // 	Tipo de documento del usuario que realiza la llamada al WS	 	 	D
             tipo_doc_usuario=ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.FSE_TIPO_DOC_USUARIO_LLAMADA, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
-            //	Número de identificador del usuario que realiza la llamada al WS	 	 	1016G	Valor fijo (¿en properties?)
+            //	NÃºmero de identificador del usuario que realiza la llamada al WS	 	 	1016G	Valor fijo (Â¿en properties?)
             num_doc_usuario =ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.FSE_IDENTIFICADOR_USUARIO_LLAMADA, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
             origen = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.FSE_CONSTANTE_ORIGEN_ALTASERVICIO, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
             codigo_expediente=numExpediente;
@@ -1369,7 +1370,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
             }
             String num_doc="";
             String tipo_doc="";
-            //Tipo de documento del demandante que se está consultando
+            //Tipo de documento del demandante que se estÃ¡ consultando
             if(_tercero != null){
                 tipo_doc=MeLanbideInteropGeneralUtils.parsearTipoDocFlexiaToTipoDocEJIE_WS(_tercero.getTipoDoc());
                 log.error("WS_verificarDatosPadron - TipoDocumento Tecero Calculado " + tipo_doc);
@@ -1724,13 +1725,13 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         }
         log.error("respuestaServicio : " + respuestaServicio);
         /*
-        Código estado	Código negocio	Descripción del resultado del negocio	Descripción estado /Motivos de error del negocio
-        0226                                                    Error de validación en parámetros de entrada
-        0003	S	Sí se han encontrado Habitantes.	TRAMITADA
+        CÃ³digo estado	CÃ³digo negocio	DescripciÃ³n del resultado del negocio	DescripciÃ³n estado /Motivos de error del negocio
+        0226                                                    Error de validaciÃ³n en parÃ¡metros de entrada
+        0003	S	SÃ­ se han encontrado Habitantes.	TRAMITADA
         0233	N	No se han encontrado Habitantes.	Titular no identificado.
         0231	E	Existen incidencias.                    [00] - Tipo de documento incorrecto.
         0231	E	Existen incidencias.                    [01] - Formato de DNI/NIE incorrecto.
-        0252	E	Existen incidencias.                    [02] - Formato de Fecha erróneo.
+        0252	E	Existen incidencias.                    [02] - Formato de Fecha errÃ³neo.
         0254	E	Existen incidencias.                    [03] - Faltan datos obligatorios.
         0227	E	Existen incidencias.                    [04] - Error en Base de datos del servicio.
         0901	E	Existen incidencias.                    [05] - Error interno del servicio.
@@ -1794,7 +1795,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
             }
             String num_doc="";
             String tipo_doc="";
-            //Tipo de documento del demandante que se está consultando
+            //Tipo de documento del demandante que se estÃ¡ consultando
             if(_tercero != null){
                 tipo_doc=MeLanbideInteropGeneralUtils.parsearTipoDocFlexiaToTipoDocEJIE_WS(_tercero.getTipoDoc());
                 num_doc=_tercero.getDoc();
@@ -1993,7 +1994,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
             }
         }
 
-        // Cogemos los datos del Usuario conectadp a la aplicaci�n.
+        // Cogemos los datos del Usuario conectadp a la aplicación.
         UsuarioValueObject usuario = new UsuarioValueObject();
         String usuario_nif = "";
         HttpSession session = request.getSession();
@@ -2008,21 +2009,21 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         }
         usuario_nif = MeLanbideInteropManager.getInstance().getUsuarioNIF(usuario.getIdUsuario(), adapt);
 
-        String unidadTramitadora = usuario.getDepCod() + " - " + usuario.getDep();//"Departamento de Educaci�n";
+        String unidadTramitadora = usuario.getDepCod() + " - " + usuario.getDep();//"Departamento de Educación";
 
         // Para primera pruebas sino existe en properties cogemo el de conciliacion
         String codigoProcedimiento = "";// 10133 Conciliacion CONCM     "SVDI_000233";
         codigoProcedimiento = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.PREFIJO_CODIGO_PROCEDIMIENTO + codProcExpte, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
         if ("".equals(codigoProcedimiento)) {
-            // Sino se recupera del properties deber� devolver error
+            // Sino se recupera del properties deberá devolver error
             // Sin embargo en estas primeras pruebas recogemos el CONCM
             log.error("Codigo procedimiento no  configurado para consultas en MELANBIDE_INTEROP.properties :  " + ConstantesMeLanbideInterop.PREFIJO_CODIGO_PROCEDIMIENTO + codProcExpte + " --> " + codigoProcedimiento);
             codigoOperacion = "5";
             respuestaServicio = "Codigo procedimiento no  configurado para consultas en MELANBIDE_INTEROP.properties. " + ConstantesMeLanbideInterop.PREFIJO_CODIGO_PROCEDIMIENTO + codProcExpte + " : " + codigoProcedimiento;
             //codigoProcedimiento = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.PREFIJO_CODIGO_PROCEDIMIENTO + "CONCM", ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
         }
-        String nombreProcedimiento = MeLanbideInteropManager.getInstance().getDescripcionProcedimiento(codOrganizacion, codProcExpte, adapt); // Solicitud y matriculaci�n del alumnado";
-        String finalidad = nombreProcedimiento;  //"Solicitud y matriculaci�n del alumnado";
+        String nombreProcedimiento = MeLanbideInteropManager.getInstance().getDescripcionProcedimiento(codOrganizacion, codProcExpte, adapt); // Solicitud y matriculación del alumnado";
+        String finalidad = nombreProcedimiento;  //"Solicitud y matriculación del alumnado";
         String consentimiento = "Si";  // Valores Si o Ley. Al realizar la solicitus el interesdo debe firmar el consentimiento
 
         String nifTramitador = usuario_nif; //"12345678Z";
@@ -2144,7 +2145,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
             }
 
 
-            // Cogemos los datos del Usuario conectadp a la aplicación.
+            // Cogemos los datos del Usuario conectadp a la aplicaciÃ³n.
             UsuarioValueObject usuario = new UsuarioValueObject();
             String usuario_nif = "";
             HttpSession session = request.getSession();
@@ -2159,21 +2160,21 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
             }
             usuario_nif = MeLanbideInteropManager.getInstance().getUsuarioNIF(usuario.getIdUsuario(), adapt);
 
-            String unidadTramitadora = usuario.getDepCod() + " - " + usuario.getDep();//"Departamento de Educación";
+            String unidadTramitadora = usuario.getDepCod() + " - " + usuario.getDep();//"Departamento de EducaciÃ³n";
 
             // Para primera pruebas sino existe en properties cogemo el de conciliacion
             String codigoProcedimiento = "";// 10133 Conciliacion CONCM     "SVDI_000233";
             codigoProcedimiento = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.PREFIJO_CODIGO_PROCEDIMIENTO + codProcExpte, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
             if ("".equals(codigoProcedimiento)) {
-                // Sino se recupera del properties deberá devolver error
+                // Sino se recupera del properties deberÃ¡ devolver error
                 // Sin embargo en estas primeras pruebas recogemos el CONCM
                 log.error("Codigo procedimiento no  configurado para consultas en MELANBIDE_INTEROP.properties :  " + ConstantesMeLanbideInterop.PREFIJO_CODIGO_PROCEDIMIENTO + codProcExpte + " --> " + codigoProcedimiento);
                 codigoOperacion = "5";
                 respuestaServicio = "Codigo procedimiento no  configurado para consultas en MELANBIDE_INTEROP.properties. " + ConstantesMeLanbideInterop.PREFIJO_CODIGO_PROCEDIMIENTO + codProcExpte + " : " + codigoProcedimiento;
                 //codigoProcedimiento = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.PREFIJO_CODIGO_PROCEDIMIENTO + "CONCM", ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
             }
-            String nombreProcedimiento = MeLanbideInteropManager.getInstance().getDescripcionProcedimiento(codOrganizacion, codProcExpte, adapt); // Solicitud y matriculación del alumnado";
-            String finalidad = nombreProcedimiento;  //"Solicitud y matriculación del alumnado";
+            String nombreProcedimiento = MeLanbideInteropManager.getInstance().getDescripcionProcedimiento(codOrganizacion, codProcExpte, adapt); // Solicitud y matriculaciÃ³n del alumnado";
+            String finalidad = nombreProcedimiento;  //"Solicitud y matriculaciÃ³n del alumnado";
             String consentimiento = "Si";  // Valores Si o Ley. Al realizar la solicitus el interesdo debe firmar el consentimiento
 
             String nifTramitador = usuario_nif; //"12345678Z";
@@ -2275,7 +2276,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 }
             }
 
-            // Cogemos los datos del Usuario conectadp a la aplicación.
+            // Cogemos los datos del Usuario conectadp a la aplicaciÃ³n.
             UsuarioValueObject usuario = new UsuarioValueObject();
             String usuario_nif = "";
             HttpSession session = request.getSession();
@@ -2291,21 +2292,21 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
             usuario_nif = MeLanbideInteropManager.getInstance().getUsuarioNIF(usuario.getIdUsuario(), adapt);
 
             String pOrganoSolicitante = "Lanbide - Servicio Vasco Empleo"; //Eusko Jaurlaritza - Ejie Desarrollo";
-            String pUnidadTramitadora = usuario.getDepCod() + " - " + usuario.getDep();//"Departamento de Educación";
+            String pUnidadTramitadora = usuario.getDepCod() + " - " + usuario.getDep();//"Departamento de EducaciÃ³n";
 
             // Para primera pruebas sino existe en properties cogemo el de conciliacion
             String pCodigoProcedimiento = "";// 10133 Conciliacion CONCM     "SVDI_000233";
             pCodigoProcedimiento = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.PREFIJO_CODIGO_PROCEDIMIENTO + codProcExpte, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
             if ("".equals(pCodigoProcedimiento)) {
-                // Sino se recupera del properties deberá devolver error
+                // Sino se recupera del properties deberÃ¡ devolver error
                 // Sin embargo en estas primeras pruebas recogemos el CONCM
                 log.error("Codigo procedimiento no  configurado para consultas en MELANBIDE_INTEROP.properties :  " + ConstantesMeLanbideInterop.PREFIJO_CODIGO_PROCEDIMIENTO + codProcExpte + " --> " + pCodigoProcedimiento);
                 codigoOperacion = "5";
                 respuestaServicio = "Codigo procedimiento no  configurado para consultas en MELANBIDE_INTEROP.properties. " + ConstantesMeLanbideInterop.PREFIJO_CODIGO_PROCEDIMIENTO + codProcExpte + " : " + pCodigoProcedimiento;
                 //codigoProcedimiento = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.PREFIJO_CODIGO_PROCEDIMIENTO + "CONCM", ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
             }
-            String pNombreProcedimiento = MeLanbideInteropManager.getInstance().getDescripcionProcedimiento(codOrganizacion, codProcExpte, adapt); // Solicitud y matriculación del alumnado";
-            String pFinalidad = pNombreProcedimiento;  //"Solicitud y matriculación del alumnado";
+            String pNombreProcedimiento = MeLanbideInteropManager.getInstance().getDescripcionProcedimiento(codOrganizacion, codProcExpte, adapt); // Solicitud y matriculaciÃ³n del alumnado";
+            String pFinalidad = pNombreProcedimiento;  //"Solicitud y matriculaciÃ³n del alumnado";
             String pConsentimiento = "Si";  // Valores Si o Ley. Al realizar la solicitus el interesdo debe firmar el consentimiento
 
             String pNIFTramitador = usuario_nif; //"12345678Z";
@@ -2542,10 +2543,10 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 es.altia.interoperabilidad.datamodel.getDatosIdentidadV3WS.peticion.DatosGenericos datosGenericos = new es.altia.interoperabilidad.datamodel.getDatosIdentidadV3WS.peticion.DatosGenericos();
                 DatosEspecificos datosEspecificos = new DatosEspecificos();
 
-                // Valores Segun documentación de Guía de Uso Consulta Datos Identidad SCSPv3
+                // Valores Segun documentaciÃ³n de GuÃ­a de Uso Consulta Datos Identidad SCSPv3
                 es.altia.interoperabilidad.datamodel.getDatosIdentidadV3WS.peticion.Emisor emisor = new es.altia.interoperabilidad.datamodel.getDatosIdentidadV3WS.peticion.Emisor();
                 emisor.setNifEmisor("S2816015H"); // S2811001C
-                emisor.setNombreEmisor("Dirección General de la Policía.");
+                emisor.setNombreEmisor("DirecciÃ³n General de la PolicÃ­a.");
 
                 es.altia.interoperabilidad.datamodel.getDatosIdentidadV3WS.peticion.Transmision transmision = new es.altia.interoperabilidad.datamodel.getDatosIdentidadV3WS.peticion.Transmision();
                 transmision.setCodigoCertificado("");
@@ -2781,7 +2782,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
 
 
                 String _url = urlString;
-                //Cargamos el fichero xml con las políticas de seguridad
+                //Cargamos el fichero xml con las polÃ­ticas de seguridad
                 log.error("Realizamos el URL pathXml" );
                 URL pathXml = Thread.currentThread().getContextClassLoader().getResource("META-INF/x53jsGetDatosIdentidadV3WS.xml");
                 QName _qName = new QName("http://www.map.es/xml-schemas", "x53jsGetDatosIdentidadV3");
@@ -2801,7 +2802,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 log.error("Actualizamos la URL del port");
 
                 log.error("Vamos a poner la seguridad de weblogic");
-                // Prueba User / Contraseña en la request
+                // Prueba User / ContraseÃ±a en la request
                 String _USER = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.USUARIO_TOKEN_WSEJIE, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
                 String _PASS = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.CONTRAS_TOKEN_ESEJIE, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
                 ((BindingProvider) port).getRequestContext().put(BindingProvider.USERNAME_PROPERTY, _USER);
@@ -2809,7 +2810,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 log.error("Hemos Asignado User/pass en ((BindingProvider) port).getRequestContext().put(BindingProvider.PASSWORD_PROPERTY, _PASS);");
 
                 // Inicio Invocacion WSS + User Token
-                //Asignamos un Credential Provider con el Usuario y Password para la autenticación
+                //Asignamos un Credential Provider con el Usuario y Password para la autenticaciÃ³n
                 /*
                 List<CredentialProvider> credProviders = new ArrayList<CredentialProvider>();
                 String _USER = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.USUARIO_TOKEN_WSEJIE, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
@@ -2971,10 +2972,10 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
 
                 es.altia.interoperabilidad.datamodel.getEpigrafesIaeUser.peticion.DatosGenericos datosGenericos = new es.altia.interoperabilidad.datamodel.getEpigrafesIaeUser.peticion.DatosGenericos();
 
-                // Valores Segun documentación de Guía de Uso Consulta Datos Identidad SCSPv3
+                // Valores Segun documentaciÃ³n de GuÃ­a de Uso Consulta Datos Identidad SCSPv3
                 es.altia.interoperabilidad.datamodel.getEpigrafesIaeUser.peticion.Emisor emisor = new es.altia.interoperabilidad.datamodel.getEpigrafesIaeUser.peticion.Emisor();
                 emisor.setNifEmisor("S2816015H"); // S2811001C
-                emisor.setNombreEmisor("Dirección General de la Policía.");
+                emisor.setNombreEmisor("DirecciÃ³n General de la PolicÃ­a.");
 
                 es.altia.interoperabilidad.datamodel.getEpigrafesIaeUser.peticion.Transmision transmision = new es.altia.interoperabilidad.datamodel.getEpigrafesIaeUser.peticion.Transmision();
                 transmision.setCodigoCertificado(ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.EJIE_CODIGO_CERTIFICADO, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES));
@@ -3138,7 +3139,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
             try {
                 String _url = urlString;
 
-                //Cargamos el fichero xml con las políticas de seguridad
+                //Cargamos el fichero xml con las polÃ­ticas de seguridad
                 log.error("Realizamos el URL pathXml");
                 URL pathXml = Thread.currentThread().getContextClassLoader().getResource("META-INF/x53jsEpigrafesIaeEJGVUser.xml");
                 QName _qName = new QName(nameSpaceUri,localPart );
@@ -3187,7 +3188,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 log.error("Asignadas las claves de Seguridad. ((BindingProvider) port).getRequestContext().put(BindingProvider.PASSWORD_PROPERTY");
 
                 // Inicio LLamada con WSS + User Token
-                //Asignamos un Credential Provider con el Usuario y Password para la autenticación
+                //Asignamos un Credential Provider con el Usuario y Password para la autenticaciÃ³n
                 /*
                 List<CredentialProvider> credProviders = new ArrayList<CredentialProvider>();
                 String _USER = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.USUARIO_TOKEN_WSEJIE, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
@@ -3280,7 +3281,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                         "");
             } catch (Exception ex) {
                 log.error(ex.getMessage() + "  - Error al llamar al Servicio Domicilio Fiscal  - Causa: " + ex.getCause(), ex);
-                resultadoDomFiscal="Error al procesar la petición en el WS de consulta domicilio fiscal";
+                resultadoDomFiscal="Error al procesar la peticiÃ³n en el WS de consulta domicilio fiscal";
             }
 
         } catch (Exception ex) {
@@ -3338,7 +3339,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
             try {
                 String _url = urlString;
 
-                //Cargamos el fichero xml con las políticas de seguridad
+                //Cargamos el fichero xml con las polÃ­ticas de seguridad
                 log.error("Realizamos el URL pathXml");
                 URL pathXml = Thread.currentThread().getContextClassLoader().getResource("META-INF/x53jsGetDomicilioFiscalWS.xml");
                 QName _qName = new QName(nameSpaceUri,localPart );
@@ -3364,7 +3365,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 log.error("Asignadas las claves de Seguridad. ((BindingProvider) port).getRequestContext().put(BindingProvider.PASSWORD_PROPERTY");
 
                 // Inicio LLamada con WSS + User Token
-                //Asignamos un Credential Provider con el Usuario y Password para la autenticación
+                //Asignamos un Credential Provider con el Usuario y Password para la autenticaciÃ³n
                 /*log.error(" - DomiclioFiscal WSS + User Token");
                 List<CredentialProvider> credProviders = new ArrayList<CredentialProvider>();
                 String _USER = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.USUARIO_TOKEN_WSEJIE, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
@@ -3417,8 +3418,8 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
             try {
                 /*
                  * 0 - No existe demandante o se ha producido un error
-                 * 1 - Existe demandante y está en alta (SituAdm A)
-                 * 2 - Existe demandante y está en suspensión (SituAdm S)
+                 * 1 - Existe demandante y estÃ¡ en alta (SituAdm A)
+                 * 2 - Existe demandante y estÃ¡ en suspensiÃ³n (SituAdm S)
                  * 9 - Existe demandante y el estado es otro (SituAdm 'else')
                  */
 
@@ -3442,9 +3443,9 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                  * *********************
                  */
                 log.error("******** DATOS ENTRADA **********");
-                log.error("CÓDIGO CENTRO: " + cod_centro_usu);
-                log.error("CÓDIGO UBICACIÓN: " + cod_ubic_usu);
-                log.error("NÚMERO DOCUMENTO: " + num_doc);
+                log.error("CÃ?DIGO CENTRO: " + cod_centro_usu);
+                log.error("CÃ?DIGO UBICACIÃ?N: " + cod_ubic_usu);
+                log.error("NÃ?MERO DOCUMENTO: " + num_doc);
                 log.error("TIPO DOCUMENTO: " + tipo_doc);
                 log.error("*********************************");
 
@@ -3596,7 +3597,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
             try {
                 String _url = urlString;
 
-                //Cargamos el fichero xml con las políticas de seguridad
+                //Cargamos el fichero xml con las polÃ­ticas de seguridad
                 log.error("Realizamos el URL pathXml");
                 URL pathXml = Thread.currentThread().getContextClassLoader().getResource("META-INF/x53jsGetCorrientePagoTgssWS.xml");
                 QName _qName = new QName(nameSpaceUri,localPart );
@@ -3623,7 +3624,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 log.error("Asignadas las claves de Seguridad. ((BindingProvider) port).getRequestContext().put(BindingProvider.PASSWORD_PROPERTY");
 
                 // Inicio LLamada con WSS + User Token
-                //Asignamos un Credential Provider con el Usuario y Password para la autenticación
+                //Asignamos un Credential Provider con el Usuario y Password para la autenticaciÃ³n
                /*
                 List<CredentialProvider> credProviders = new ArrayList<CredentialProvider>();
                 String _USER = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.USUARIO_TOKEN_WSEJIE, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
@@ -3670,7 +3671,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         try {
             log.info("WebServiceGetCorrientePagoHHFF - Inicio llamada NISAE unificada para HHFF");
             
-            // 1. Extraer el código de procedimiento (ej: LAK)
+            // 1. Extraer el cÃ³digo de procedimiento (ej: LAK)
             String[] datosExpediente = numExpediente.split(ConstantesMeLanbideInterop.BARRA_SEPARADORA);
             String codProcExpte = datosExpediente[1];
             
@@ -3691,12 +3692,12 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
             interopLlamadasServiciosNisae.setEjercicioHHFF(datosExpediente[0]);
             interopLlamadasServiciosNisae.setFkWSSolicitado(1); // 1 = HHFF en tabla INTEROP_SERVICIOS_NISAE
 
-            // 4. LLAMADA AL MOTOR COMÚN (Aquí es donde se hace todo el trabajo ahora)
+            // 4. LLAMADA AL MOTOR COMÃ?N (AquÃ­ es donde se hace todo el trabajo ahora)
             resultadoCorrPagHHFF = gestionServiciosNISAE.ejecutarConsultaIndividualHHFF(codOrganizacion, interopLlamadasServiciosNisae, idProcoFlexia_LAN6, expedienteNisaeVO, adapt);
 
         } catch (Exception ex) {
             log.error("Exception general al llamar al WS HHFF NISAE", ex);
-            resultadoCorrPagHHFF = "Error al procesar la petición en el servicio HHFF NISAE: " + ex.getMessage();
+            resultadoCorrPagHHFF = "Error al procesar la peticiÃ³n en el servicio HHFF NISAE: " + ex.getMessage();
         }
 
         log.info("Retorno del WS HHFF NISAE: " + resultadoCorrPagHHFF);
@@ -3850,7 +3851,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
             try {
                 String _url = urlString;
 
-                //Cargamos el fichero xml con las políticas de seguridad
+                //Cargamos el fichero xml con las polÃ­ticas de seguridad
                 log.error("Realizamos el URL pathXml");
                 URL pathXml = Thread.currentThread().getContextClassLoader().getResource("META-INF/x53jsGetObligacionesGenericoUser.xml");
                 QName _qName = new QName(nameSpaceUri,localPart );
@@ -3877,7 +3878,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 //log.error("Asignadas las claves de Seguridad. ((BindingProvider) port).getRequestContext().put(BindingProvider.PASSWORD_PROPERTY");
 
                 // Inicio LLamada con WSS + User Token    Opcion User Seguridad
-                //Asignamos un Credential Provider con el Usuario y Password para la autenticación
+                //Asignamos un Credential Provider con el Usuario y Password para la autenticaciÃ³n
 
                 //Este bloque que usa clases de weblogic: Comentar para desplegar / des comentar para subir a repo
                 /*
@@ -3966,7 +3967,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         try {
             if(respuestaServicio != null){
                 String[] codigosSalida = respuestaServicio.split(ConstantesMeLanbideInterop.SEPARADOR_VALORES_CONF);
-                log.error("traducirCodigosMensajesSalidaWSLangaiDemandaFSE - Tamaño del Arreglo de Codigos Respuesta del WS " + codigosSalida.length);
+                log.error("traducirCodigosMensajesSalidaWSLangaiDemandaFSE - TamaÃ±o del Arreglo de Codigos Respuesta del WS " + codigosSalida.length);
                 for (int i = 0; i < codigosSalida.length; i++) {
                     if(respuesta!=""){
                         respuesta = respuesta + " \n " + codigosSalida[i] + " - " + MeLanbideInteropI18n.getInstance().getMensaje(Idioma, "msg.respuesta.langaidemaWS.fse."+codigosSalida[i]);
@@ -4063,7 +4064,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
 
             try {
                 String _url = urlString;
-                //Cargamos el fichero xml con las políticas de seguridad
+                //Cargamos el fichero xml con las polÃ­ticas de seguridad
                 log.error("Realizamos el URL pathXml" );
                 URL pathXml = Thread.currentThread().getContextClassLoader().getResource("META-INF/x53jsGetDatosPadronV3User.xml");
                 QName _qName = new QName("http://www.map.es/xml-schemas", "x53jsGetDatosPadronV3");
@@ -4081,7 +4082,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 log.error("Actualizamos la URL del port");
 
                 log.error("Vamos a poner la seguridad de weblogic");
-                // Prueba User / Contraseña en la request
+                // Prueba User / ContraseÃ±a en la request
                 String _USER = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.USUARIO_TOKEN_WSEJIE, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
                 String _PASS = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.CONTRAS_TOKEN_ESEJIE, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
                 ((BindingProvider) port).getRequestContext().put(BindingProvider.USERNAME_PROPERTY, _USER);
@@ -4089,7 +4090,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 log.error("Hemos Asignado User/pass en ((BindingProvider) port).getRequestContext().put(BindingProvider.PASSWORD_PROPERTY, _PASS);");
 
                 // Inicio Invocacion WSS + User Token
-                //Asignamos un Credential Provider con el Usuario y Password para la autenticación
+                //Asignamos un Credential Provider con el Usuario y Password para la autenticaciÃ³n
                 /*
                 List<CredentialProvider> credProviders = new ArrayList<CredentialProvider>();
                 String _USER = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.USUARIO_TOKEN_WSEJIE, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
@@ -4176,7 +4177,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
 
             try {
                 String _url = urlString;
-                //Cargamos el fichero xml con las políticas de seguridad
+                //Cargamos el fichero xml con las polÃ­ticas de seguridad
                 log.error("Realizamos el URL pathXml" );
                 URL pathXml = Thread.currentThread().getContextClassLoader().getResource("META-INF/x53jsGetDatosResidenciaBasic.xml");
                 QName _qName = new QName("http://requirenteWS/", "X53jsGetDatosResidenciaWSService");
@@ -4194,7 +4195,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 log.error("Actualizamos la URL del port");
 
                 log.error("Vamos a poner la seguridad de weblogic");
-                // Prueba User / Contraseña en la request
+                // Prueba User / ContraseÃ±a en la request
                 String _USER = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.USUARIO_TOKEN_WSEJIE, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
                 String _PASS = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.CONTRAS_TOKEN_ESEJIE, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
                 ((BindingProvider) port).getRequestContext().put(BindingProvider.USERNAME_PROPERTY, _USER);
@@ -4202,7 +4203,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 log.error("Hemos Asignado User/pass en ((BindingProvider) port).getRequestContext().put(BindingProvider.PASSWORD_PROPERTY, _PASS);");
 
                 // Inicio Invocacion WSS + User Token
-                //Asignamos un Credential Provider con el Usuario y Password para la autenticación
+                //Asignamos un Credential Provider con el Usuario y Password para la autenticaciÃ³n
                 /*
                 List<CredentialProvider> credProviders = new ArrayList<CredentialProvider>();
                 String _USER = ConfigurationParameter.getParameter(ConstantesMeLanbideInterop.USUARIO_TOKEN_WSEJIE, ConstantesMeLanbideInterop.FICHERO_PROPIEDADES);
@@ -4314,10 +4315,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         log.error("Parametros Entrada : codProcExpte,numExpediente = " + codProcExpte + "," + numExpediente);
         String resultado = "";
         try {
-            /**
-             * SEGUN PROCEDIMIENTO EJECUTAR UN METODO U OTRO.
-             * PUEDE GUARDARSE EN CS DE EXPEDIENTE, DE TRAMITE O EN TABLAS DE MODULOS DE EXTENSION
-             */
+           
             MeLanbideInteropManager interopManager = MeLanbideInteropManager.getInstance();
             if("APEC".equalsIgnoreCase(codProcExpte)
                     || "LAK".equalsIgnoreCase(codProcExpte)    ){
@@ -5607,23 +5605,23 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 HSSFSheet hoja = libro.createSheet("Datos Vida Laboral - Plantilla");
 
                 //Se establece el ancho de cada columnas
-                hoja.setColumnWidth(0, 4000); // Tipo documentación
+                hoja.setColumnWidth(0, 4000); // Tipo documentaciÃ³n
                 hoja.setColumnWidth(1, 4000); // Documentacion
                 hoja.setColumnWidth(2, 3200); // Fecha desde
                 hoja.setColumnWidth(3, 3200); // Fecha hasta
-                hoja.setColumnWidth(4, 4000); // Número afiliación
+                hoja.setColumnWidth(4, 4000); // NÃºmero afiliaciÃ³n
                 hoja.setColumnWidth(5, 3200); // Fecha nacimiento
                 hoja.setColumnWidth(6, 5000); // Resumen completo
-                hoja.setColumnWidth(7, 3000); // Régimen empresa
-                hoja.setColumnWidth(8, 5000); // Código cuenta cotización
+                hoja.setColumnWidth(7, 3000); // RÃ©gimen empresa
+                hoja.setColumnWidth(8, 5000); // CÃ³digo cuenta cotizaciÃ³n
                 hoja.setColumnWidth(9, 5000); // Provincia
                 hoja.setColumnWidth(10, 3200); // Fecha alta
                 hoja.setColumnWidth(11, 3200); // Fecha efectos
                 hoja.setColumnWidth(12, 3200); // Fecha baja
                 hoja.setColumnWidth(13, 5000); // Contrato trabajo
                 hoja.setColumnWidth(14, 5000); // Contrato parcial
-                hoja.setColumnWidth(15, 5000); // Grupo cotización
-                hoja.setColumnWidth(16, 3000); // Días alta
+                hoja.setColumnWidth(15, 5000); // Grupo cotizaciÃ³n
+                hoja.setColumnWidth(16, 3000); // DÃ­as alta
 
                 fila = hoja.createRow(numFila);
                 //Se establece el alto de las columnas
@@ -5645,7 +5643,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                     numFila++;
                     fila = hoja.createRow(numFila);
 
-                    //COLUMNA: Tipo documentación
+                    //COLUMNA: Tipo documentaciÃ³n
                     celda = fila.createCell(0);
                     celda.setCellValue(registro.getTipoDocumentacion());
                     celda.setCellStyle(estiloCelda);
@@ -5665,7 +5663,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                     celda.setCellValue(registro.getFechaHasta() != null ? dateFormat.format(registro.getFechaHasta()) : "");
                     celda.setCellStyle(estiloCelda);
 
-                    //COLUMNA: Número afiliación
+                    //COLUMNA: NÃºmero afiliaciÃ³n
                     celda = fila.createCell(4);
                     celda.setCellValue(registro.getNumeroAfiliacionL());
                     celda.setCellStyle(estiloCelda);
@@ -5680,12 +5678,12 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                     celda.setCellValue(registro.getResumenConplAniosAlta());
                     celda.setCellStyle(estiloCelda);
 
-                    //COLUMNA: Régimen empresa
+                    //COLUMNA: RÃ©gimen empresa
                     celda = fila.createCell(7);
                     celda.setCellValue(registro.getRegimen());
                     celda.setCellStyle(estiloCelda);
 
-                    //COLUMNA: Código cuenta cotización
+                    //COLUMNA: CÃ³digo cuenta cotizaciÃ³n
                     celda = fila.createCell(8);
                     celda.setCellValue(registro.getCodCuentaCot());
                     celda.setCellStyle(estiloCelda);
@@ -5720,12 +5718,12 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                     celda.setCellValue(registro.getContratoTParcial());
                     celda.setCellStyle(estiloCelda);
 
-                    //COLUMNA: Grupo cotizaci�n
+                    //COLUMNA: Grupo cotizaciï¿½n
                     celda = fila.createCell(15);
                     celda.setCellValue(registro.getGrupoCotizacion());
                     celda.setCellStyle(estiloCelda);
 
-                    //COLUMNA: Grupo Días alta
+                    //COLUMNA: Grupo DÃ­as alta
                     celda = fila.createCell(16);
                     celda.setCellValue(registro.getDiasAlta());
                     celda.setCellStyle(estiloCelda);
@@ -5799,7 +5797,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 //celda = fila.
 
                 //cabeceras
-                // Tipo documentación
+                // Tipo documentaciÃ³n
                 estiloCelda = libro.createCellStyle();
                 estiloCelda.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND);
                 estiloCelda.setFillForegroundColor(hssfColor.getIndex());
@@ -5859,7 +5857,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 celda.setCellValue(meLanbideInteropI18n.getMensaje(idioma, "label.vidalaboral.col4").toUpperCase());
                 celda.setCellStyle(estiloCelda);
 
-                // Número afiliación
+                // NÃºmero afiliaciÃ³n
                 estiloCelda = libro.createCellStyle();
                 estiloCelda.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND);
                 estiloCelda.setFillForegroundColor(hssfColor.getIndex());
@@ -5904,7 +5902,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 celda.setCellValue(meLanbideInteropI18n.getMensaje(idioma, "label.vidalaboral.col7").toUpperCase());
                 celda.setCellStyle(estiloCelda);
 
-                // Régimen empresa
+                // RÃ©gimen empresa
                 estiloCelda = libro.createCellStyle();
                 estiloCelda.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND);
                 estiloCelda.setFillForegroundColor(hssfColor.getIndex());
@@ -5919,7 +5917,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 celda.setCellValue(meLanbideInteropI18n.getMensaje(idioma, "label.vidalaboral.col8").toUpperCase());
                 celda.setCellStyle(estiloCelda);
 
-                // Código cuenta cotización
+                // CÃ³digo cuenta cotizaciÃ³n
                 estiloCelda = libro.createCellStyle();
                 estiloCelda.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND);
                 estiloCelda.setFillForegroundColor(hssfColor.getIndex());
@@ -6024,7 +6022,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 celda.setCellValue(meLanbideInteropI18n.getMensaje(idioma, "label.vidalaboral.col15").toUpperCase());
                 celda.setCellStyle(estiloCelda);
 
-                // Grupo cotización
+                // Grupo cotizaciÃ³n
                 estiloCelda = libro.createCellStyle();
                 estiloCelda.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND);
                 estiloCelda.setFillForegroundColor(hssfColor.getIndex());
@@ -6039,7 +6037,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 celda.setCellValue(meLanbideInteropI18n.getMensaje(idioma, "label.vidalaboral.col16").toUpperCase());
                 celda.setCellStyle(estiloCelda);
 
-                // Días alta
+                // DÃ­as alta
                 estiloCelda = libro.createCellStyle();
                 estiloCelda.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND);
                 estiloCelda.setFillForegroundColor(hssfColor.getIndex());
@@ -6059,188 +6057,131 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         }
     }
     // Fin tarea IKER - [40984] - Interoperabilidad - Consulta vida laboral desde la ficha de expediente
-
-    /**
-     * PRUEBA E2E — PASO 5 (Servidor): Punto de entrada del proceso CVL masivo.
-     * Recibe el POST de enviarPeticionCvlMasivoExcel, decodifica el Excel en base64,
-     * extrae los NIFs y lanza el procesamiento de cada uno contra el WS de Vida Laboral.
-     *
-     * <h3>Parámetros de entrada recibidos del request HTTP:</h3>
-     * <pre>
-     *   codOrganizacion   = 15           (tomado de sesión o del parámetro codOrganizacionModulo)
-     *   codTramite        = 120
-     *   ocurrenciaTramite = 1
-     *   numExpediente     = "EXP2024/000123"
-     *   fechaDesdeCVL     = "2023-01-01"
-     *   fechaHastaCVL     = "2023-12-31"
-     *   fkWSSolicitado    = "1"
-     *   listaDocsMasivo   = ""           (vacío -> se genera desde excelBase64)
-     *   excelBase64       = "UEsDBBQA..." (base64 del fichero prueba_cvl_masivo.xlsx)
-     *   usuario           = "TRAMITADOR01" (tomado de la sesión)
-     * </pre>
-     *
-     * <h3>Flujo interno:</h3>
-     * <ol>
-     *   <li>Resuelve codOrganizacion efectivo: 15</li>
-     *   <li>Como listaDocsMasivo está vacío, llama a convertirExcelBase64AListaDocs(excelBase64)
-     *       y obtiene: {@code "12345678A;NIF\nX1234567L;NIE\n87654321B;NIF"}</li>
-     *   <li>Abre conexión a BD de la organización 15.</li>
-     *   <li>Instancia InteropCvlMasivoCsvService y llama a procesarCsv(...).</li>
-     *   <li>Obtiene resumen: totalLeidos=3, Procesados=3, Correctos=2, Errores=1</li>
-     * </ol>
-     *
-     * <h3>XML de respuesta generado (numExpediente="EXP2024/000123" se usa tal cual al ser no vacío):</h3>
-     * <pre>
-     * &lt;RESPUESTA&gt;
-     *   &lt;CODIGO_OPERACION&gt;0&lt;/CODIGO_OPERACION&gt;
-     *   &lt;RESULTADO&gt;&lt;![CDATA[Expediente contexto=EXP2024/000123,
-     *     Leidos=3, Procesados=3, Correctos=2, Errores=1 |
-     *     Detalle errores: [Linea 3: 87654321B -&gt; ERR01 Persona no encontrada]]]&gt;&lt;/RESULTADO&gt;
-     * &lt;/RESPUESTA&gt;
-     * </pre>
-     * <p>
-     * Nota: si numExpediente fuera vacío o nulo, se generaría un número técnico automático
-     * con el formato {@code "CVL_MASIVO/YYYY/NNNNNN"} (p.ej. "CVL_MASIVO/2024/000042")
-     * consultando la secuencia configurada en BD.
-     * </p>
-     *
-     * <h3>Códigos de operación posibles:</h3>
-     * <ul>
-     *   <li>"0" -> Proceso completado (puede haber errores parciales en el detalle)</li>
-     *   <li>"2" -> Error técnico inesperado en la ejecución</li>
-     *   <li>"3" -> Error de validación (lista vacía, organización inválida, Excel ilegible)</li>
-     * </ul>
-     *
-     * @param codOrganizacion    Código de organización de contexto (puede ser 0 si viene en el request).
-     * @param codTramite         Código del trámite asociado al expediente.
-     * @param ocurrenciaTramite  Número de ocurrencia del trámite.
-     * @param numExpediente      Número de expediente de contexto (p.ej. "EXP2024/000123").
-     * @param request            HttpServletRequest con los parámetros del POST.
-     * @param response           HttpServletResponse donde se escribe el XML de respuesta.
-     */
-    public void ejecutarCvlMasivoDesdeTexto(int codOrganizacion, int codTramite, int ocurrenciaTramite,
-            String numExpediente, HttpServletRequest request, HttpServletResponse response) {
-        String codigoOperacion = "0";
-        String resultado = "";
-        java.sql.Connection con = null;
-        try {
-            final String DEFAULT_FK_WS_SOLICITADO_VIDA_LABORAL = "1";
-            int codOrganizacionEfectivo = codOrganizacion;
-            if (codOrganizacionEfectivo <= 0) {
-                final String codOrgRequest = request.getParameter("codOrganizacionModulo");
-                if (codOrgRequest != null && codOrgRequest.trim().length() > 0) {
-                    try {
-                        codOrganizacionEfectivo = Integer.parseInt(codOrgRequest.trim());
-                    } catch (Exception ex) {
-                        log.error("ejecutarCvlMasivoDesdeTexto - codOrganizacionModulo invalido: " + codOrgRequest, ex);
-                    }
-                }
-            }
-            String listaDocsMasivo = request.getParameter("listaDocsMasivo");
-            final String excelBase64 = request.getParameter("excelBase64");
-            final String fechaDesdeCVL = request.getParameter("fechaDesdeCVL");
-            final String fechaHastaCVL = request.getParameter("fechaHastaCVL");
-            String fkWSSolicitado = request.getParameter("fkWSSolicitado");
-            if (fkWSSolicitado == null || fkWSSolicitado.trim().length() == 0) {
-                fkWSSolicitado = DEFAULT_FK_WS_SOLICITADO_VIDA_LABORAL;
-            }
-
-            String usuario = "SISTEMA";
-            final UsuarioValueObject usuarioSesion = getUsarioLogueadoEnSession(request);
-            if (usuarioSesion != null) {
-                if (usuarioSesion.getNombreUsu() != null && usuarioSesion.getNombreUsu().trim().length() > 0) {
-                    usuario = usuarioSesion.getNombreUsu();
-                } else if (usuarioSesion.getIdUsuario() > 0) {
-                    usuario = String.valueOf(usuarioSesion.getIdUsuario());
-                }
-            }
-
-            log.info("ejecutarCvlMasivoDesdeTexto - Inicio"
-                    + " codOrganizacion=" + codOrganizacionEfectivo
-                    + ", numExpediente=" + numExpediente
-                    + ", fechaDesdeCVL=" + fechaDesdeCVL
-                    + ", fechaHastaCVL=" + fechaHastaCVL
-                    + ", fkWSSolicitado=" + fkWSSolicitado
-                    + ", usuario=" + usuario);
-
-            if ((listaDocsMasivo == null || listaDocsMasivo.trim().length() == 0)
-                    && excelBase64 != null && excelBase64.trim().length() > 0) {
+ 
+  public void ejecutarCvlMasivoDesdeTexto(int codOrganizacion, int codTramite, int ocurrenciaTramite,
+        String numExpediente, HttpServletRequest request, HttpServletResponse response) {
+    String codigoOperacion = "0";
+    String resultado = "";
+    java.sql.Connection con = null;
+    try {
+        final String DEFAULT_FK_WS_SOLICITADO_VIDA_LABORAL = "1";
+        int codOrganizacionEfectivo = codOrganizacion;
+        if (codOrganizacionEfectivo < 0) {
+            final String codOrgRequest = request.getParameter("codOrganizacionModulo");
+            if (codOrgRequest != null && codOrgRequest.trim().length() > 0) {
                 try {
-                    listaDocsMasivo = convertirExcelBase64AListaDocs(excelBase64);
+                    codOrganizacionEfectivo = Integer.parseInt(codOrgRequest.trim());
                 } catch (Exception ex) {
-                    codigoOperacion = "3";
-                    resultado = "No se pudo leer el Excel recibido. Revise el formato y contenido del fichero.";
-                    log.error("ejecutarCvlMasivoDesdeTexto - Error parseando excelBase64", ex);
-                }
-            }
-
-            if (codOrganizacionEfectivo <= 0) {
-                codigoOperacion = "3";
-                resultado = "No se ha podido determinar la organización de ejecución.";
-                log.error("ejecutarCvlMasivoDesdeTexto - codOrganizacion no valido: " + codOrganizacionEfectivo);
-            } else if (listaDocsMasivo == null || listaDocsMasivo.trim().length() == 0) {
-                codigoOperacion = "3";
-                resultado = "Debe indicar una lista de NIF/NIE para procesar.";
-                log.info("ejecutarCvlMasivoDesdeTexto - Lista vacia");
-            } else {
-                final AdaptadorSQLBD adapt = this.getAdaptSQLBD(String.valueOf(codOrganizacionEfectivo));
-                con = adapt.getConnection();
-
-                final es.altia.flexia.integracion.moduloexterno.melanbide_interop.services.InteropCvlMasivoCsvService servicio
-                        = new es.altia.flexia.integracion.moduloexterno.melanbide_interop.services.InteropCvlMasivoCsvService();
-
-                final es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.InteropCvlMasivoResultadoVO resumen
-                        = servicio.procesarCsv(
-                                new java.io.StringReader(listaDocsMasivo),
-                                fechaDesdeCVL, fechaHastaCVL, codOrganizacionEfectivo,
-                                codTramite, ocurrenciaTramite,
-                                numExpediente, fkWSSolicitado, usuario, con);
-
-                resultado = "Expediente contexto=" + resumen.getNumExpedienteContexto()
-                        + ", Leidos=" + resumen.getTotalLeidos()
-                        + ", Procesados=" + resumen.getTotalProcesados()
-                        + ", Correctos=" + resumen.getTotalCorrectos()
-                        + ", Errores=" + resumen.getTotalErrores();
-
-                if (!resumen.getErrores().isEmpty()) {
-                    resultado = resultado + " | Detalle errores: " + resumen.getErrores().toString();
-                }
-
-                log.info("ejecutarCvlMasivoDesdeTexto - Fin OK: " + resultado);
-            }
-        } catch (Exception ex) {
-            codigoOperacion = "2";
-            resultado = "Error ejecutando proceso masivo CVL: " + ex.getMessage();
-            log.error("Error en ejecutarCvlMasivoDesdeTexto", ex);
-        } finally {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (Exception e) {
-                    log.error("Error cerrando conexion ejecutarCvlMasivoDesdeTexto", e);
+                    log.error("ejecutarCvlMasivoDesdeTexto - codOrganizacionModulo invalido: " + codOrgRequest, ex);
                 }
             }
         }
 
-        final StringBuffer xmlSalida = new StringBuffer();
-        xmlSalida.append("<RESPUESTA>");
-        xmlSalida.append("<CODIGO_OPERACION>").append(codigoOperacion).append("</CODIGO_OPERACION>");
-        xmlSalida.append("<RESULTADO><![CDATA[")
-                .append(resultado != null ? resultado : "")
-                .append("]]></RESULTADO>");
-        xmlSalida.append("</RESPUESTA>");
+        String listaDocsMasivo = request.getParameter("listaDocsMasivo");
+        final String excelBase64 = request.getParameter("excelBase64");
+        final String fechaDesdeCVL = request.getParameter("fechaDesdeCVL");
+        final String fechaHastaCVL = request.getParameter("fechaHastaCVL");
+        String fkWSSolicitado = request.getParameter("fkWSSolicitado");
+        if (fkWSSolicitado == null || fkWSSolicitado.trim().length() == 0) {
+            fkWSSolicitado = DEFAULT_FK_WS_SOLICITADO_VIDA_LABORAL;
+        }
 
-        try {
-            response.setContentType("text/xml");
-            response.setCharacterEncoding("UTF-8");
-            final PrintWriter out = response.getWriter();
-            out.print(xmlSalida.toString());
-            out.flush();
-            out.close();
-        } catch (Exception e) {
-            log.error("Error preparando response ejecutarCvlMasivoDesdeTexto", e);
+        String usuario = "SISTEMA";
+        final UsuarioValueObject usuarioSesion = getUsarioLogueadoEnSession(request);
+        if (usuarioSesion != null) {
+            if (usuarioSesion.getNombreUsu() != null && usuarioSesion.getNombreUsu().trim().length() > 0) {
+                usuario = usuarioSesion.getNombreUsu();
+            } else if (usuarioSesion.getIdUsuario() > 0) {
+                usuario = String.valueOf(usuarioSesion.getIdUsuario());
+            }
+        }
+
+        log.info("ejecutarCvlMasivoDesdeTexto - Inicio"
+                + " codOrganizacion=" + codOrganizacionEfectivo
+                + ", numExpediente=" + numExpediente
+                + ", fechaDesdeCVL=" + fechaDesdeCVL
+                + ", fechaHastaCVL=" + fechaHastaCVL
+                + ", fkWSSolicitado=" + fkWSSolicitado
+                + ", usuario=" + usuario);
+
+        if ((listaDocsMasivo == null || listaDocsMasivo.trim().length() == 0)
+                && excelBase64 != null && excelBase64.trim().length() > 0) {
+            try {
+                listaDocsMasivo = convertirExcelBase64AListaDocs(excelBase64);
+            } catch (Exception ex) {
+                codigoOperacion = "3";
+                resultado = "No se pudo leer el Excel recibido. Revise el formato y contenido del fichero.";
+                log.error("ejecutarCvlMasivoDesdeTexto - Error parseando excelBase64", ex);
+            }
+        }
+
+        if (codOrganizacionEfectivo < 0) {
+            codigoOperacion = "3";
+            resultado = "No se ha podido determinar la organización de ejecución.";
+            log.error("ejecutarCvlMasivoDesdeTexto - codOrganizacion no valido: " + codOrganizacionEfectivo);
+        } else if (listaDocsMasivo == null || listaDocsMasivo.trim().length() == 0) {
+            codigoOperacion = "3";
+            resultado = "Debe indicar una lista de NIF/NIE para procesar.";
+            log.info("ejecutarCvlMasivoDesdeTexto - Lista vacia");
+        } else {
+            final AdaptadorSQLBD adapt = this.getAdaptSQLBD(String.valueOf(codOrganizacionEfectivo));
+            con = adapt.getConnection();
+
+            final es.altia.flexia.integracion.moduloexterno.melanbide_interop.services.InteropCvlMasivoCsvService servicio
+                    = new es.altia.flexia.integracion.moduloexterno.melanbide_interop.services.InteropCvlMasivoCsvService();
+
+            final es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.InteropCvlMasivoResultadoVO resumen
+                    = servicio.procesarCsv(
+                            new java.io.StringReader(listaDocsMasivo),
+                            fechaDesdeCVL, fechaHastaCVL, codOrganizacionEfectivo,
+                            codTramite, ocurrenciaTramite,
+                            numExpediente, fkWSSolicitado, usuario, con);
+
+            resultado = "Expediente contexto=" + resumen.getNumExpedienteContexto()
+                    + ", Leidos=" + resumen.getTotalLeidos()
+                    + ", Procesados=" + resumen.getTotalProcesados()
+                    + ", Correctos=" + resumen.getTotalCorrectos()
+                    + ", Errores=" + resumen.getTotalErrores();
+
+            if (!resumen.getErrores().isEmpty()) {
+                resultado = resultado + " | Detalle errores: " + resumen.getErrores().toString();
+            }
+
+            log.info("ejecutarCvlMasivoDesdeTexto - Fin OK: " + resultado);
+        }
+    } catch (Exception ex) {
+        codigoOperacion = "2";
+        resultado = "Error ejecutando proceso masivo CVL: " + ex.getMessage();
+        log.error("Error en ejecutarCvlMasivoDesdeTexto", ex);
+    } finally {
+        if (con != null) {
+            try {
+                con.close();
+            } catch (Exception e) {
+                log.error("Error cerrando conexion ejecutarCvlMasivoDesdeTexto", e);
+            }
         }
     }
+
+    final StringBuffer xmlSalida = new StringBuffer();
+    xmlSalida.append("<RESPUESTA>");
+    xmlSalida.append("<CODIGO_OPERACION>").append(codigoOperacion).append("</CODIGO_OPERACION>");
+    xmlSalida.append("<RESULTADO><![CDATA[")
+            .append(resultado != null ? resultado : "")
+            .append("]]></RESULTADO>");
+    xmlSalida.append("</RESPUESTA>");
+
+    try {
+        response.setContentType("text/xml");
+        response.setCharacterEncoding("UTF-8");
+        final PrintWriter out = response.getWriter();
+        out.print(xmlSalida.toString());
+        out.flush();
+        out.close();
+    } catch (Exception e) {
+        log.error("Error preparando response ejecutarCvlMasivoDesdeTexto", e);
+    }
+}
 
     public void consultarCvlMasivoPorFechas(int codOrganizacion, int codTramite, int ocurrenciaTramite,
             String numExpediente, HttpServletRequest request, HttpServletResponse response) {
@@ -6366,44 +6307,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         return null;
     }
 
-    /**
-     * PRUEBA E2E — PASO 6 (Servidor): Convierte un fichero Excel en base64 a una lista CSV de documentos.
-     *
-     * <h3>Entrada:</h3>
-     * <pre>
-     *   excelBase64 = "UEsDBBQA..."  (base64 del fichero prueba_cvl_masivo.xlsx)
-     * </pre>
-     *
-     * <h3>Contenido del Excel (primera hoja):</h3>
-     * <pre>
-     *   Columna A (índice 0) | Columna B (índice 1)
-     *   ---------------------|--------------------
-     *   TIPO_DOC             | DOCUMENTO          <- fila cabecera -> se descarta
-     *   NIF                  | 12345678A
-     *   NIE                  | X1234567L
-     *   NIF                  | 87654321B
-     * </pre>
-     *
-     * <h3>Procesamiento fila a fila:</h3>
-     * <ul>
-     *   <li>Fila 0: valor0="TIPO_DOC", valor1="DOCUMENTO" -> esCabeceraFilaDocumento=true -> se salta</li>
-     *   <li>Fila 1: valor0="NIF"(esTipoDocumento=true), valor1="12345678A"(esTipoDocumento=false)
-     *       -> documento="12345678A", tipoDocumento="NIF" -> añade "12345678A;NIF"</li>
-     *   <li>Fila 2: valor0="NIE"(esTipoDocumento=true), valor1="X1234567L"(esTipoDocumento=false)
-     *       -> documento="X1234567L", tipoDocumento="NIE" -> añade "X1234567L;NIE"</li>
-     *   <li>Fila 3: valor0="NIF"(esTipoDocumento=true), valor1="87654321B"(esTipoDocumento=false)
-     *       -> documento="87654321B", tipoDocumento="NIF" -> añade "87654321B;NIF"</li>
-     * </ul>
-     *
-     * <h3>Salida:</h3>
-     * <pre>
-     *   "12345678A;NIF\nX1234567L;NIE\n87654321B;NIF"
-     * </pre>
-     *
-     * @param excelBase64 Contenido del fichero Excel (.xls / .xlsx) codificado en base64.
-     * @return String con las líneas "DOCUMENTO;TIPO_DOC" separadas por saltos de línea.
-     * @throws Exception Si el base64 no es válido o el fichero no es un Excel reconocible.
-     */
+   
     private String convertirExcelBase64AListaDocs(final String excelBase64) throws Exception {
         Workbook workbook = null;
         InputStream inputStream = null;
@@ -6540,5 +6444,5 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
             }
         }
         return false;
-    }
+}
 }
