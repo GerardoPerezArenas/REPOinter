@@ -9,6 +9,9 @@ NOMBRE_MODULO = MELANBIDE_INTEROP
 0/MODULO_INTEGRACION/MELANBIDE_INTEROP/DESCRIPCION_MODULO = M\u00f3dulo Interoperabilidad - Acceso al WebService de Verificacion de datos
 1/MODULO_INTEGRACION/MELANBIDE_INTEROP/DESCRIPCION_MODULO = M\u00f3dulo Interoperabilidad - Acceso al WebService de Verificacion de datos
 
+##################### GESTION INTEROPERABILIDAD #####################
+URL_GESTION_INTEROPERABILIDAD_CVL_MASIVO = /PeticionModuloIntegracion.do?tarea=preparar&modulo=MELANBIDE_INTEROP&operacion=cargarPantallaPrincipalCvlMasivo&tipo=0
+
 
 
 ########################################################################################
