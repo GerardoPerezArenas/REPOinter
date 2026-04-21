@@ -4358,6 +4358,28 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         return respuestaServicio;
     }
 
+    public String cargarPantallaPrincipalCvlMasivo(int codOrganizacion, int codTramite, int ocurrenciaTramite, String numExpediente, HttpServletRequest request, HttpServletResponse response) {
+        log.info("cargarPantallaPrincipalCvlMasivo - Begin()" + new Date().toString());
+        String respuestaServicio = "/jsp/extension/melanbide_interop/cvlMasivo.jsp";
+        int idiomaUsuario = 1;
+        try {
+            if (request.getParameter("idioma") != null && !request.getParameter("idioma").isEmpty()) {
+                try {
+                    idiomaUsuario = Integer.parseInt(request.getParameter("idioma"));
+                } catch (Exception ex) {
+                    log.error("Error al parsear request.getParameter(idioma) a Entero. Asignamos idioma por defecto 1 Castellano.", ex);
+                }
+            }
+            request.setAttribute("idiomaUsuario", Integer.valueOf(idiomaUsuario));
+            request.setAttribute("codOrganizacionModulo", String.valueOf(codOrganizacion));
+        } catch (Exception ex) {
+            log.error("Se ha producido un error a cargar la pantalla principal CVL masivo " + numExpediente, ex);
+            request.setAttribute("mensajeInicial", "Se ha presentado un error al cargar la pantalla de CVL masivo ...Contacte con el ADMIN para mas detalles. " + ex.getMessage());
+        }
+        log.info("cargarPantallaPrincipalCvlMasivo - End()" + new Date().toString() + " " + respuestaServicio);
+        return respuestaServicio;
+    }
+
     public String cargarPantallaLogServiciosNISAE(int codOrganizacion, int codTramite, int ocurrenciaTramite, String numExpediente, HttpServletRequest request, HttpServletResponse response) {
         log.info("cargarPantallaLogServiciosNISAE - Begin()" + new Date().toString());
         String respuestaServicio = "/jsp/extension/melanbide_interop/nisae/resultadoNisaeService.jsp";
