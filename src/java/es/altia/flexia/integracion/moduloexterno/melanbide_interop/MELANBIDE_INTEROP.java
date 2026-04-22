@@ -6103,6 +6103,8 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         final String excelBase64 = request.getParameter("excelBase64");
         final String fechaDesdeCVL = request.getParameter("fechaDesdeCVL");
         final String fechaHastaCVL = request.getParameter("fechaHastaCVL");
+        String fechaDesdeCVLNormalizada = fechaDesdeCVL;
+        String fechaHastaCVLNormalizada = fechaHastaCVL;
         String fkWSSolicitado = request.getParameter("fkWSSolicitado");
         if (fkWSSolicitado == null || fkWSSolicitado.trim().length() == 0) {
             fkWSSolicitado = DEFAULT_FK_WS_SOLICITADO_VIDA_LABORAL;
@@ -6141,11 +6143,26 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
             codigoOperacion = "3";
             resultado = "No se ha podido determinar la organización de ejecución.";
             log.error("ejecutarCvlMasivoDesdeTexto - codOrganizacion no valido: " + codOrganizacionEfectivo);
+        } else if (fechaDesdeCVL == null || fechaDesdeCVL.trim().length() == 0
+                || fechaHastaCVL == null || fechaHastaCVL.trim().length() == 0) {
+            codigoOperacion = "3";
+            resultado = "Debe indicar fechaDesdeCVL y fechaHastaCVL en formato dd/MM/yyyy.";
         } else if (listaDocsMasivo == null || listaDocsMasivo.trim().length() == 0) {
             codigoOperacion = "3";
             resultado = "Debe indicar una lista de NIF/NIE para procesar.";
             log.info("ejecutarCvlMasivoDesdeTexto - Lista vacia");
         } else {
+            try {
+                final String[] fechasNormalizadas = validarYNormalizarFechasCvlMasivo(fechaDesdeCVL, fechaHastaCVL);
+                fechaDesdeCVLNormalizada = fechasNormalizadas[0];
+                fechaHastaCVLNormalizada = fechasNormalizadas[1];
+            } catch (IllegalArgumentException ex) {
+                codigoOperacion = "3";
+                resultado = "Parámetros de fechas inválidos para CVL masivo. Use dd/MM/yyyy y un rango máximo de 5 años.";
+            }
+        }
+
+        if ("0".equals(codigoOperacion)) {
             final AdaptadorSQLBD adapt = this.getAdaptSQLBD(String.valueOf(codOrganizacionEfectivo));
             con = adapt.getConnection();
 
@@ -6155,7 +6172,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
             final es.altia.flexia.integracion.moduloexterno.melanbide_interop.vo.InteropCvlMasivoResultadoVO resumen
                     = servicio.procesarCsv(
                             new java.io.StringReader(listaDocsMasivo),
-                            fechaDesdeCVL, fechaHastaCVL, codOrganizacionEfectivo,
+                            fechaDesdeCVLNormalizada, fechaHastaCVLNormalizada, codOrganizacionEfectivo,
                             codTramite, ocurrenciaTramite,
                             numExpediente, fkWSSolicitado, usuario, con);
 
@@ -6173,7 +6190,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         }
     } catch (Exception ex) {
         codigoOperacion = "2";
-        resultado = "Error ejecutando proceso masivo CVL: " + ex.getMessage();
+        resultado = "Error ejecutando proceso masivo CVL.";
         log.error("Error en ejecutarCvlMasivoDesdeTexto", ex);
     } finally {
         if (con != null) {
@@ -6327,6 +6344,34 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
             }
         }
         return null;
+    }
+
+    private String[] validarYNormalizarFechasCvlMasivo(final String fechaDesdeCVL, final String fechaHastaCVL) {
+        try {
+            final java.util.Date fechaDesde = es.altia.flexia.integracion.moduloexterno.melanbide_interop.services.CvlMasivoFechaUtils
+                    .parsearFechaEstricto(fechaDesdeCVL);
+            final java.util.Date fechaHasta = es.altia.flexia.integracion.moduloexterno.melanbide_interop.services.CvlMasivoFechaUtils
+                    .parsearFechaEstricto(fechaHastaCVL);
+
+            if (fechaHasta.before(fechaDesde)) {
+                throw new IllegalArgumentException("La fechaHastaCVL no puede ser menor que fechaDesdeCVL.");
+            }
+            if (!es.altia.flexia.integracion.moduloexterno.melanbide_interop.services.CvlMasivoFechaUtils
+                    .estaDentroMaximoAnios(fechaDesde, fechaHasta, 5)) {
+                throw new IllegalArgumentException("El rango fechaDesdeCVL-fechaHastaCVL no puede superar 5 años.");
+            }
+
+            return new String[]{
+                es.altia.flexia.integracion.moduloexterno.melanbide_interop.services.CvlMasivoFechaUtils
+                .formatearFechaWs(fechaDesde),
+                es.altia.flexia.integracion.moduloexterno.melanbide_interop.services.CvlMasivoFechaUtils
+                .formatearFechaWs(fechaHasta)
+            };
+        } catch (IllegalArgumentException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Formato de fecha inválido. Use dd/MM/yyyy.");
+        }
     }
 
    
