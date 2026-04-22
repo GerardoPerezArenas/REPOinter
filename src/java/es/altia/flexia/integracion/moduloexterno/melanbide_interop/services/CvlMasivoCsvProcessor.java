@@ -70,7 +70,7 @@ public class CvlMasivoCsvProcessor {
             int numLinea = 0;
             while ((linea = br.readLine()) != null) {
                 numLinea++;
-                if (linea == null || linea.trim().length() == 0) {
+                if (linea.trim().length() == 0) {
                     continue;
                 }
                 if (numLinea == 1 && esCabeceraCsv(linea)) {
@@ -263,7 +263,7 @@ public class CvlMasivoCsvProcessor {
         if (documento == null) {
             return "";
         }
-        return documento.replaceAll("\\s+", "").trim().toUpperCase();
+        return documento.replaceAll("\\s+", "").toUpperCase();
     }
 
     private String normalizarTipoDocumento(final String tipoDoc) {

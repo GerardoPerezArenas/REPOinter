@@ -6158,7 +6158,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
                 fechaHastaCVLNormalizada = fechasNormalizadas[1];
             } catch (IllegalArgumentException ex) {
                 codigoOperacion = "3";
-                resultado = ex.getMessage();
+                resultado = "Parámetros de fechas inválidos para CVL masivo. Use dd/MM/yyyy y un rango máximo de 5 años.";
             }
         }
 
@@ -6190,7 +6190,7 @@ public class MELANBIDE_INTEROP extends ModuloIntegracionExterno {
         }
     } catch (Exception ex) {
         codigoOperacion = "2";
-        resultado = "Error ejecutando proceso masivo CVL: " + ex.getMessage();
+        resultado = "Error ejecutando proceso masivo CVL.";
         log.error("Error en ejecutarCvlMasivoDesdeTexto", ex);
     } finally {
         if (con != null) {
